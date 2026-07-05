@@ -13,6 +13,8 @@ import PaddleSuccessWaiting from "./_components/PaddleSuccessWaiting";
 
 export const dynamic = 'force-dynamic';
 
+
+
 export default async function DashboardLayout({
     children,
     searchParams,
@@ -32,7 +34,8 @@ export default async function DashboardLayout({
 
     const isAIActive = isActiveBusiness && Number(business?.total_minutes_used || 0) < Number(business?.minutes_limit || 200);
 
-    // 🚨 RACE CONDITION FIX: Check URL for ?paddle=success
+
+    // RACE CONDITION FIX: Check URL for ?paddle=success
     const isPaddleSuccess = searchParams?.paddle === 'success';
 
     return (
