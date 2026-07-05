@@ -45,35 +45,40 @@ export async function POST(request: Request) {
     }
 
 
-    // 2. Register the call with Retell, injecting dynamic metadata!
-    const callResponse = await retellClient.call.createPhoneCall({
-      agent_id: process.env.RETELL_AGENT_ID!, 
-      metadata: {
-        business_name: business.business_name,
-        business_type: business.business_type,
-        service_area: business.service_area,
-        owner_phone: business.owner_phone, // CRITICAL: The AI needs this to pass to the transfer function
-        business_id: business.business_id,
-        customer_phone: callerNumber,
-        knowledge_base: business.knowledge_base_text || "",
-        greeting: business.greeting_text || "",
-        greeting_tone: business.greeting_tone || "friendly",
-        routing_rules: JSON.stringify(business.routing_rules || {}),
-        call_source: twilioNumber,
-        
-        // NEW: Added so the AI knows what a dynamic emergency means for this company
-        emergency_definition: business.emergency_definition || "a life-threatening situation or severe property damage"
-      },
+    // Helper to safely escape XML so business names with '&' or '<' don't break the TwiML
+    const escapeXml = (unsafe: string) => String(unsafe || "").replace(/[<>&'"]/g, (c) => {
+      switch (c) {
+        case '<': return '&lt;';
+        case '>': return '&gt;';
+        case '&': return '&amp;';
+        case '\'': return '&apos;';
+        case '"': return '&quot;';
+        default: return c;
+      }
     });
 
-    console.log(`Retell Call created: ${callResponse.call_id} for ${business.business_name}`);
-
+    // Inject dynamic metadata natively via TwiML <Parameter> tags!
+    // This is the Retell V2 way to pass variables for inbound Twilio calls without needing createPhoneCall()
     const twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
       <Response>
         <Connect>
           <Application>${process.env.TWILIO_VOICE_APP_SID}</Application>
+          <Parameter name="business_name"><Value>${escapeXml(business.business_name)}</Value></Parameter>
+          <Parameter name="business_type"><Value>${escapeXml(business.business_type)}</Value></Parameter>
+          <Parameter name="service_area"><Value>${escapeXml(business.service_area)}</Value></Parameter>
+          <Parameter name="owner_phone"><Value>${escapeXml(business.owner_phone)}</Value></Parameter>
+          <Parameter name="business_id"><Value>${escapeXml(business.business_id)}</Value></Parameter>
+          <Parameter name="customer_phone"><Value>${escapeXml(callerNumber)}</Value></Parameter>
+          <Parameter name="knowledge_base"><Value>${escapeXml(business.knowledge_base_text || "")}</Value></Parameter>
+          <Parameter name="greeting"><Value>${escapeXml(business.greeting_text || "")}</Value></Parameter>
+          <Parameter name="greeting_tone"><Value>${escapeXml(business.greeting_tone || "friendly")}</Value></Parameter>
+          <Parameter name="routing_rules"><Value>${escapeXml(JSON.stringify(business.routing_rules || {}))}</Value></Parameter>
+          <Parameter name="call_source"><Value>${escapeXml(twilioNumber)}</Value></Parameter>
+          <Parameter name="emergency_definition"><Value>${escapeXml(business.emergency_definition || "a life-threatening situation or severe property damage")}</Value></Parameter>
         </Connect>
       </Response>`;
+
+    console.log(`Inbound call connecting for ${business.business_name} via TwiML Parameters`);
 
     return new NextResponse(twimlResponse, {
       headers: { 'Content-Type': 'text/xml' },

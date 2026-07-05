@@ -18,7 +18,7 @@ export async function POST(request: Request) {
       .digest('hex');
 
     if (retellSignature !== expectedSignature) {
-      console.error("🚨 Invalid Retell Signature");
+      console.error("Invalid Retell Signature");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

@@ -1,7 +1,26 @@
+// {
+//   "build": {
+//     "env": {
+//       "NODE_OPTIONS": "--max_old_space_size=4096"
+//     }
+//   }
+// }
+
+
+
 {
-  "build": {
-    "env": {
-      "NODE_OPTIONS": "--max_old_space_size=4096"
+  "crons": [
+    {
+      "path": "/api/cron/cleanup-cancelled",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/appointment-reminders",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/sync-reviews",
+      "schedule": "0 */3 * * *"
     }
-  }
+  ]
 }

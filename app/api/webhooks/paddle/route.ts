@@ -69,7 +69,35 @@ export async function POST(request: Request) {
         
         let twilioSubAccountSid = "PROVISIONING_FAILED";
         let twilioPhoneNumber = "PROVISIONING_FAILED";
-/* 
+
+        try {
+          const subAccount = await twilioClient.api.accounts.create({ friendlyName: businessName });
+
+          // Explicitly search for a number that supports BOTH Voice and SMS
+          const availableNumbers = await twilioClient.availablePhoneNumbers('US').local.list({ 
+            limit: 1, 
+            capabilities: { sms: true, voice: true } 
+          });
+          
+          if (availableNumbers.length === 0) throw new Error("No available Twilio numbers with Voice+SMS");
+          
+          // Purchase the number UNDER the new Sub-Account
+          const purchasedNumber = await twilioClient.api.accounts(subAccount.sid).incomingPhoneNumbers.create({
+            phoneNumber: availableNumbers[0].phoneNumber,
+            friendlyName: `${businessName} nextCall Line`,
+            voiceUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/twilio/inbound`,
+            voiceMethod: 'POST',
+            smsUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/twilio/whatsapp-inbound`,
+            smsMethod: 'POST'
+          });
+
+          twilioSubAccountSid = subAccount.sid;
+          twilioPhoneNumber = purchasedNumber.phoneNumber;
+        } catch (twilioError) {
+          console.error("TWILIO ERROR (Marking user active anyway):", twilioError);
+        }
+
+        
         try {
           const subAccount = await twilioClient.api.accounts.create({ friendlyName: businessName });
 

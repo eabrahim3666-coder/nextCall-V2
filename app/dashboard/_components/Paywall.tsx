@@ -15,7 +15,7 @@ export default function Paywall() {
             const Paddle = (window as any).Paddle;
             if (Paddle) {
                 Paddle.Initialize({ token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN });
-                console.log("✅ Paddle initialized:", Paddle);
+                console.log("Paddle initialized:", Paddle);
             }
         };
         document.body.appendChild(script);

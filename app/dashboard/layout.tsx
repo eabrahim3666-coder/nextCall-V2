@@ -9,14 +9,16 @@ import Paywall from "./_components/Paywall";
 import AIStatusPill from "./_components/AIStatusPill";
 import NavLinks from "./_components/NavLinks";
 import OnboardingFlow from "./_components/OnboardingFlow";
-import { cookies } from "next/headers";
+import PaddleSuccessWaiting from "./_components/PaddleSuccessWaiting";
 
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardLayout({
     children,
+    searchParams,
 }: {
     children: React.ReactNode;
+    searchParams?: { [key: string]: string | string[] | undefined };
 }) {
     const { userId } = await auth();
     if (!userId) redirect("/");
@@ -28,12 +30,10 @@ export default async function DashboardLayout({
     const business = allBusinesses.find(b => String(b.business_id) === userId);
     const isActiveBusiness = business && business.status === "active";
 
-
     const isAIActive = isActiveBusiness && Number(business?.total_minutes_used || 0) < Number(business?.minutes_limit || 200);
 
-    // 🚨 RACE CONDITION FIX: Check if user just returned from Paddle
-    const cookieStore = await cookies();
-    const isPaddleRedirect = cookieStore.get('paddle_redirect')?.value === 'true';
+    // 🚨 RACE CONDITION FIX: Check URL for ?paddle=success
+    const isPaddleSuccess = searchParams?.paddle === 'success';
 
     return (
         <div className="min-h-screen bg-[#050505] grain">
@@ -57,13 +57,8 @@ export default async function DashboardLayout({
 
             <main className="p-6 pb-0 min-h-[calc(100vh-56px)] flex flex-col">
                 <div className="flex-1">
-                    {isActiveBusiness ? children : isPaddleRedirect ? (
-                        <div className="min-h-[80vh] flex flex-col items-center justify-center text-center px-4">
-                            <meta httpEquiv="refresh" content="3" />
-                            <div className="w-16 h-16 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-6"></div>
-                            <h2 className="text-2xl font-semibold text-white tracking-tight mb-2">Preparing your AI...</h2>
-                            <p className="text-sm text-neutral-400 max-w-sm">We are finalizing your subscription. Please wait a moment...</p>
-                        </div>
+                    {isActiveBusiness ? children : isPaddleSuccess ? (
+                        <PaddleSuccessWaiting />
                     ) : business ? <Paywall /> : <OnboardingFlow />}
                 </div>
 

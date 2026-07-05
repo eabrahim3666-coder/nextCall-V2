@@ -10,6 +10,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks/(.*)", // Retell, Stripe, and Twilio webhooks must be public!
   "/api/cron/(.*)",     // Cron jobs need to be public so Vercel/curl can trigger them!
   "/api/test/(.*)",     // Test routes
+  "/api/reviews/(.*)",  // n8n & Google hit these routes without auth cookies!
 ]);
 
 // 2. Define admin routes (Matches both /admin and /admin/anything)

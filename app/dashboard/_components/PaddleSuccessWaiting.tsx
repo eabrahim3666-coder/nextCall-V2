@@ -1,4 +1,3 @@
-// app/dashboard/_components/PaddleSuccessWaiting.tsx
 "use client";
 
 import { useEffect } from "react";
@@ -8,7 +7,6 @@ export default function PaddleSuccessWaiting() {
     const router = useRouter();
 
     useEffect(() => {
-        // প্রতি ২ সেকেন্ড পর পর ব্যাকগ্রাউন্ডে পেজ রিফ্রেশ হবে (কোনো ফ্ল্যাশ বা রিলোড ছাড়াই)
         const interval = setInterval(() => {
             router.refresh();
         }, 2000);

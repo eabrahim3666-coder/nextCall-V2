@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import twilioClient from '@/lib/twilio';
-import { callsCollection } from '@/lib/astra';
+import { callsCollection, businessesCollection} from '@/lib/astra';
 
 export async function POST(request: Request) {
   try {
@@ -12,10 +12,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Call not found" }, { status: 404 });
     }
 
-    // 2. Send the "Job Done" WhatsApp message to the business owner
+    // 2. Fetch business to get the owner's real phone number
+    const business = await businessesCollection.findOne({ business_id: call.business_id });
+    if (!business || !business.owner_phone) {
+      return NextResponse.json({ error: "Business or owner phone not found" }, { status: 404 });
+    }
+
+    // 3. Send the "Job Done" WhatsApp message to the business owner
     await twilioClient.messages.create({
       from: `whatsapp:${process.env.TWILIO_PHONE_NUMBER}`,
-      to: `whatsapp:${call.business_id}`, // Assuming business_id stores the owner phone for now, or fetch from businesses collection
+      to: `whatsapp:${business.owner_phone}`, 
       body: `Job with ${call.customer_phone} is marked as DONE.\n\nDid the customer have a good experience?\nReply 1 for YES (Send Review Link)\nReply 2 for NO`
     });
 
