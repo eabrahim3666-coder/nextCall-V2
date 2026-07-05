@@ -36,7 +36,8 @@ export default async function DashboardLayout({
 
 
     // RACE CONDITION FIX: Check URL for ?paddle=success
-    const isPaddleSuccess = searchParams?.paddle === 'success';
+    // 🚨 RACE CONDITION FIX: Check URL for ?paddle=success OR ?ptxn (Paddle's default redirect)
+    const isPaddleSuccess = searchParams?.paddle === 'success' || searchParams?.ptxn !== undefined;
 
     return (
         <div className="min-h-screen bg-[#050505] grain">

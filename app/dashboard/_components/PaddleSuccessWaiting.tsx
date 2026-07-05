@@ -8,13 +8,12 @@ export default function PaddleSuccessWaiting() {
 
     useEffect(() => {
         const interval = setInterval(() => {
-            // Delete the cookie so it doesn't loop forever after activation
-            document.cookie = "paddle_redirect=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-            router.refresh();
-        }, 2000);
+            // Force a hard browser reload to re-run the server layout and fetch the latest DB state
+            window.location.reload();
+        }, 3000);
 
         return () => clearInterval(interval);
-    }, [router]);
+    }, []);
 
     return (
         <div className="min-h-[80vh] flex flex-col items-center justify-center text-center px-4">
