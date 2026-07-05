@@ -120,7 +120,7 @@ export async function POST(request: Request) {
         } catch (twilioError) {
           console.error("TWILIO ERROR (Marking user active anyway):", twilioError);
         }
-*/
+
         const planType = customData.plan || 'standard';
 
         let minutesLimit;
