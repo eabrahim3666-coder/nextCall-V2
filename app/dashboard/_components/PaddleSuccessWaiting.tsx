@@ -1,15 +1,21 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 export default function PaddleSuccessWaiting() {
-    const router = useRouter();
-
     useEffect(() => {
-        const interval = setInterval(() => {
-            // Force a hard browser reload to re-run the server layout and fetch the latest DB state
-            window.location.reload();
+        const interval = setInterval(async () => {
+            try {
+                const res = await fetch("/api/business/status");
+                const data = await res.json();
+                if (data.status === "active") {
+                    clearInterval(interval);
+                    // Clean redirect — strips ?paddle=success from URL so this screen never re-triggers
+                    window.location.href = "/dashboard";
+                }
+            } catch {
+                // Network hiccup — keep polling silently
+            }
         }, 3000);
 
         return () => clearInterval(interval);
