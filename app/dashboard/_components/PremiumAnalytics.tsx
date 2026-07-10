@@ -24,6 +24,7 @@ type Props = {
     calls: Call[];
     businessName: string;
     businessType: string;
+    avgJobValue?: number; // User-defined actual value from Settings; falls back to type-based estimate
 };
 
 const CHART_STYLES = {
@@ -43,8 +44,11 @@ const AVG_JOB_VALUE: Record<string, number> = {
     Restaurant: 50, "General Contractor": 500, default: 300,
 };
 
-export default function PremiumAnalytics({ calls, businessName, businessType }: Props) {
-    const avgJobValue = AVG_JOB_VALUE[businessType] || AVG_JOB_VALUE.default;
+export default function PremiumAnalytics({ calls, businessName, businessType, avgJobValue: userJobValue }: Props) {
+    // Use user-defined value if set (> 0), otherwise fall back to business-type estimate
+    const avgJobValue = (userJobValue && userJobValue > 0)
+        ? userJobValue
+        : (AVG_JOB_VALUE[businessType] || AVG_JOB_VALUE.default);
 
     const metrics = useMemo(() => {
         if (!calls || calls.length === 0) {

@@ -4,19 +4,22 @@ import { useEffect } from "react";
 
 export default function PaddleSuccessWaiting() {
     useEffect(() => {
-        const interval = setInterval(async () => {
+        const pollStatus = async () => {
             try {
                 const res = await fetch("/api/business/status");
                 const data = await res.json();
+
                 if (data.status === "active") {
                     clearInterval(interval);
-                    // Clean redirect — strips ?paddle=success from URL so this screen never re-triggers
-                    window.location.href = "/dashboard";
+                    window.location.replace("/dashboard");
                 }
             } catch {
-                // Network hiccup — keep polling silently
+                // Keep polling silently on transient failures.
             }
-        }, 3000);
+        };
+
+        const interval = setInterval(pollStatus, 3000);
+        pollStatus();
 
         return () => clearInterval(interval);
     }, []);

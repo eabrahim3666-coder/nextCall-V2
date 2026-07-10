@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const BUSINESS_TYPES = [
     "Plumbing", "Electrical", "HVAC", "Roofing", "Landscaping",
@@ -15,32 +15,10 @@ const INDUSTRIES = [
     "Technology", "Finance", "Education", "Other"
 ];
 
-function ResendButton({ onResend, disabled }: { onResend: () => void; disabled: boolean }) {
-    const [cooldown, setCooldown] = useState(0);
-
-    useEffect(() => {
-        if (cooldown <= 0) return;
-        const timer = setInterval(() => setCooldown((c) => c - 1), 1000);
-        return () => clearInterval(timer);
-    }, [cooldown]);
-
-    if (disabled) return null;
-
-    return cooldown > 0 ? (
-        <p className="text-xs text-neutral-600">Resend available in {cooldown}s</p>
-    ) : (
-        <button onClick={() => { onResend(); setCooldown(60); }} className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
-            Resend code
-        </button>
-    );
-}
-
 export default function OnboardingFlow() {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [warning, setWarning] = useState("");
-    const [banned, setBanned] = useState(false);
 
     const [form, setForm] = useState({
         business_name: "",
@@ -55,40 +33,6 @@ export default function OnboardingFlow() {
         notes: "",
     });
 
-    const [otp, setOtp] = useState("");
-    const [phoneVerified, setPhoneVerified] = useState(false);
-    const [devOtp, setDevOtp] = useState("");
-
-    useEffect(() => {
-        if (typeof window !== "undefined" && !(window as any).Paddle) {
-            const script = document.createElement("script");
-            script.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
-            script.async = true;
-            script.onload = () => {
-                const Paddle = (window as any).Paddle;
-                if (Paddle) {
-                    Paddle.Environment.set("sandbox");
-                    Paddle.Initialize({ token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN });
-                }
-            };
-            document.body.appendChild(script);
-        }
-    }, []);
-
-    const handlePaddleCheckout = () => {
-        const Paddle = (window as any).Paddle;
-        if (Paddle) {
-            Paddle.Checkout.open({
-                items: [{ priceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_ID || "pri_12345", quantity: 1 }],
-                settings: {
-                    successUrl: `${window.location.origin}/dashboard?paddle=success`
-                }
-            });
-        } else {
-            setError("Payment system is still loading. Please wait a moment and try again.");
-        }
-    };
-
     const updateForm = (key: string, value: string) => {
         setForm((prev) => ({ ...prev, [key]: value }));
         setError("");
@@ -96,46 +40,6 @@ export default function OnboardingFlow() {
 
     const getBusinessType = () => form.business_type === "Other" ? form.business_type_custom : form.business_type;
     const getIndustry = () => form.industry === "Other" ? form.industry_custom : form.industry;
-
-    const sendOtp = async () => {
-        if (banned) return;
-        if (!form.phone || form.phone.length < 10) {
-            setError("Enter a valid phone number");
-            return;
-        }
-        setLoading(true);
-        setError("");
-        setWarning("");
-        try {
-            const res = await fetch("/api/business/verify-phone", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ phone: form.phone, action: "send" }),
-            });
-            const data = await res.json();
-            if (data.banned) { setBanned(true); setError(data.error); return; }
-            if (!res.ok) { setError(data.error || "Failed to send code"); return; }
-            if (data.dev_otp) setDevOtp(data.dev_otp);
-            if (data.warning) setWarning(data.warning);
-            setStep(2);
-        } catch { setError("Network error"); } finally { setLoading(false); }
-    };
-
-    const verifyOtp = async () => {
-        if (!otp || otp.length < 4) { setError("Enter the verification code"); return; }
-        setLoading(true);
-        setError("");
-        try {
-            const res = await fetch("/api/business/verify-phone", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ phone: form.phone, code: otp, action: "verify" }),
-            });
-            const data = await res.json();
-            if (data.verified) { setPhoneVerified(true); setStep(3); }
-            else { setError(data.error || "Invalid code"); }
-        } catch { setError("Network error"); } finally { setLoading(false); }
-    };
 
     const submitOnboarding = async () => {
         setLoading(true);
@@ -275,60 +179,7 @@ export default function OnboardingFlow() {
                     </div>
                 )}
 
-                {/* STEP 5: Success + Activation */}
-                {step === 5 && (
-                    <div className="space-y-6">
-                        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8 backdrop-blur-xl text-center">
-                            <h2 className="text-3xl font-semibold text-white tracking-tight mb-3">Your AI is <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">configured!</span></h2>
-                            <p className="text-sm text-neutral-400 mb-2">We've set up {form.business_name}'s AI receptionist with everything you told us.</p>
-                            <p className="text-xs text-neutral-500">One more step to bring it to life.</p>
-                        </div>
 
-                        <div className="relative bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8 backdrop-blur-xl overflow-hidden">
-                            <div className="absolute top-0 right-0 w-40 h-40 bg-indigo-500/10 rounded-full blur-[60px] pointer-events-none" />
-                            <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/10 rounded-full blur-[50px] pointer-events-none" />
-                            <div className="relative z-10">
-                                <div className="text-center mb-6">
-                                    <h2 className="text-2xl font-semibold text-white tr
-                                    acking-tight">Activate <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Your AI</span></h2>
-                                    <p className="text-sm text-neutral-400 mt-2">Go live and start capturing every lead</p>                                </div>
-                                <div className="space-y-3 mb-6">
-                                    {[
-                                        "AI answers calls 24/7 — never miss a lead",
-                                        "Smart follow-ups via SMS & email",
-                                        "Auto appointment scheduling",
-                                        "Real-time call analytics & sentiment",
-                                        "500 minutes included every month",
-                                    ].map((item, i) => (
-                                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                                            <span className="text-emerald-400 text-xs mt-0.5">+</span>
-                                            <span className="text-sm text-neutral-300">{item}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-5 mb-6">
-                                    <div className="flex items-end justify-between">
-                                        <div>
-                                            <p className="text-xs text-neutral-500 uppercase tracking-wider">Monthly</p>
-                                            <div className="flex items-baseline gap-1 mt-1">
-                                                <span className="text-3xl font-semibold text-white">$200</span>
-                                                <span className="text-sm text-neutral-500">/month</span>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-xs text-neutral-500">500 min included</p>
-                                            <p className="text-[10px] text-neutral-600">$0.40/min after</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button onClick={handlePaddleCheckout} className="w-full bg-white text-black text-sm font-medium px-6 py-3.5 rounded-full hover:bg-neutral-200 transition-colors">
-                                    Activate Now →
-                                </button>
-                                <p className="text-[10px] text-neutral-600 text-center mt-3">Cancel anytime. No contracts. 7-day free trial included.</p>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );

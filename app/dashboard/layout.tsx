@@ -4,40 +4,25 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { UserButton } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { businessesCollection } from "@/lib/astra";
-import Paywall from "./_components/Paywall";
 import AIStatusPill from "./_components/AIStatusPill";
 import NavLinks from "./_components/NavLinks";
-import OnboardingFlow from "./_components/OnboardingFlow";
-import PaddleSuccessWaiting from "./_components/PaddleSuccessWaiting";
+import DashboardAccessGate from "./_components/DashboardAccessGate";
+import { findBusinessByUserId } from "@/lib/business";
 
-export const dynamic = 'force-dynamic';
-
-
+export const dynamic = "force-dynamic";
 
 export default async function DashboardLayout({
     children,
-    searchParams,
 }: {
     children: React.ReactNode;
-    searchParams?: { [key: string]: string | string[] | undefined };
 }) {
     const { userId } = await auth();
     if (!userId) redirect("/");
 
     const user = await currentUser();
-
-    // Bulletproof AstraDB Lookup (Bypasses indexing bugs)
-    const allBusinesses = await businessesCollection.find({ business_id: { $exists: true } }).toArray();
-    const business = allBusinesses.find(b => String(b.business_id) === userId);
-    const isActiveBusiness = business && business.status === "active";
-
+    const business = await findBusinessByUserId(userId);
+    const isActiveBusiness = business?.status === "active";
     const isAIActive = isActiveBusiness && Number(business?.total_minutes_used || 0) < Number(business?.minutes_limit || 200);
-
-
-    // RACE CONDITION FIX: Check URL for ?paddle=success
-    // 🚨 RACE CONDITION FIX: Check URL for ?paddle=success OR ?ptxn (Paddle's default redirect)
-    const isPaddleSuccess = searchParams?.paddle === 'success' || searchParams?.ptxn !== undefined;
 
     return (
         <div className="min-h-screen bg-[#050505] grain">
@@ -61,9 +46,12 @@ export default async function DashboardLayout({
 
             <main className="p-6 pb-0 min-h-[calc(100vh-56px)] flex flex-col">
                 <div className="flex-1">
-                    {isActiveBusiness ? children : isPaddleSuccess ? (
-                        <PaddleSuccessWaiting />
-                    ) : business ? <Paywall /> : <OnboardingFlow />}
+                    <DashboardAccessGate
+                        hasBusiness={Boolean(business)}
+                        isActiveBusiness={isActiveBusiness}
+                    >
+                        {children}
+                    </DashboardAccessGate>
                 </div>
 
                 {isActiveBusiness && (
@@ -81,9 +69,8 @@ export default async function DashboardLayout({
                 )}
             </main>
 
-            {/* Tawk.to chat — Premium users only */}
-            {isActiveBusiness && business?.plan === 'premium' && process.env.NEXT_PUBLIC_TAWK_PROPERTY_ID && (
-                <TawkWidget propertyId={process.env.NEXT_PUBLIC_TAWK_PROPERTY_ID} widgetId={process.env.NEXT_PUBLIC_TAWK_WIDGET_ID || 'default'} />
+            {isActiveBusiness && business?.plan === "premium" && process.env.NEXT_PUBLIC_TAWK_PROPERTY_ID && (
+                <TawkWidget propertyId={process.env.NEXT_PUBLIC_TAWK_PROPERTY_ID} widgetId={process.env.NEXT_PUBLIC_TAWK_WIDGET_ID || "default"} />
             )}
         </div>
     );

@@ -138,8 +138,9 @@ export async function POST(request: Request) {
               owner_phone: ownerPhone,
               business_type: businessType,
               service_area: serviceArea,
-              twilio_subaccount_sid: twilioSubAccountSid,
-              twilio_number: twilioPhoneNumber,
+               twilio_subaccount_sid: twilioSubAccountSid,
+              twilio_number: twilioPhoneNumber, // Keep for backwards compatibility
+              twilio_numbers: [twilioPhoneNumber], // NEW: Array for Premium multi-number support
               paddle_subscription_id: payload.data.id,
               paddle_customer_id: payload.data.customer_id,
               status: "active",

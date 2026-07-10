@@ -1,24 +1,22 @@
-import PaddleSuccessWaiting from "./_components/PaddleSuccessWaiting";
+/* eslint-disable react/no-unescaped-entities */
+
 import PremiumAnalytics from "./_components/PremiumAnalytics";
 import { auth } from "@clerk/nextjs/server";
-import { businessesCollection, callsCollection } from "@/lib/astra";
+import { callsCollection } from "@/lib/astra";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import DashboardCards from "./_components/DashboardCards";
 import DashboardCharts from "./_components/DashboardCharts";
+import { findBusinessByUserId } from "@/lib/business";
 
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardHome({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+export default async function DashboardHome() {
     const { userId } = await auth();
     if (!userId) redirect("/");
 
-    const business = await businessesCollection.findOne({ business_id: userId });
+    const business = await findBusinessByUserId(userId);
 
-    // RACE CONDITION FIX: User just returned from Paddle, but webhook hasn't flipped DB to 'active' yet
-    if (searchParams.paddle === 'success' && business?.status !== 'active') {
-        return <PaddleSuccessWaiting />;
-    }
 
     const calls = await callsCollection
         .find({ business_id: userId })
@@ -44,7 +42,7 @@ export default async function DashboardHome({ searchParams }: { searchParams: { 
 
     const businessName = business?.business_name || "Owner";
 
-    const activeNumbers = business?.twilio_numbers
+    const activeNumbers = Array.isArray(business?.twilio_numbers)
         ? business.twilio_numbers.map((num: string) => ({ number: num, label: "Main Line" }))
         : (business?.twilio_number ? [{ number: business.twilio_number, label: "Main Line" }] : []);
 
@@ -54,17 +52,29 @@ export default async function DashboardHome({ searchParams }: { searchParams: { 
     const minutesUsed = business?.total_minutes_used || 0;
     const minutesLimit = business?.minutes_limit || 200;
     const minutesRemaining = Math.max(0, minutesLimit - minutesUsed);
-    const minutesPercent = Math.min(100, Math.round((minutesUsed / minutesLimit) * 100));
+    const minutesPercent = minutesLimit > 0 ? Math.min(100, Math.round((minutesUsed / minutesLimit) * 100)) : 0;
 
-    const volumeData = [];
+    const volumeData: { name: string; calls: number }[] = [];
     for (let i = 6; i >= 0; i--) {
         const date = new Date();
         date.setDate(date.getDate() - i);
         const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-        const dateString = date.toISOString().split('T')[0];
+        // Use local date string to avoid timezone shifts putting calls on the wrong day
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateString = `${year}-${month}-${day}`;
+
         const callsOnDay = formattedCalls.filter(call => {
-            const callDate = new Date(call.created_at).toISOString().split('T')[0];
-            return callDate === dateString;
+            const callDateObj = new Date(call.created_at);
+            if (isNaN(callDateObj.getTime())) return false; // Prevent RangeError on bad dates
+
+            const callYear = callDateObj.getFullYear();
+            const callMonth = String(callDateObj.getMonth() + 1).padStart(2, '0');
+            const callDay = String(callDateObj.getDate()).padStart(2, '0');
+            const callDateString = `${callYear}-${callMonth}-${callDay}`;
+
+            return callDateString === dateString;
         }).length;
         volumeData.push({ name: dayName, calls: callsOnDay });
     }
@@ -240,7 +250,9 @@ export default async function DashboardHome({ searchParams }: { searchParams: { 
                                             <div className="flex items-center gap-3 ml-4 flex-shrink-0">
                                                 <span className={`h-2 w-2 rounded-full ${call.sentiment === "Positive" ? "bg-emerald-400" : call.sentiment === "Negative" ? "bg-rose-400" : "bg-neutral-600"}`} />
                                                 <span className="text-xs text-neutral-600 whitespace-nowrap">
-                                                    {new Date(call.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                                    {isNaN(new Date(call.created_at).getTime())
+                                                        ? "--:--"
+                                                        : new Date(call.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                                                 </span>
                                             </div>
                                         </div>
@@ -253,15 +265,19 @@ export default async function DashboardHome({ searchParams }: { searchParams: { 
                         <div className="space-y-6">
                             {activeNumbers.length > 0 && (
                                 <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 backdrop-blur-xl">
-                                    <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">Your AI Number</h3>
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-                                            <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-semibold text-white">{activeNumbers[0].number}</p>
-                                            <p className="text-xs text-emerald-400">Active</p>
-                                        </div>
+                                    <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">Your AI Numbers</h3>
+                                    <div className="space-y-4">
+                                        {activeNumbers.map((numObj, i) => (
+                                            <div key={i} className="flex items-center gap-3">
+                                                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+                                                    <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-semibold text-white">{numObj.number}</p>
+                                                    <p className="text-xs text-emerald-400">Active</p>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             )}
@@ -278,11 +294,12 @@ export default async function DashboardHome({ searchParams }: { searchParams: { 
                         </div>
                     </div>
 
-                    {business?.plan === 'premium' ? (
+                    {business?.plan_type === 'premium' || business?.plan === 'premium' ? (
                         <PremiumAnalytics
                             calls={formattedCalls}
                             businessName={businessName}
                             businessType={business?.business_type || "General"}
+                            avgJobValue={business?.avg_job_value || 0}
                         />
                     ) : (
                         <DashboardCharts volumeData={volumeData} sentimentData={sentimentData} />

@@ -1,34 +1,30 @@
 import { auth } from "@clerk/nextjs/server";
-import { businessesCollection } from "@/lib/astra";
 import { redirect } from "next/navigation";
 import SettingsForm from "./_components/SettingsForm";
+import { findBusinessByUserId } from "@/lib/business";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
     const { userId } = await auth();
     if (!userId) redirect("/");
 
-    const business = await businessesCollection.findOne({ business_id: userId });
+    const business = await findBusinessByUserId(userId);
 
     const initialData = {
         business_name: business?.business_name || "",
         business_type: business?.business_type || "",
         service_area: business?.service_area || "",
         owner_phone: business?.owner_phone || "",
-        // Structured knowledge
         hours: business?.hours || "",
         services: business?.services || "",
         exclusions: business?.exclusions || "",
         pricing_rules: business?.pricing_rules || "",
         notes: business?.notes || "",
         faq: business?.faq || [],
-        // Greeting & Tone
         greeting_tone: business?.greeting_tone || "friendly",
         greeting_text: business?.greeting_text || "",
         ai_name: business?.ai_name || "",
-        // Routing rules
-
         emergency_definition: business?.emergency_definition || "",
         routing_rules: business?.routing_rules || {
             forward_emergency: true,
@@ -38,23 +34,16 @@ export default async function SettingsPage() {
             daily_summary: true,
             appointment_reminders: true,
         },
-
-
-        // Keep raw knowledge_base_text as fallback
         knowledge_base_text: business?.knowledge_base_text || "",
-        // Referral Data
         referral_code: business?.referral_code || "N/A",
         bonus_minutes: business?.bonus_minutes || 0,
-
-
-        // Billing Data (NEW)
-        plan: business?.plan || "standard",
+        plan: business?.plan_type || business?.plan || "standard",
+        plan_type: business?.plan_type || business?.plan || "standard",
+        twilio_numbers: business?.twilio_numbers || [],
         minutes_limit: business?.minutes_limit || 200,
         total_minutes_used: business?.total_minutes_used || 0,
-        lemon_squeezy_customer_id: business?.lemon_squeezy_customer_id || null,
-
-
-        // Integrations (Force strings to prevent JS precision loss)
+        paddle_customer_id: business?.paddle_customer_id || null,
+        avg_job_value: business?.avg_job_value || 0,
         google_refresh_token: business?.google_refresh_token || null,
         zapier_webhook_url: business?.zapier_webhook_url || null,
         meta_page_access_token: business?.meta_page_access_token ? String(business.meta_page_access_token) : null,

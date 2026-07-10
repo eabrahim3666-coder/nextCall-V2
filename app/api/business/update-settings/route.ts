@@ -39,6 +39,8 @@ export async function POST(request: Request) {
                     },
                     // Compiled knowledge base (what Retell reads)
                     knowledge_base_text: body.knowledge_base_text || "",
+                    // Revenue analytics — user-defined actual job value
+                    avg_job_value: typeof body.avg_job_value === 'number' ? body.avg_job_value : 0,
                     updated_at: new Date().toISOString(),
                 },
             }
