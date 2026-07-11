@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import twilioClient from '@/lib/twilio';
-import { businessesCollection } from '@/lib/astra';
+import { businessesCollection, webhookEventsCollection } from '@/lib/astra';
+import { hasValidSecret } from '@/lib/security';
 
 // Helper to generate a unique referral code
 function generateReferralCode(businessName: string) {
@@ -31,6 +31,15 @@ export async function POST(request: Request) {
 
     const timestamp = tsPart.split('=')[1];
     const h1Signature = h1Part.split('=')[1];
+    const timestampMs = Number(timestamp) * 1000;
+    if (!Number.isFinite(timestampMs) || Math.abs(Date.now() - timestampMs) > 5 * 60 * 1000) {
+      return NextResponse.json({ error: "Expired signature" }, { status: 401 });
+    }
+
+    if (!process.env.PADDLE_WEBHOOK_SECRET) {
+      console.error("PADDLE_WEBHOOK_SECRET is not configured");
+      return NextResponse.json({ error: "Webhook is not configured" }, { status: 503 });
+    }
 
     // 3. Verify signature: HMAC-SHA256(ts + ":" + rawBody, secret)
     const signedPayload = `${timestamp}:${rawBody}`;
@@ -38,20 +47,27 @@ export async function POST(request: Request) {
     hmac.update(signedPayload);
     const digest = hmac.digest('hex');
 
-    console.log("Expected:", digest);
-    console.log("Received:", h1Signature);
-    console.log("Secret prefix used:", process.env.PADDLE_WEBHOOK_SECRET?.substring(0, 12));
-
-
-
     // 4. If signature doesn't match, return 401
-    if (h1Signature !== digest) {
+    if (!hasValidSecret(h1Signature, digest)) {
       console.error("Invalid Paddle Signature");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const payload = JSON.parse(rawBody);
     const eventName = payload.event_type;
+    const eventId = payload.event_id || `${eventName}:${payload.data?.id || crypto.createHash('sha256').update(rawBody).digest('hex')}`;
+
+    const eventKey = `paddle:${eventId}`;
+    const alreadyProcessed = await webhookEventsCollection.findOne({ _id: eventKey });
+    if (alreadyProcessed?.processed_at) return NextResponse.json({ received: true, duplicate: true });
+    if (alreadyProcessed && Date.now() - new Date(alreadyProcessed.created_at).getTime() < 10 * 60 * 1000) {
+      return NextResponse.json({ received: true, processing: true });
+    }
+    if (alreadyProcessed) {
+      await webhookEventsCollection.updateOne({ _id: eventKey }, { $set: { created_at: new Date().toISOString() } });
+    } else {
+      await webhookEventsCollection.insertOne({ _id: eventKey, provider: "paddle", event_id: eventId, created_at: new Date().toISOString() });
+    }
     console.log(`Paddle Webhook Received: ${eventName}`);
 
     // ==========================================
@@ -67,36 +83,36 @@ export async function POST(request: Request) {
         const serviceArea = customData.service_area || "Unknown";
         const refCode = customData.ref || null;
         
-        let twilioSubAccountSid = "PROVISIONING_FAILED";
-        let twilioPhoneNumber = "PROVISIONING_FAILED";
+        // 1. Fetch existing business to prevent duplicate purchases on Paddle webhook retries
+        const existingBusiness = await businessesCollection.findOne({ business_id: clerkId });
+        
+        const twilioSubAccountSid = existingBusiness?.twilio_subaccount_sid || "PROVISIONING_FAILED";
+        const twilioPhoneNumber = existingBusiness?.twilio_number || "PROVISIONING_FAILED";
 
-        // ⚠️ UNCOMMENT THIS BLOCK WHEN GOING LIVE — purchases a real Twilio number (costs money)
-        // try {
-        //   const subAccount = await twilioClient.api.accounts.create({ friendlyName: businessName });
-        //
-        //   // Search for a number that supports BOTH Voice and SMS
-        //   const availableNumbers = await twilioClient.availablePhoneNumbers('US').local.list({
-        //     limit: 1,
-        //     capabilities: { sms: true, voice: true }
-        //   });
-        //
-        //   if (availableNumbers.length === 0) throw new Error("No available Twilio numbers with Voice+SMS");
-        //
-        //   // Purchase the number UNDER the new Sub-Account
-        //   const purchasedNumber = await twilioClient.api.accounts(subAccount.sid).incomingPhoneNumbers.create({
-        //     phoneNumber: availableNumbers[0].phoneNumber,
-        //     friendlyName: `${businessName} nextCall Line`,
-        //     voiceUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/twilio/inbound`,
-        //     voiceMethod: 'POST',
-        //     smsUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/twilio/whatsapp-inbound`,
-        //     smsMethod: 'POST'
-        //   });
-        //
-        //   twilioSubAccountSid = subAccount.sid;
-        //   twilioPhoneNumber = purchasedNumber.phoneNumber;
-        // } catch (twilioError) {
-        //   console.error("TWILIO ERROR (Marking user active anyway):", twilioError);
-        // }
+        // 2. Only provision Twilio stuff if this is a brand new user or a previous attempt failed
+        if (twilioSubAccountSid === "PROVISIONING_FAILED" || twilioPhoneNumber === "PROVISIONING_FAILED") {
+          // ⚠️ UNCOMMENT THIS BLOCK WHEN GOING LIVE — purchases a real Twilio number (costs money)
+          // try {
+          //   const subAccount = await twilioClient.api.accounts.create({ friendlyName: businessName });
+          //   const availableNumbers = await twilioClient.availablePhoneNumbers('US').local.list({
+          //     limit: 1,
+          //     capabilities: { sms: true, voice: true }
+          //   });
+          //   if (availableNumbers.length === 0) throw new Error("No available Twilio numbers with Voice+SMS");
+          //   const purchasedNumber = await twilioClient.api.accounts(subAccount.sid).incomingPhoneNumbers.create({
+          //     phoneNumber: availableNumbers[0].phoneNumber,
+          //     friendlyName: `${businessName} nextCall Line`,
+          //     voiceUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/twilio/inbound`,
+          //     voiceMethod: 'POST',
+          //     smsUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/twilio/whatsapp-inbound`,
+          //     smsMethod: 'POST'
+          //   });
+          //   twilioSubAccountSid = subAccount.sid;
+          //   twilioPhoneNumber = purchasedNumber.phoneNumber;
+          // } catch (twilioError) {
+          //   console.error("TWILIO ERROR (Marking user active anyway):", twilioError);
+          // }
+        }
 
         const planType = customData.plan || 'standard';
 
@@ -133,23 +149,25 @@ export async function POST(request: Request) {
         await businessesCollection.updateOne(
           { business_id: clerkId },
           {
-            $set: {
+             $set: {
               business_name: businessName,
-              owner_phone: ownerPhone,
-              business_type: businessType,
-              service_area: serviceArea,
-               twilio_subaccount_sid: twilioSubAccountSid,
+              twilio_subaccount_sid: twilioSubAccountSid,
               twilio_number: twilioPhoneNumber, // Keep for backwards compatibility
-              twilio_numbers: [twilioPhoneNumber], // NEW: Array for Premium multi-number support
               paddle_subscription_id: payload.data.id,
               paddle_customer_id: payload.data.customer_id,
-              status: "active",
+              status: twilioPhoneNumber !== "PROVISIONING_FAILED" ? "active" : "pending",
               plan_type: planType,
               minutes_limit: minutesLimit,
               overage_rate: overageRate,
               updated_at: new Date().toISOString()
             },
             $setOnInsert: {
+              // Only set these if the document is brand new. 
+              // This protects the user's onboarding data from being overwritten by Paddle's default payload!
+              owner_phone: ownerPhone || "",
+              business_type: businessType,
+              service_area: serviceArea,
+              twilio_numbers: [twilioPhoneNumber], // Put in setOnInsert so retries don't wipe Premium numbers
               total_minutes_used: 0,
               total_calls_processed: 0,
               referral_code: generateReferralCode(businessName),
@@ -195,6 +213,7 @@ export async function POST(request: Request) {
       }
     }
 
+    await webhookEventsCollection.updateOne({ _id: eventKey }, { $set: { processed_at: new Date().toISOString() } });
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Paddle Webhook Error:", error);

@@ -1,15 +1,25 @@
 import { NextResponse } from 'next/server';
-import retellClient from '@/lib/retell';
 import { businessesCollection } from '@/lib/astra';
+import { verifyTwilioRequest } from '@/lib/security';
 
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
+    const params = Object.fromEntries(formData.entries()) as Record<string, string>;
+    if (!verifyTwilioRequest(request, params, request.headers.get('x-twilio-signature'))) {
+      return new NextResponse('<Response><Say>Unauthorized request.</Say></Response>', { status: 401, headers: { 'Content-Type': 'text/xml' } });
+    }
     const callerNumber = formData.get('From') as string;
     const twilioNumber = formData.get('To') as string; 
 
-    const business = await businessesCollection.findOne({ twilio_number: twilioNumber });
-
+    // Search for the dialed number in the new 'twilio_numbers' array OR the old 'twilio_number' string
+    const business = await businessesCollection.findOne({
+      $or: [
+        { twilio_numbers: twilioNumber },
+        { twilio_number: twilioNumber }
+      ]
+    });
+    
     if (!business) {
       console.error("Business not found for number:", twilioNumber);
       const errorTwiml = `<Response><Say>Sorry, this number is not configured.</Say></Response>`;
@@ -84,9 +94,9 @@ export async function POST(request: Request) {
       headers: { 'Content-Type': 'text/xml' },
     });
 
-  } catch (error: any) {
-    // Log the exact error Retell or Twilio is throwing
-    console.error("EXACT INBOUND ERROR:", error?.response?.data || error?.message || error);
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: unknown }; message?: string };
+    console.error("EXACT INBOUND ERROR:", err?.response?.data || err?.message || error);
     const errorTwiml = `<Response><Say>An error occurred. Please try again.</Say></Response>`;
     return new NextResponse(errorTwiml, {
       headers: { 'Content-Type': 'text/xml' },

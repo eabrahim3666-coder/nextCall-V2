@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import twilioClient from "@/lib/twilio";
+import { businessesCollection } from "@/lib/astra";
+import crypto from "crypto";
 
 interface OtpData {
+    phone: string;
     code: string;
     expires: number;
     lastSent: number;
@@ -9,14 +13,15 @@ interface OtpData {
     verifyAttempts: number;
 }
 
-// In-memory store (use Redis/DB in production for persistence)
-const otpStore: Record<string, OtpData> = {};
+const MAX_SENDS = 4;
+const WARNING_SENDS = 3;
+const COOLDOWN_MS = 60_000;
+const EXPIRY_MS = 5 * 60_000;
+const RESET_MS = 30 * 60_000;
 
-const MAX_SENDS = 4;         // Ban on 4th attempt
-const WARNING_SENDS = 3;     // Warn on 3rd attempt
-const COOLDOWN_MS = 60_000;  // 60 seconds between sends
-const EXPIRY_MS = 5 * 60_000; // 5 minute OTP expiry
-const RESET_MS = 30 * 60_000; // Reset counts after 30 mins
+function normalizePhone(phone: string) {
+    return String(phone || "").replace(/[^\d+]/g, "");
+}
 
 export async function POST(req: NextRequest) {
     const { userId } = await auth();
@@ -25,21 +30,36 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
         const { phone, code, action } = body;
-        const key = `${userId}_${phone}`;
+        const normalizedPhone = normalizePhone(phone);
+        const business = await businessesCollection.findOne({ business_id: userId });
+        const existingVerification = business?.pending_phone_verification as OtpData | undefined;
 
-        // ========== SEND OTP ==========
         if (action === "send") {
-            let data = otpStore[key] || {
-                code: "", expires: 0, lastSent: 0, sendCount: 0, verifyAttempts: 0,
-            };
-
-            // Reset counts after 30 minutes
-            if (data.lastSent && Date.now() - data.lastSent > RESET_MS) {
-                data.sendCount = 0;
-                data.verifyAttempts = 0;
+            if (!/^\+[1-9]\d{7,14}$/.test(normalizedPhone)) {
+                return NextResponse.json({ error: "Use a valid international phone number" }, { status: 400 });
             }
 
-            // Check if banned (4+ sends)
+            let data: OtpData =
+                !existingVerification || existingVerification.phone !== normalizedPhone
+                    ? {
+                        phone: normalizedPhone,
+                        code: "",
+                        expires: 0,
+                        lastSent: 0,
+                        sendCount: 0,
+                        verifyAttempts: 0,
+                    }
+                    : existingVerification;
+
+            if (data.lastSent && Date.now() - data.lastSent > RESET_MS) {
+                data = {
+                    ...data,
+                    phone: normalizedPhone,
+                    sendCount: 0,
+                    verifyAttempts: 0,
+                };
+            }
+
             if (data.sendCount >= MAX_SENDS) {
                 return NextResponse.json({
                     error: "Too many attempts. This number is temporarily locked. Try again in 30 minutes.",
@@ -47,7 +67,6 @@ export async function POST(req: NextRequest) {
                 }, { status: 429 });
             }
 
-            // Check 60s cooldown
             if (data.lastSent && Date.now() - data.lastSent < COOLDOWN_MS) {
                 const waitSeconds = Math.ceil((COOLDOWN_MS - (Date.now() - data.lastSent)) / 1000);
                 return NextResponse.json({
@@ -56,10 +75,22 @@ export async function POST(req: NextRequest) {
                 }, { status: 429 });
             }
 
-            // Generate OTP
-            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            const otp = crypto.randomInt(100000, 1000000).toString();
 
-            otpStore[key] = {
+            if (process.env.NODE_ENV !== "development" && !process.env.TWILIO_PHONE_NUMBER) {
+                return NextResponse.json({ error: "Phone verification is not configured" }, { status: 503 });
+            }
+
+            if (process.env.NODE_ENV !== "development") {
+                await twilioClient.messages.create({
+                    body: `Your nextCall code is: ${otp}. It expires in 5 minutes.`,
+                    from: process.env.TWILIO_PHONE_NUMBER,
+                    to: normalizedPhone,
+                });
+            }
+
+            const verificationPayload: OtpData = {
+                phone: normalizedPhone,
                 code: otp,
                 expires: Date.now() + EXPIRY_MS,
                 lastSent: Date.now(),
@@ -67,71 +98,82 @@ export async function POST(req: NextRequest) {
                 verifyAttempts: 0,
             };
 
-            // ===== PRODUCTION: Send via Twilio SMS =====
-            // Uncomment when you have Twilio keys:
-            //
-            // const twilio = require("twilio");
-            // const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-            // await client.messages.create({
-            //     body: `Your nextCall code is: ${otp}. It expires in 5 minutes.`,
-            //     from: process.env.TWILIO_PHONE_NUMBER,
-            //     to: phone,
-            // });
-            //
+            await businessesCollection.updateOne(
+                { business_id: userId },
+                {
+                    $set: {
+                        pending_phone_verification: verificationPayload,
+                        updated_at: new Date().toISOString(),
+                    }
+                },
+                { upsert: true }
+            );
 
-            console.log(`🔐 OTP for ${phone}: ${otp} (send #${data.sendCount + 1})`);
-
-            // Build response
-            const response: Record<string, any> = { success: true };
+            const response: Record<string, string | number | boolean> = { success: true };
             if (process.env.NODE_ENV === "development") {
                 response.dev_otp = otp;
             }
 
-            // Add warning on 3rd send
-            if (data.sendCount + 1 >= WARNING_SENDS) {
-                response.warning = "⚠️ This is your last resend attempt. One more will lock this number for 30 minutes.";
+            if (verificationPayload.sendCount >= WARNING_SENDS) {
+                response.warning = "This is your last resend attempt. One more will lock this number for 30 minutes.";
             }
 
-            response.sends_remaining = MAX_SENDS - (data.sendCount + 1);
-
+            response.sends_remaining = MAX_SENDS - verificationPayload.sendCount;
             return NextResponse.json(response);
         }
 
-        // ========== VERIFY OTP ==========
         if (action === "verify") {
-            const data = otpStore[key];
-
-            if (!data) {
+            if (!existingVerification || existingVerification.phone !== normalizedPhone) {
                 return NextResponse.json({ success: false, verified: false, error: "No code found. Request a new one." }, { status: 400 });
             }
 
-            // Check expiry
-            if (Date.now() > data.expires) {
-                delete otpStore[key];
+            if (Date.now() > existingVerification.expires) {
+                await businessesCollection.updateOne(
+                    { business_id: userId },
+                    { $unset: { pending_phone_verification: "" } }
+                );
                 return NextResponse.json({ success: false, verified: false, error: "Code expired. Request a new one." }, { status: 400 });
             }
 
-            // Rate limit wrong guesses (5 max)
-            if (data.verifyAttempts >= 5) {
-                delete otpStore[key];
+            if (existingVerification.verifyAttempts >= 5) {
+                await businessesCollection.updateOne(
+                    { business_id: userId },
+                    { $unset: { pending_phone_verification: "" } }
+                );
                 return NextResponse.json({ success: false, verified: false, error: "Too many wrong attempts. Request a new code." }, { status: 400 });
             }
 
-            // Check code
-            if (data.code === code) {
-                delete otpStore[key];
+            if (existingVerification.code === code) {
+                await businessesCollection.updateOne(
+                    { business_id: userId },
+                    {
+                        $set: {
+                            owner_phone: normalizedPhone,
+                            phone: normalizedPhone,
+                            phone_verified_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                        },
+                        $unset: { pending_phone_verification: "" }
+                    }
+                );
                 return NextResponse.json({ success: true, verified: true });
             }
 
-            // Wrong code
-            data.verifyAttempts += 1;
-            otpStore[key] = data;
-            const remaining = 5 - data.verifyAttempts;
+            const updatedVerification = {
+                ...existingVerification,
+                verifyAttempts: existingVerification.verifyAttempts + 1,
+            };
 
+            await businessesCollection.updateOne(
+                { business_id: userId },
+                { $set: { pending_phone_verification: updatedVerification } }
+            );
+
+            const remaining = 5 - updatedVerification.verifyAttempts;
             return NextResponse.json({
                 success: false,
                 verified: false,
-                error: `Invalid code. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`,
+                error: `Invalid code. ${remaining} attempt${remaining !== 1 ? "s" : ""} remaining.`,
             }, { status: 400 });
         }
 

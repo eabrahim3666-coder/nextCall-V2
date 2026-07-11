@@ -16,7 +16,13 @@ const defaultSentimentData = [
     { name: "Positive", value: 65 }, { name: "Neutral", value: 25 }, { name: "Negative", value: 10 },
 ];
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+type TooltipProps = {
+    active?: boolean;
+    payload?: { value: number }[];
+    label?: string;
+};
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     if (active && payload && payload.length) {
         return (
             <div className="bg-[#0a0a0a] border border-white/[0.1] px-4 py-3 shadow-xl rounded-lg">

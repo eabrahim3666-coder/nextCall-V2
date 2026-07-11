@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { businessesCollection } from "@/lib/astra";
+import { isSafeWebhookUrl } from "@/lib/security";
 
 export async function POST(request: Request) {
     try {
@@ -8,6 +9,9 @@ export async function POST(request: Request) {
         if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const body = await request.json();
+        if (body.zapier_webhook_url && !isSafeWebhookUrl(body.zapier_webhook_url)) {
+            return NextResponse.json({ error: "Webhook URL must be a public HTTPS URL" }, { status: 400 });
+        }
 
         await businessesCollection.updateOne(
             { business_id: userId },
@@ -37,6 +41,10 @@ export async function POST(request: Request) {
                         daily_summary: true,
                         appointment_reminders: true,
                     },
+                     // Emergency logic & Integrations (P0 Bug Fix)
+                    emergency_definition: body.emergency_definition || "",
+                    zapier_webhook_url: body.zapier_webhook_url || null,
+                    
                     // Compiled knowledge base (what Retell reads)
                     knowledge_base_text: body.knowledge_base_text || "",
                     // Revenue analytics — user-defined actual job value

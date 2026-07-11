@@ -1,8 +1,29 @@
 import { NextResponse } from 'next/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { businessesCollection } from '@/lib/astra';
 
 export async function GET() {
     try {
+        const { userId, sessionClaims } = await auth();
+        if (!userId) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const user = await currentUser();
+        const claims = sessionClaims as {
+            metadata?: { role?: string };
+            publicMetadata?: { role?: string };
+        };
+        const isAdmin =
+            claims.metadata?.role === "admin" ||
+            claims.publicMetadata?.role === "admin";
+        const bossEmails = process.env.ADMIN_EMAILS?.split(",").map((email) => email.trim().toLowerCase()) || [];
+        const currentEmail = user?.emailAddresses?.[0]?.emailAddress?.toLowerCase() || "";
+
+        if (!isAdmin && !bossEmails.includes(currentEmail)) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+
         // Find ALL business records in the database
         const allBusinesses = await businessesCollection.find({}).toArray();
 

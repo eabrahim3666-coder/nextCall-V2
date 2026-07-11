@@ -1,9 +1,16 @@
 import { NextResponse } from 'next/server';
 import openai from '@/lib/openai';
 import { businessesCollection } from '@/lib/astra';
+import { hasValidSecret } from '@/lib/security';
 
 export async function POST(request: Request) {
   try {
+    // Secure endpoint: Require n8n API Key
+    const apiKey = request.headers.get('x-api-key');
+    if (!hasValidSecret(apiKey, process.env.INTERNAL_API_SECRET || process.env.CRON_SECRET)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    
     const { business_id, review_text, review_stars } = await request.json();
 
     // 1. Look up the business details to know the SEO keywords and name

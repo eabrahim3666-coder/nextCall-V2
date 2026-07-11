@@ -20,3 +20,4 @@ export const businessesCollection = db.collection('businesses');
 export const conversationsCollection = db.collection('conversations');
 
 export const notificationsCollection = db.collection("notifications");
+export const webhookEventsCollection = db.collection("webhook_events");

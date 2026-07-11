@@ -2,17 +2,18 @@ import { NextResponse } from 'next/server';
 import { callsCollection, businessesCollection } from '@/lib/astra';
 import twilioClient from '@/lib/twilio';
 import { Resend } from 'resend';
+import { hasValidSecret, escapeHtml } from '@/lib/security';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function GET(request: Request) {
     // Security check
     const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (!hasValidSecret(authHeader, process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : undefined)) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     try {
+        const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
         const now = new Date();
         // Look for appointments happening in the next 2 hours
         const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
@@ -44,11 +45,10 @@ export async function GET(request: Request) {
             try {
                 // 3. Format the time nicely (e.g., "2:30 PM")
                 const apptTime = new Date(appt.appointment_date_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-                const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nextcall.ai';
                 let sent = false;
 
                 // 4a. Email reminder (preferred — if customer email was captured)
-                if (appt.customer_email) {
+                if (appt.customer_email && resend) {
                     try {
                         await resend.emails.send({
                             from: `${business.business_name || 'nextCall'} <updates@${process.env.RESEND_FROM_DOMAIN || 'resend.dev'}>`,
@@ -57,11 +57,11 @@ export async function GET(request: Request) {
                             html: `
                                 <div style="font-family: Inter, sans-serif; background: #050505; padding: 40px 32px; max-width: 480px; margin: 0 auto; border-radius: 16px;">
                                     <h2 style="font-size: 20px; font-weight: 600; color: #fff; margin: 0 0 8px;">Appointment Reminder</h2>
-                                    <p style="color: #737373; font-size: 14px; margin: 0 0 24px;">Hi${appt.customer_name ? ` ${appt.customer_name}` : ''}! Just a reminder about your upcoming appointment.</p>
+                                    <p style="color: #737373; font-size: 14px; margin: 0 0 24px;">Hi${appt.customer_name ? ` ${escapeHtml(appt.customer_name)}` : ''}! Just a reminder about your upcoming appointment.</p>
                                     <div style="background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); padding: 20px; border-radius: 12px; margin-bottom: 24px;">
                                         <p style="color: #818cf8; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 6px;">Your Appointment</p>
                                         <p style="color: #fff; font-size: 22px; font-weight: 700; margin: 0;">${apptTime} today</p>
-                                        <p style="color: #737373; font-size: 14px; margin: 6px 0 0;">with ${business.business_name || 'us'}</p>
+                                        <p style="color: #737373; font-size: 14px; margin: 6px 0 0;">with ${escapeHtml(business.business_name || 'us')}</p>
                                     </div>
                                     <p style="color: #737373; font-size: 13px; margin: 0;">Need to reschedule? Call us back or reply to this email.</p>
                                 </div>

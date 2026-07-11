@@ -1,14 +1,32 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { businessesCollection } from '@/lib/astra';
+import { cookies } from 'next/headers';
 
 export async function GET(request: Request) {
+    const { userId } = await auth();
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
-    const state = searchParams.get('state'); // This is the Clerk userId we passed in the auth route
+    const state = searchParams.get('state');
+
+    if (!userId) {
+        return NextResponse.redirect(new URL('/dashboard/settings?focus=integrations&meta_error=auth_required', request.url));
+    }
 
     if (!code || !state) {
         return NextResponse.redirect(new URL('/dashboard/settings?focus=integrations&meta_error=missing_params', request.url));
     }
+
+    // Security Fix: Validate the secure state cookie to prevent CSRF attacks
+    const cookieStore = await cookies();
+    const savedState = cookieStore.get('oauth_state')?.value;
+
+    if (!savedState || state !== savedState) {
+        return NextResponse.redirect(new URL('/dashboard/settings?focus=integrations&meta_error=invalid_state', request.url));
+    }
+
+    // Clear the state cookie so it can't be reused
+    cookieStore.delete('oauth_state');
 
     const appId = process.env.META_APP_ID;
     const appSecret = process.env.META_APP_SECRET;
@@ -63,13 +81,13 @@ export async function GET(request: Request) {
             if (igData.instagram_business_account) {
                 igBusinessId = igData.instagram_business_account.id;
             }
-        } catch (e) {
+        } catch {
             console.log("No IG account linked, skipping IG ID.");
         }
 
         // 6. Save to AstraDB (Force pageId to String to prevent DB type mismatch lookups)
         await businessesCollection.updateOne(
-            { business_id: state },
+            { business_id: userId },
             {
                 $set: {
                     meta_page_access_token: pageAccessToken,
@@ -83,8 +101,9 @@ export async function GET(request: Request) {
         // 7. Redirect back to settings with success message
         return NextResponse.redirect(new URL('/dashboard/settings?focus=integrations&meta_success=true', request.url));
 
-    } catch (error: any) {
-        console.error("Meta Callback Error:", error.message);
-        return NextResponse.redirect(new URL(`/dashboard/settings?focus=integrations&meta_error=${encodeURIComponent(error.message)}`, request.url));
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Unknown error";
+        console.error("Meta Callback Error:", message);
+        return NextResponse.redirect(new URL(`/dashboard/settings?focus=integrations&meta_error=${encodeURIComponent(message)}`, request.url));
     }
 }

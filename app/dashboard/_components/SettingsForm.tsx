@@ -31,7 +31,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             } else {
                 setNumberError(result.error || "Failed to add number");
             }
-        } catch (err) {
+        } catch {
             setNumberError("Network error");
         } finally {
             setAddingNumber(false);

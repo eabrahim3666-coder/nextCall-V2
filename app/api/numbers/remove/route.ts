@@ -10,15 +10,32 @@ export async function POST(request: Request) {
 
     const { phoneNumber } = await request.json();
 
+    const business = await businessesCollection.findOne({ business_id: userId });
+    if (!business) {
+      return NextResponse.json({ error: "Business not found" }, { status: 404 });
+    }
+
+     // Security Fix: Verify the number actually belongs to the user before doing anything
+    const currentNumbers = Array.isArray(business.twilio_numbers) ? business.twilio_numbers : [];
+    if (!currentNumbers.includes(phoneNumber)) {
+      return NextResponse.json({ error: "Number not found in your account" }, { status: 404 });
+    }
+
     // 1. Find the Twilio number SID to release it
-    const numbers = await twilioClient.incomingPhoneNumbers.list({ phoneNumber: phoneNumber, limit: 1 });
+    const hasSubaccount =
+      Boolean(business.twilio_subaccount_sid) &&
+      business.twilio_subaccount_sid !== "PROVISIONING_FAILED";
+
+    const phoneNumbersResource = hasSubaccount
+      ? twilioClient.api.accounts(business.twilio_subaccount_sid).incomingPhoneNumbers
+      : twilioClient.incomingPhoneNumbers;
+
+    const numbers = await phoneNumbersResource.list({ phoneNumber, limit: 1 });
     if (numbers.length > 0) {
-      await twilioClient.incomingPhoneNumbers(numbers[0].sid).remove();
+      await phoneNumbersResource(numbers[0].sid).remove();
     }
 
     // AstraDB doesn't support $pull. We must fetch, filter, and $set.
-    const business = await businessesCollection.findOne({ business_id: userId });
-    const currentNumbers = business?.twilio_numbers || [];
     const updatedNumbers = currentNumbers.filter((num: string) => num !== phoneNumber);
 
     await businessesCollection.updateOne(

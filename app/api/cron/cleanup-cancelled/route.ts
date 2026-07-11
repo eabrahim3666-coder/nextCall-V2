@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { businessesCollection, callsCollection, notificationsCollection } from '@/lib/astra';
 import twilioClient from '@/lib/twilio';
+import { hasValidSecret } from '@/lib/security';
 
 export async function GET(request: Request) {
     // Security check: Verify the CRON_SECRET header
     const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (!hasValidSecret(authHeader, process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : undefined)) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -28,22 +29,23 @@ export async function GET(request: Request) {
         for (const business of expiredBusinesses) {
             const businessId = business.business_id;
 
-            // 2. Delete associated data from AstraDB
-            await callsCollection.deleteMany({ business_id: businessId });
-            await notificationsCollection.deleteMany({ business_id: businessId });
-            
-            // 3. Delete the business record itself
-            await businessesCollection.deleteOne({ _id: business._id });
-
-            // 4. Close the Twilio Sub-Account (Stops recurring charges for the number!)
+             // 2. Close the Twilio Sub-Account FIRST (Stops recurring charges!)
+            // If this fails, we skip DB deletion so the cron can retry tomorrow.
             if (business.twilio_subaccount_sid) {
                 try {
                     await twilioClient.api.accounts(business.twilio_subaccount_sid).update({ status: 'closed' });
                     twilioClosedCount++;
-                } catch (twilioError: any) {
-                    console.error(`Failed to close Twilio subaccount ${business.twilio_subaccount_sid}:`, twilioError.message);
+                } catch (twilioError: unknown) {
+                    const msg = twilioError instanceof Error ? twilioError.message : String(twilioError);
+                    console.error(`Failed to close Twilio subaccount ${business.twilio_subaccount_sid}:`, msg);
+                    continue; // Skip DB deletion for this user so we can retry later
                 }
             }
+
+            // 3. Delete associated data from AstraDB (Only after Twilio is safely closed)
+            await callsCollection.deleteMany({ business_id: businessId });
+            await notificationsCollection.deleteMany({ business_id: businessId });
+            await businessesCollection.deleteOne({ _id: business._id });
 
             deletedCount++;
         }

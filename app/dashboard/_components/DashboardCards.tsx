@@ -23,7 +23,6 @@ type PhoneNumber = {
 export default function DashboardCards({ calls, minutesUsed, totalCalls, activeNumbers }: { calls: Call[], minutesUsed: number, totalCalls: number, activeNumbers: PhoneNumber[] }) {
     const [localCalls, setLocalCalls] = useState<Call[]>(calls);
     const [localNumbers, setLocalNumbers] = useState<PhoneNumber[]>(activeNumbers);
-    const [copied, setCopied] = useState("");
     const [buyingNumber, setBuyingNumber] = useState(false);
 
     const [view, setView] = useState<"list" | "edit" | "delete">("list");
@@ -38,12 +37,6 @@ export default function DashboardCards({ calls, minutesUsed, totalCalls, activeN
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ call_id: callId, is_flagged: !currentFlagStatus })
         });
-    };
-
-    const handleCopyNumber = (num: string) => {
-        navigator.clipboard.writeText(num);
-        setCopied(num);
-        setTimeout(() => setCopied(""), 2000);
     };
 
     const handleBuyNumber = async () => {

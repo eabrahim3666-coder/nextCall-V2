@@ -2,17 +2,20 @@ import { NextResponse } from 'next/server';
 import { businessesCollection, callsCollection } from '@/lib/astra';
 import { Resend } from 'resend';
 import { clerkClient } from '@clerk/nextjs/server';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { escapeHtml, hasValidSecret } from '@/lib/security';
 
 export async function GET(req: Request) {
     // Security check to prevent unauthorized execution
     const authHeader = req.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (!hasValidSecret(authHeader, process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : undefined)) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     try {
+        if (!process.env.RESEND_API_KEY) {
+            return NextResponse.json({ error: 'Email service is not configured' }, { status: 503 });
+        }
+        const resend = new Resend(process.env.RESEND_API_KEY);
         // Calculate yesterday's date range
         const now = new Date();
         const yesterdayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
@@ -59,11 +62,11 @@ export async function GET(req: Request) {
                 from: `nextCall <updates@${process.env.RESEND_FROM_DOMAIN || 'resend.dev'}>`,
                 to: ownerEmail,
                 subject: `Your Daily AI Summary — ${calls.length} call${calls.length !== 1 ? 's' : ''} yesterday`,
-                html: `
+                        html: `
                     <div style="font-family: Inter, sans-serif; background: #050505; padding: 40px 32px; max-width: 560px; margin: 0 auto; border-radius: 16px;">
                         <img src="${appUrl}/logo.png" alt="nextCall" style="height: 28px; margin-bottom: 32px;" />
                         <h2 style="font-size: 20px; font-weight: 600; color: #fff; margin: 0 0 8px;">Daily Call Summary</h2>
-                        <p style="color: #737373; font-size: 14px; margin: 0 0 32px;">Here's what your AI receptionist handled yesterday for <strong style="color: #fff;">${business.business_name || 'your business'}</strong>.</p>
+                         <p style="color: #737373; font-size: 14px; margin: 0 0 32px;">Here's what your AI receptionist handled yesterday for <strong style="color: #fff;">${escapeHtml(business.business_name || 'your business')}</strong>.</p>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
                             <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 16px; border-radius: 12px;">

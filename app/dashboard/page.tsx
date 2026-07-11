@@ -1,5 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
-
 import PremiumAnalytics from "./_components/PremiumAnalytics";
 import { auth } from "@clerk/nextjs/server";
 import { callsCollection } from "@/lib/astra";
@@ -9,14 +7,13 @@ import DashboardCards from "./_components/DashboardCards";
 import DashboardCharts from "./_components/DashboardCharts";
 import { findBusinessByUserId } from "@/lib/business";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function DashboardHome() {
     const { userId } = await auth();
     if (!userId) redirect("/");
 
     const business = await findBusinessByUserId(userId);
-
 
     const calls = await callsCollection
         .find({ business_id: userId })
@@ -58,24 +55,24 @@ export default async function DashboardHome() {
     for (let i = 6; i >= 0; i--) {
         const date = new Date();
         date.setDate(date.getDate() - i);
-        const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-        // Use local date string to avoid timezone shifts putting calls on the wrong day
+        const dayName = date.toLocaleDateString("en-US", { weekday: "short" });
         const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
         const dateString = `${year}-${month}-${day}`;
 
         const callsOnDay = formattedCalls.filter(call => {
             const callDateObj = new Date(call.created_at);
-            if (isNaN(callDateObj.getTime())) return false; // Prevent RangeError on bad dates
+            if (isNaN(callDateObj.getTime())) return false;
 
             const callYear = callDateObj.getFullYear();
-            const callMonth = String(callDateObj.getMonth() + 1).padStart(2, '0');
-            const callDay = String(callDateObj.getDate()).padStart(2, '0');
+            const callMonth = String(callDateObj.getMonth() + 1).padStart(2, "0");
+            const callDay = String(callDateObj.getDate()).padStart(2, "0");
             const callDateString = `${callYear}-${callMonth}-${callDay}`;
 
             return callDateString === dateString;
         }).length;
+
         volumeData.push({ name: dayName, calls: callsOnDay });
     }
 
@@ -85,15 +82,15 @@ export default async function DashboardHome() {
         else if (call.sentiment === "Negative") sentimentCounts.Negative++;
         else sentimentCounts.Neutral++;
     });
+
     const sentimentData = [
         { name: "Positive", value: sentimentCounts.Positive },
         { name: "Neutral", value: sentimentCounts.Neutral },
-        { name: "Negative", value: sentimentCounts.Negative }
+        { name: "Negative", value: sentimentCounts.Negative },
     ];
 
     return (
         <div className="space-y-6">
-            {/* Welcome Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-white tracking-tight">
@@ -116,7 +113,6 @@ export default async function DashboardHome() {
                 )}
             </div>
 
-            {/* Minutes Usage */}
             {isAIActive && (
                 <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 backdrop-blur-xl">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
@@ -136,17 +132,16 @@ export default async function DashboardHome() {
                     </div>
                     <div className="w-full bg-white/[0.05] rounded-full h-2.5">
                         <div
-                            className={`h-2.5 rounded-full transition-all duration-500 ${minutesPercent > 80 ? 'bg-red-500' : minutesPercent > 50 ? 'bg-amber-500' : 'bg-indigo-500'}`}
+                            className={`h-2.5 rounded-full transition-all duration-500 ${minutesPercent > 80 ? "bg-red-500" : minutesPercent > 50 ? "bg-amber-500" : "bg-indigo-500"}`}
                             style={{ width: `${minutesPercent}%` }}
                         />
                     </div>
                     {minutesPercent > 80 && (
-                        <p className="mt-2 text-xs text-red-400 font-medium">⚠ You're running low on minutes. Consider upgrading your plan.</p>
+                        <p className="mt-2 text-xs text-red-400 font-medium">⚠ You&apos;re running low on minutes. Consider upgrading your plan.</p>
                     )}
                 </div>
             )}
 
-            {/* Dashboard Cards */}
             <DashboardCards
                 calls={formattedCalls}
                 totalCalls={business?.total_calls_processed || 0}
@@ -154,7 +149,6 @@ export default async function DashboardHome() {
                 activeNumbers={activeNumbers}
             />
 
-            {/* Quick Actions */}
             {isAIActive && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <Link
@@ -211,11 +205,9 @@ export default async function DashboardHome() {
                 </div>
             )}
 
-            {/* DASHBOARD DATA SECTIONS */}
             {isAIActive && (
                 <>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Recent Activity */}
                         <div className="lg:col-span-2 bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 backdrop-blur-xl">
                             <div className="flex items-center justify-between mb-5">
                                 <div>
@@ -226,6 +218,7 @@ export default async function DashboardHome() {
                                     <Link href="/dashboard/calls" className="text-xs font-medium text-indigo-400 hover:text-indigo-300">View all →</Link>
                                 )}
                             </div>
+
                             {recentCalls.length === 0 ? (
                                 <div className="text-center py-10 border border-dashed border-white/[0.1] rounded-xl">
                                     <div className="flex items-center justify-center w-12 h-12 mx-auto rounded-full bg-white/[0.05] mb-3">
@@ -237,7 +230,7 @@ export default async function DashboardHome() {
                             ) : (
                                 <div className="divide-y divide-white/[0.06]">
                                     {recentCalls.map((call) => (
-                                        <div key={call.call_id + '-' + call.created_at} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                                        <div key={call.call_id + "-" + call.created_at} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
                                             <div className="flex items-center gap-3 min-w-0 flex-1">
                                                 <div className={`flex items-center justify-center w-8 h-8 rounded-lg ${call.sentiment === "Positive" ? "bg-emerald-500/10" : call.sentiment === "Negative" ? "bg-rose-500/10" : "bg-white/[0.05]"}`}>
                                                     <svg className={`w-4 h-4 ${call.sentiment === "Positive" ? "text-emerald-400" : call.sentiment === "Negative" ? "text-rose-400" : "text-neutral-500"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
@@ -252,7 +245,7 @@ export default async function DashboardHome() {
                                                 <span className="text-xs text-neutral-600 whitespace-nowrap">
                                                     {isNaN(new Date(call.created_at).getTime())
                                                         ? "--:--"
-                                                        : new Date(call.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                                        : new Date(call.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
                                                 </span>
                                             </div>
                                         </div>
@@ -261,7 +254,6 @@ export default async function DashboardHome() {
                             )}
                         </div>
 
-                        {/* Side Panel */}
                         <div className="space-y-6">
                             {activeNumbers.length > 0 && (
                                 <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 backdrop-blur-xl">
@@ -294,7 +286,7 @@ export default async function DashboardHome() {
                         </div>
                     </div>
 
-                    {business?.plan_type === 'premium' || business?.plan === 'premium' ? (
+                    {business?.plan_type === "premium" || business?.plan === "premium" ? (
                         <PremiumAnalytics
                             calls={formattedCalls}
                             businessName={businessName}

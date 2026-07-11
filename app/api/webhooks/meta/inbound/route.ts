@@ -1,6 +1,22 @@
 import { NextResponse } from 'next/server';
-import { businessesCollection, conversationsCollection } from '@/lib/astra';
+import { businessesCollection, conversationsCollection, webhookEventsCollection } from '@/lib/astra';
 import openai from '@/lib/openai';
+import crypto from 'crypto';
+import { hasValidSecret } from '@/lib/security';
+
+// Helper to verify Meta Webhook Signature
+function verifyMetaSignature(req: Request, rawBody: string) {
+  const signature = req.headers.get('x-hub-signature-256');
+  if (!signature) return false;
+
+  if (!process.env.META_APP_SECRET) return false;
+    const expectedSignature = crypto
+    .createHmac('sha256', process.env.META_APP_SECRET || '')
+    .update(rawBody)
+    .digest('hex');
+
+  return hasValidSecret(signature, `sha256=${expectedSignature}`);
+}
 
 // 1. GET handler: Meta Verification Handshake
 export async function GET(request: Request) {
@@ -20,7 +36,15 @@ export async function GET(request: Request) {
 
 // 2. POST handler: Receiving Messages
 export async function POST(request: Request) {
-    const body = await request.json();
+    const rawBody = await request.text();
+
+    // SECURITY: Verify Meta Signature to prevent spoofed requests
+    if (!verifyMetaSignature(request, rawBody)) {
+        console.error("Invalid Meta Signature");
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = JSON.parse(rawBody);
 
     // Handle Facebook Messenger Webhooks
     if (body.object === 'page') {
@@ -28,6 +52,11 @@ export async function POST(request: Request) {
             if (entry.messaging) {
                 for (const event of entry.messaging) {
                     if (event.message && !event.message.is_echo) {
+                        // Idempotency check: skip if this message was already processed
+                        const eventKey = `meta:${event.sender.id}:${event.timestamp ?? event.message.mid ?? Date.now()}`;
+                        const alreadyProcessed = await webhookEventsCollection.findOne({ _id: eventKey });
+                        if (alreadyProcessed) continue;
+                        await webhookEventsCollection.insertOne({ _id: eventKey, provider: "meta", event_id: eventKey, created_at: new Date().toISOString() });
                         await handleMessage(event);
                     }
                 }
@@ -41,6 +70,10 @@ export async function POST(request: Request) {
             if (entry.messaging) {
                 for (const event of entry.messaging) {
                     if (event.message && !event.message.is_echo) {
+                        const eventKey = `meta:${event.sender.id}:${event.timestamp ?? event.message.mid ?? Date.now()}`;
+                        const alreadyProcessed = await webhookEventsCollection.findOne({ _id: eventKey });
+                        if (alreadyProcessed) continue;
+                        await webhookEventsCollection.insertOne({ _id: eventKey, provider: "meta", event_id: eventKey, created_at: new Date().toISOString() });
                         await handleMessage(event);
                     }
                 }
@@ -53,7 +86,14 @@ export async function POST(request: Request) {
 }
 
 
-async function handleMessage(event: any) {
+type MetaMessagingEvent = {
+    sender: { id: string };
+    recipient: { id: string };
+    message: { text?: string; is_echo?: boolean; mid?: string };
+    timestamp?: number;
+};
+
+async function handleMessage(event: MetaMessagingEvent) {
     const senderId = event.sender.id;         // The user's PSID
     const pageId = event.recipient.id;        // The Business's Page ID
     const messageText = event.message.text;   // What the user said
@@ -94,8 +134,10 @@ async function handleMessage(event: any) {
                 phoneNumber: null,
                 leadStage: "NEW",
                 lastAction: "NONE"
-            } as any; // Bypass TS strictness for missing _id on new objects
+            } as unknown as typeof conversation; // Bypass TS strictness for missing _id on new objects
         }
+
+        if (!conversation) return;
 
         // 4. Add user's message to memory and save immediately
         conversation.messages.push({ role: "user", content: messageText });
@@ -173,7 +215,7 @@ STRICT RULES:
         try {
             const rawContent = completion.choices[0]?.message?.content || "{}";
             aiData = JSON.parse(rawContent);
-        } catch (e) {
+        } catch {
             console.error("Failed to parse AI JSON, falling back");
             aiData = { reply: "Thanks for your message! Let me have our team look into that for you.", action: "NONE", confidence: 0, intent: "out_of_scope", sentiment: "neutral", leadStage: conversation.leadStage || "NEW" };
         }

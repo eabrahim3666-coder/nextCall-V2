@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import { auth } from '@clerk/nextjs/server';
 import { businessesCollection } from '@/lib/astra';
+import { cookies } from 'next/headers';
 
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
@@ -17,9 +18,12 @@ export async function GET(request: Request) {
   const code = searchParams.get('code');
   const state = searchParams.get('state');
 
-  if (!code || state !== userId) {
+  const cookieStore = await cookies();
+  const savedState = cookieStore.get('google_oauth_state')?.value;
+  if (!code || !state || !savedState || state !== savedState) {
     return NextResponse.redirect(new URL('/dashboard/settings', request.url));
   }
+  cookieStore.delete('google_oauth_state');
 
   try {
     const { tokens } = await oauth2Client.getToken(code);

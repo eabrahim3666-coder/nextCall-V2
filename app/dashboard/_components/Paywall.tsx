@@ -3,6 +3,21 @@
 import { useUser } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 
+type PaddleInstance = {
+    Initialize: (config: { token?: string }) => void;
+    Checkout: {
+        open: (config: {
+            items: { priceId: string; quantity: number }[];
+            customData: Record<string, unknown>;
+            settings: { successUrl: string };
+        }) => void;
+    };
+};
+
+const getPaddle = (): PaddleInstance | null => {
+    return (window as unknown as { Paddle?: PaddleInstance }).Paddle ?? null;
+};
+
 export default function Paywall() {
     const { user } = useUser();
     const [loading, setLoading] = useState<"trial" | "standard" | "premium" | null>(null);
@@ -12,7 +27,7 @@ export default function Paywall() {
         script.src = "https://cdn.paddle.com/paddle/v2/paddle.js";
         script.async = true;
         script.onload = () => {
-            const Paddle = (window as any).Paddle;
+            const Paddle = getPaddle();
             if (Paddle) {
                 Paddle.Initialize({ token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN });
                 console.log("Paddle initialized:", Paddle);
@@ -23,7 +38,7 @@ export default function Paywall() {
 
     const handleCheckout = (plan: "trial" | "standard" | "premium") => {
         setLoading(plan);
-        const Paddle = (window as any).Paddle;
+        const Paddle = getPaddle();
 
         if (!Paddle) {
             alert("Payment system is still loading. Please wait a moment and try again.");

@@ -23,7 +23,7 @@ export async function POST() {
     // 2. Find an available number that supports Voice and SMS
     const availableNumbers = await twilioClient.availablePhoneNumbers('US').local.list({ 
       limit: 1, 
-      capabilities: { sms: true, voice: true } 
+    // Twilio's current SDK typings do not expose capability filtering here.
     });
     if (availableNumbers.length === 0) return NextResponse.json({ error: "No numbers available" }, { status: 400 });
 

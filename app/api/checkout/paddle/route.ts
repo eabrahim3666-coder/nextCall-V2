@@ -1,8 +1,28 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 
 export async function POST(request: Request) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
+
+    // Security Fix: Map the requested plan to the secure environment variable priceId
+    // This prevents users from passing a cheaper priceId to the backend
+    const priceIdMap = {
+      trial: process.env.NEXT_PUBLIC_PADDLE_TRIAL_PRICE_ID,
+      standard: process.env.NEXT_PUBLIC_PADDLE_STANDARD_PRICE_ID,
+      premium: process.env.NEXT_PUBLIC_PADDLE_PREMIUM_PRICE_ID
+    };
+    
+    const securePriceId = priceIdMap[body.plan as 'trial' | 'standard' | 'premium'];
+
+    if (!securePriceId) {
+      return NextResponse.json({ error: "Invalid plan selected." }, { status: 400 });
+    }
 
     const paddleApiBase = process.env.PADDLE_API_KEY?.startsWith('pdl_sdbx_') 
       ? 'https://sandbox-api.paddle.com' 
@@ -15,10 +35,10 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        items: [{ price_id: body.priceId, quantity: 1 }],
+        items: [{ price_id: securePriceId, quantity: 1 }],
         custom_data: {
-          clerk_user_id: body.clerk_user_id,
-          business_name: body.business_name,
+          clerk_user_id: userId, // Security Fix: Use the secure server-side userId, not the client value
+          business_name: body.business_name || "New Business",
           plan: body.plan
         }
       })

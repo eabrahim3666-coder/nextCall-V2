@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 
 type Notification = {
     _id: string;
@@ -25,6 +25,7 @@ export default function NotificationBell() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [open, setOpen] = useState(false);
+    const [now, setNow] = useState(0);
 
     const fetchNotifications = async () => {
         try {
@@ -38,22 +39,31 @@ export default function NotificationBell() {
     };
 
     useEffect(() => {
-        fetchNotifications();
+        startTransition(() => {
+            fetchNotifications();
+        });
 
         // 1. Fetch when the user comes back to the app/tab (Crucial for Play Store/PWA)
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
-                fetchNotifications();
+                startTransition(() => { fetchNotifications(); });
             }
         };
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
         // 2. Gentle background refresh (2 mins instead of 30s to save battery)
-        const interval = setInterval(fetchNotifications, 120000);
+        const interval = setInterval(() => {
+            startTransition(() => { fetchNotifications(); });
+        }, 120000);
+
+        // 3. Update time-ago stamps every minute
+        const tick = () => setNow(Date.now());
+        const timeInterval = setInterval(tick, 60000);
 
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             clearInterval(interval);
+            clearInterval(timeInterval);
         };
     }, []);
 
@@ -72,7 +82,7 @@ export default function NotificationBell() {
     };
 
     const timeAgo = (dateStr: string) => {
-        const diff = Date.now() - new Date(dateStr).getTime();
+        const diff = now - new Date(dateStr).getTime();
         const mins = Math.floor(diff / 60000);
         if (mins < 1) return "Just now";
         if (mins < 60) return `${mins}m ago`;

@@ -29,6 +29,7 @@ export default async function DashboardLayout({
             <nav className="bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-white/[0.06] px-6 py-3 flex justify-between items-center sticky top-0 z-50">
                 <div className="flex items-center gap-8">
                     <Link href="/dashboard" className="flex items-center">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src="/logo.png" alt="Next Call" className="h-7 w-auto" />
                     </Link>
                     {isActiveBusiness && <NavLinks />}
@@ -40,7 +41,7 @@ export default async function DashboardLayout({
                     <span className="text-sm text-neutral-400 hidden sm:block">
                         {user?.firstName || user?.username}&apos;s Dashboard
                     </span>
-                    <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: "w-8 h-8" } }} />
+                    <UserButton appearance={{ elements: { avatarBox: "w-8 h-8" } }} />
                 </div>
             </nav>
 
@@ -69,7 +70,7 @@ export default async function DashboardLayout({
                 )}
             </main>
 
-            {isActiveBusiness && business?.plan === "premium" && process.env.NEXT_PUBLIC_TAWK_PROPERTY_ID && (
+            {isActiveBusiness && (business?.plan === "premium" || business?.plan_type === "premium") && process.env.NEXT_PUBLIC_TAWK_PROPERTY_ID && (
                 <TawkWidget propertyId={process.env.NEXT_PUBLIC_TAWK_PROPERTY_ID} widgetId={process.env.NEXT_PUBLIC_TAWK_WIDGET_ID || "default"} />
             )}
         </div>

@@ -80,7 +80,7 @@ const TONE_OPTIONS = [
     { id: "casual", label: "Casual", desc: "Relaxed, laid-back, and conversational" },
 ];
 
-export default function SettingsForm({ initialData, userId }: { initialData: BusinessData; userId: string }) {
+export default function SettingsForm({ initialData }: { initialData: BusinessData; userId?: string }) {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState("business");
     const [data, setData] = useState<BusinessData>(initialData);
@@ -97,7 +97,7 @@ export default function SettingsForm({ initialData, userId }: { initialData: Bus
         setTimeout(() => setCopiedReferral(false), 2000);
     };
 
-    const updateField = (key: string, value: any) => {
+    const updateField = (key: string, value: string | number | boolean) => {
         setData((prev) => ({ ...prev, [key]: value }));
         setError("");
     };
@@ -511,7 +511,7 @@ export default function SettingsForm({ initialData, userId }: { initialData: Bus
                                 ) : (
                                     <button
                                         type="button"
-                                        onClick={() => window.location.href = '/api/auth/google'}
+                                        onClick={() => window.location.href = '/api/integrations/google-calendar/auth'}
                                         className="bg-white text-black text-xs font-medium px-5 py-2.5 rounded-full hover:bg-neutral-200 transition-colors"
                                     >
                                         Connect Google Account

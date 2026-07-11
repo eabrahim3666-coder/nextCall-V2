@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
                     business_name: business_name || "",
                     owner_name: owner_name || "",
                     phone: phone || "",
+                    owner_phone: phone || "",
                     business_type: business_type || "General",
                     industry: industry || "",
                     hours: hours || "",

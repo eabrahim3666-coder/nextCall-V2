@@ -2,11 +2,12 @@ import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import { businessesCollection } from '@/lib/astra';
 import openai from '@/lib/openai';
+import { hasValidSecret } from '@/lib/security';
 
 export async function GET(request: Request) {
   // 1. Verify Vercel Cron Secret to prevent unauthorized runs
   const authHeader = request.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!hasValidSecret(authHeader, process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : undefined)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -57,7 +58,7 @@ export async function GET(request: Request) {
         if (!reviewsData.reviews) continue; // No reviews exist
 
         // 7. Filter for UNREPLIED reviews
-        const unrepliedReviews = reviewsData.reviews.filter((r: any) => !r.reviewReply);
+        const unrepliedReviews = reviewsData.reviews.filter((r: { reviewReply?: unknown }) => !r.reviewReply);
 
         for (const review of unrepliedReviews) {
           // 8. Generate the AI Reply (Bringing your existing logic in-house)

@@ -21,7 +21,7 @@ const recentCalls = [
 ];
 
 // CUSTOM PULSING DOT FOR THE "LIVE" CHART POINT
-const CustomizedDot = (props: any) => {
+const CustomizedDot = (props: { cx?: number; cy?: number; index?: number }) => {
     const { cx, cy, index } = props;
     // Only add the pulsing dot to the very last data point ("Now")
     if (index === volumeData.length - 1) {

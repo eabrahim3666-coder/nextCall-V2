@@ -11,6 +11,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/cron/(.*)",     // Cron jobs need to be public so Vercel/curl can trigger them!
   "/api/test/(.*)",     // Test routes
   "/api/reviews/(.*)",  // n8n & Google hit these routes without auth cookies!
+  "/api/contact",
 ]);
 
 // 2. Define admin routes (Matches both /admin and /admin/anything)
@@ -27,13 +28,18 @@ export default clerkMiddleware(async (auth, request) => {
   // Protect Admin routes
   if (isAdminRoute(request)) {
     const { sessionClaims } = await auth();
+    const claims = sessionClaims as {
+      metadata?: { role?: string };
+      publicMetadata?: { role?: string };
+      email?: string;
+    } | null;
     
     // Check both metadata and publicMetadata to be safe across Clerk versions
-    const isAdmin = sessionClaims?.metadata?.role === "admin" || sessionClaims?.publicMetadata?.role === "admin";
+    const isAdmin = claims?.metadata?.role === "admin" || claims?.publicMetadata?.role === "admin";
     
     // SECURE BOSS BYPASS: Check against ADMIN_EMAILS environment variable
     const bossEmails = process.env.ADMIN_EMAILS?.split(",").map(e => e.trim().toLowerCase()) || [];
-    const currentEmail = sessionClaims?.email?.toLowerCase();
+    const currentEmail = claims?.email?.toLowerCase();
     const isBoss = bossEmails.includes(currentEmail || "");
 
     // If they are not an admin, kick them back to the main dashboard

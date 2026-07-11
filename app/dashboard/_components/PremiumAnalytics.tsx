@@ -1,8 +1,8 @@
 "use client";
 
 import {
-    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    BarChart, Bar, PieChart, Pie, Cell, LineChart, Line
+    XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    PieChart, Pie, Cell, LineChart, Line
 } from "recharts";
 import { useMemo } from "react";
 
@@ -22,18 +22,8 @@ type Call = {
 
 type Props = {
     calls: Call[];
-    businessName: string;
     businessType: string;
     avgJobValue?: number; // User-defined actual value from Settings; falls back to type-based estimate
-};
-
-const CHART_STYLES = {
-    stroke: "#818cf8",
-    fill: "#818cf8",
-    gradientStart: "rgba(129,140,248,0.3)",
-    gradientEnd: "rgba(129,140,248,0)",
-    grid: "rgba(255,255,255,0.04)",
-    axisText: "#525252",
 };
 
 // Average job value by business type (for revenue estimation)
@@ -44,7 +34,7 @@ const AVG_JOB_VALUE: Record<string, number> = {
     Restaurant: 50, "General Contractor": 500, default: 300,
 };
 
-export default function PremiumAnalytics({ calls, businessName, businessType, avgJobValue: userJobValue }: Props) {
+export default function PremiumAnalytics({ calls, businessType, avgJobValue: userJobValue }: Props) {
     // Use user-defined value if set (> 0), otherwise fall back to business-type estimate
     const avgJobValue = (userJobValue && userJobValue > 0)
         ? userJobValue
@@ -216,7 +206,7 @@ export default function PremiumAnalytics({ calls, businessName, businessType, av
             <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
                 <h3 className="text-sm font-semibold text-white mb-6">Conversion Funnel</h3>
                 <div className="flex items-end gap-3 h-40">
-                    {metrics.funnelData.map((step, i) => {
+                    {metrics.funnelData.map((step) => {
                         const maxVal = metrics.funnelData[0]?.value || 1;
                         const height = Math.max((step.value / maxVal) * 100, 8);
                         return (

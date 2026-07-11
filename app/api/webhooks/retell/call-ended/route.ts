@@ -1,23 +1,17 @@
 import { NextResponse } from 'next/server';
-import { callsCollection, businessesCollection, notificationsCollection } from '@/lib/astra';
+import { callsCollection, businessesCollection, notificationsCollection, webhookEventsCollection } from '@/lib/astra';
 import openai from '@/lib/openai';
-import crypto from 'crypto';
+import twilioClient from '@/lib/twilio';
 import { Resend } from 'resend';
 import { google } from 'googleapis';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { escapeHtml, isSafeWebhookUrl, verifyHmacSignature } from '@/lib/security';
 
 export async function POST(request: Request) {
   try {
     // SECURITY: Verify Retell Signature
     const rawBody = await request.text();
     const retellSignature = request.headers.get('retell-signature');
-    const expectedSignature = crypto
-      .createHmac('sha256', process.env.RETELL_WEBHOOK_SECRET || '')
-      .update(rawBody)
-      .digest('hex');
-
-    if (retellSignature !== expectedSignature) {
+    if (!verifyHmacSignature(rawBody, retellSignature, process.env.RETELL_WEBHOOK_SECRET)) {
       console.error("Invalid Retell Signature");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -26,29 +20,74 @@ export async function POST(request: Request) {
 
     const metadata = body.metadata || {};
     const callId = body.call_id;
+    
+    if (!callId) {
+      return NextResponse.json({ error: "Missing call_id" }, { status: 400 });
+    }
+
+    const eventKey = `retell:${callId}`;
+    const existingEvent = await webhookEventsCollection.findOne({ _id: eventKey });
+    if (existingEvent?.processed_at) return NextResponse.json({ received: true, duplicate: true });
+    if (existingEvent && Date.now() - new Date(existingEvent.created_at).getTime() < 10 * 60 * 1000) {
+      return NextResponse.json({ received: true, processing: true });
+    }
+    if (existingEvent) {
+      await webhookEventsCollection.updateOne({ _id: eventKey }, { $set: { created_at: new Date().toISOString() } });
+    } else {
+      await webhookEventsCollection.insertOne({ _id: eventKey, provider: "retell", event_id: callId, created_at: new Date().toISOString() });
+    }
+
+    // IDEMPOTENCY CHECK: Prevent duplicate processing if Retell retries the webhook
+    const existingCall = await callsCollection.findOne({ call_id: callId });
+    if (existingCall) {
+      console.log(`Call ${callId} already processed. Skipping duplicate webhook.`);
+      await webhookEventsCollection.updateOne({ _id: eventKey }, { $set: { processed_at: new Date().toISOString() } });
+      return NextResponse.json({ received: true, message: "Duplicate event ignored." });
+    }
+
+    // Lazy initialize Resend to prevent Vercel build crashes
+    const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
     const transcript = body.transcript || "No transcript available.";
-    const startTime = body.start_timestamp;
-    const endTime = body.end_timestamp;
+    
+    // Safely parse timestamps to prevent NaN crashes on bad payloads
+    const startTime = Number(body.start_timestamp);
+    const endTime = Number(body.end_timestamp);
+    if (!Number.isFinite(startTime) || !Number.isFinite(endTime) || endTime < startTime) {
+      return NextResponse.json({ error: "Invalid call timestamps" }, { status: 400 });
+    }
     const callDuration = Math.round((endTime - startTime) / 1000);
     const callDurationMin = Math.ceil(callDuration / 60);
     const businessId = metadata.business_id || 'unknown_business';
-
+    
     // 1. Get business + routing rules
     const business = await businessesCollection.findOne({ business_id: businessId });
+    if (!business) return NextResponse.json({ error: "Unknown business" }, { status: 400 });
     const routingRules = business?.routing_rules || {};
     const minutesLimit = business?.minutes_limit || 200;
     const currentMinutes = business?.total_minutes_used || 0;
     const newTotalMinutes = currentMinutes + callDurationMin;
-    const plan = business?.plan || 'standard';
+    const plan = business?.plan_type || business?.plan || 'standard';
     const overageRate = plan === 'premium' ? 0.40 : 0.50;
 
     // 2. Ask GPT for Summary, Sentiment, Lead Quality, Appointment status, and Date/Time
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `You are a call analyst. Analyze the transcript and provide:
+    let summary = "Summary unavailable.";
+    let sentiment = "Neutral";
+    let leadQuality = "warm";
+    let appointmentBooked = false;
+    let customerEmail = null;
+    let customerName = null;
+    let isEmergency = false;
+    let appointmentDateTimeStr = null;
+    let appointmentDuration = 60;
+
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `You are a call analyst. Analyze the transcript and provide:
 1. A 1-sentence summary
 2. Sentiment (Positive, Neutral, or Negative)
 3. Lead quality: "hot" (ready to buy/book), "warm" (interested), "cold" (just asking)
@@ -59,22 +98,25 @@ export async function POST(request: Request) {
 8. Appointment date and time in ISO 8601 format (e.g., 2024-12-25T14:00:00) if mentioned, otherwise null. Assume the current year.
 9. Appointment duration in minutes if mentioned, or 60 by default.
 Output ONLY valid JSON.`
-        },
-        { role: "user", content: transcript }
-      ],
-      response_format: { type: "json_object" }
-    });
+          },
+          { role: "user", content: transcript }
+        ],
+        response_format: { type: "json_object" }
+      });
 
-    const aiResult = JSON.parse(completion.choices[0].message.content || "{}");
-    const summary = aiResult.summary || "Summary unavailable.";
-    const sentiment = aiResult.sentiment || "Neutral";
-    const leadQuality = aiResult.lead_quality || "warm";
-    const appointmentBooked = aiResult.appointment_booked || false;
-    const customerEmail = aiResult.customer_email || null;
-    const customerName = aiResult.customer_name || null;
-    const isEmergency = aiResult.is_emergency || false;
-    const appointmentDateTimeStr = aiResult.appointment_date_time || null;
-    const appointmentDuration = aiResult.appointment_duration_minutes || 60;
+      const aiResult = JSON.parse(completion.choices[0].message.content || "{}");
+      summary = aiResult.summary || "Summary unavailable.";
+      sentiment = aiResult.sentiment || "Neutral";
+      leadQuality = aiResult.lead_quality || "warm";
+      appointmentBooked = aiResult.appointment_booked || false;
+      customerEmail = aiResult.customer_email || null;
+      customerName = aiResult.customer_name || null;
+      isEmergency = aiResult.is_emergency || false;
+      appointmentDateTimeStr = aiResult.appointment_date_time || null;
+      appointmentDuration = aiResult.appointment_duration_minutes || 60;
+    } catch (openAiError) {
+      console.error("OpenAI analysis failed for call, using fallback values:", openAiError);
+    }
 
     // 3. Save call record
     const callRecord = {
@@ -100,13 +142,15 @@ Output ONLY valid JSON.`
 
     await callsCollection.insertOne(callRecord);
 
-    // 4. Update business minutes + call count
+    // 4. Update business minutes + call count (Atomic increment prevents race conditions)
     await businessesCollection.updateOne(
       { business_id: businessId },
       {
+        $inc: {
+          total_minutes_used: callDurationMin,
+          total_calls_processed: 1
+        },
         $set: {
-          total_minutes_used: newTotalMinutes,
-          total_calls_processed: (business?.total_calls_processed || 0) + 1,
           updated_at: new Date().toISOString(),
         }
       }
@@ -129,8 +173,8 @@ Output ONLY valid JSON.`
           startDateTime = appointmentDateTimeStr ? new Date(appointmentDateTimeStr) : new Date(Date.now() + 24 * 60 * 60 * 1000);
           if (isNaN(startDateTime.getTime())) startDateTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
           if (startDateTime.getHours() === 0) startDateTime.setHours(10, 0, 0);
-        } catch (e) {
-          startDateTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        } catch {
+            startDateTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
         }
 
         const endDateTime = new Date(startDateTime.getTime() + (appointmentDuration * 60 * 1000));
@@ -143,7 +187,7 @@ Output ONLY valid JSON.`
           end: { dateTime: endDateTime.toISOString(), timeZone: 'America/New_York' },
         };
 
-        await calendar.events.insert({ calendarId: 'primary', resource: event });
+        await calendar.events.insert({ calendarId: 'primary', requestBody: event });
         console.log(`Google Calendar event created for ${business.business_name}`);
       } catch (calError) {
         console.error("Failed to create Google Calendar event:", calError);
@@ -151,7 +195,7 @@ Output ONLY valid JSON.`
     }
 
     // 6. ZAPIER / WEBHOOK INTEGRATION (Premium)
-    if (business?.zapier_webhook_url && plan === 'premium') {
+    if (business?.zapier_webhook_url && plan === 'premium' && isSafeWebhookUrl(business.zapier_webhook_url)) {
       try {
         await fetch(business.zapier_webhook_url, {
           method: 'POST',
@@ -180,18 +224,19 @@ Output ONLY valid JSON.`
     // 7. FOLLOW-UP EMAIL to customer
     if (routingRules.email_followup && customerEmail && business) {
       try {
-        await resend.emails.send({
+        if (!resend) throw new Error("Email service is not configured");
+        if (resend) await resend.emails.send({
           from: "Next Call Chat <onboarding@resend.dev>",
           to: [customerEmail],
           subject: `Thanks for calling ${business.business_name || 'us'}!`,
           html: `
             <div style="background:#0a0a0a;padding:32px;border-radius:16px;font-family:Inter,sans-serif;color:#fff;max-width:500px;">
-              <h2 style="margin:0 0 16px;font-size:18px;color:#fff;">Thanks for calling${customerName ? ` ${customerName}` : ''}!</h2>
+              <h2 style="margin:0 0 16px;font-size:18px;color:#fff;">Thanks for calling${customerName ? ` ${escapeHtml(customerName)}` : ''}!</h2>
               <p style="margin:0 0 16px;color:#a3a3a3;font-size:14px;line-height:1.6;">
-                We received your call to <strong style="color:#fff;">${business.business_name || 'our business'}</strong>. Here's a quick summary:
+                We received your call to <strong style="color:#fff;">${escapeHtml(business.business_name || 'our business')}</strong>. Here's a quick summary:
               </p>
               <div style="padding:16px;background:rgba(255,255,255,0.05);border-radius:12px;border:1px solid rgba(255,255,255,0.08);margin-bottom:16px;">
-                <p style="margin:0;color:#d4d4d4;font-size:14px;line-height:1.6;">${summary}</p>
+                <p style="margin:0;color:#d4d4d4;font-size:14px;line-height:1.6;">${escapeHtml(summary)}</p>
               </div>
               ${appointmentBooked ? `<p style="margin:0 0 16px;color:#818cf8;font-size:14px;">Your appointment has been booked. We'll send you a reminder before your visit.</p>` : ''}
               <p style="margin:0;color:#525252;font-size:12px;">If you have any questions, just call us back or reply to this email.</p>
@@ -218,7 +263,7 @@ Output ONLY valid JSON.`
             business_name: business.business_name || "Unknown",
             details: `Caller: ${customerName || 'Unknown'} | Summary: ${summary}`
           }),
-        }).catch(e => console.error("n8n ping failed"));
+        }).catch(() => console.error("n8n ping failed"));
       }
     }
 
@@ -235,7 +280,7 @@ Output ONLY valid JSON.`
             business_name: business.business_name || "Unknown",
             details: `Caller: ${customerName || 'Unknown'} | Issue: ${summary}`
           }),
-        }).catch(e => console.error("n8n ping failed"));
+        }).catch(() => console.error("n8n ping failed"));
       }
     }
 
@@ -243,8 +288,35 @@ Output ONLY valid JSON.`
       try { await notificationsCollection.insertOne({ business_id: businessId, type: "appointment", title: "New Appointment", message: `Appointment booked for ${customerName || 'a customer'}. ${summary}`, read: false, created_at: new Date().toISOString() }); } catch (e) { console.error(e); }
     }
     
-    if (callDuration < 10 && routingRules.sms_missed_call && business) {
-      try { await notificationsCollection.insertOne({ business_id: businessId, type: "missed_call", title: "Missed Call", message: `Brief call from ${body.phone_number} (${callDuration}s). May have hung up before AI answered.`, read: false, created_at: new Date().toISOString() }); } catch (e) { console.error(e); }
+     if (callDuration < 10 && routingRules.sms_missed_call && business) {
+      try {
+        // 1. Create in-app notification for the business owner
+        await notificationsCollection.insertOne({ 
+          business_id: businessId, 
+          type: "missed_call", 
+          title: "Missed Call", 
+          message: `Brief call from ${body.phone_number} (${callDuration}s). May have hung up before AI answered. Auto-SMS sent.`, 
+          read: false, 
+          created_at: new Date().toISOString() 
+        });
+
+        // 2. Send automatic SMS back to the customer
+        const customerPhone = body.phone_number;
+        const businessTwilioNumber = Array.isArray(business.twilio_numbers) && business.twilio_numbers.length > 0 
+          ? business.twilio_numbers[0] 
+          : business.twilio_number;
+
+        if (customerPhone && customerPhone !== 'unknown' && businessTwilioNumber && businessTwilioNumber !== "PROVISIONING_FAILED") {
+          await twilioClient.messages.create({
+            body: `Hi! Sorry we missed your call. We're here to help—reply to this text or call us back at ${businessTwilioNumber}. - ${business.business_name}`,
+            from: businessTwilioNumber,
+            to: customerPhone
+          });
+          console.log(`Missed call auto-SMS sent to ${customerPhone}`);
+        }
+      } catch (smsError) {
+        console.error("Failed to send missed call SMS:", smsError);
+      }
     }
 
     // ============ MINUTES ALERTS ============
@@ -252,7 +324,7 @@ Output ONLY valid JSON.`
 
     if (usagePercent >= 100 && business) {
       try {
-        await resend.emails.send({ from: "Next Call Chat <onboarding@resend.dev>", to: [process.env.SUPPORT_EMAIL || "owner@business.com"], subject: `Minutes Exceeded — ${business.business_name}`, html: `<div style="background:#0a0a0a;padding:32px;border-radius:16px;font-family:Inter,sans-serif;color:#fff;max-width:500px;"><h2 style="margin:0 0 16px;font-size:18px;color:#f43f5e;">Minutes Limit Exceeded</h2><p style="margin:0 0 16px;color:#a3a3a3;font-size:14px;">${business.business_name} has used <strong style="color:#fff;">${newTotalMinutes} of ${minutesLimit} minutes</strong>. Overages at $${overageRate}/min.</p></div>` });
+         if (resend) await resend.emails.send({ from: "Next Call Chat <onboarding@resend.dev>", to: [process.env.SUPPORT_EMAIL || "owner@business.com"], subject: `Minutes Exceeded — ${business.business_name}`, html: `<div style="background:#0a0a0a;padding:32px;border-radius:16px;font-family:Inter,sans-serif;color:#fff;max-width:500px;"><h2 style="margin:0 0 16px;font-size:18px;color:#f43f5e;">Minutes Limit Exceeded</h2><p style="margin:0 0 16px;color:#a3a3a3;font-size:14px;">${escapeHtml(business.business_name)} has used <strong style="color:#fff;">${newTotalMinutes} of ${minutesLimit} minutes</strong>. Overages at $${overageRate}/min.</p></div>` });
         await notificationsCollection.insertOne({ business_id: businessId, type: "minutes_100", title: "Minutes Exceeded", message: `You've used ${newTotalMinutes}/${minutesLimit} minutes. Overage rate: $${overageRate}/min.`, read: false, created_at: new Date().toISOString() });
       } catch (e) { console.error(e); }
     } else if (usagePercent >= 90 && business) {
@@ -263,6 +335,7 @@ Output ONLY valid JSON.`
 
     console.log(`Call ${callId} processed: ${callDurationMin}min, ${sentiment}, ${leadQuality} lead${appointmentBooked ? ', APPT BOOKED' : ''}${isEmergency ? ', EMERGENCY' : ''} (${newTotalMinutes}/${minutesLimit} min used)`);
 
+    await webhookEventsCollection.updateOne({ _id: eventKey }, { $set: { processed_at: new Date().toISOString() } });
     return NextResponse.json({ received: true });
 
   } catch (error) {

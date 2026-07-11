@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
 
@@ -28,13 +27,13 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 
 
 export default function Home() {
-  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     topic: "general",
     message: "",
+    _hp: "",
   });
   const [submissions, setSubmissions] = useState<
     Array<{
@@ -54,17 +53,6 @@ export default function Home() {
   const [toasts, setToasts] = useState<
     Array<{ id: number; message: string; type: "success" | "error" | "info" }>
   >([]);
-
-  const DB_KEY = "nextcallchat_questions";
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(DB_KEY);
-      if (stored) setSubmissions(JSON.parse(stored));
-    } catch {
-      // ignore
-    }
-  }, []);
 
   const showToast = (
     message: string,
@@ -94,18 +82,7 @@ export default function Home() {
       const data = await res.json();
 
       if (data.success) {
-        // Also save to localStorage as backup
-        const newEntry = {
-          id: Date.now(),
-          ...formData,
-          timestamp: new Date().toISOString(),
-          status: "new",
-        };
-        const stored = localStorage.getItem(DB_KEY);
-        const existing = stored ? JSON.parse(stored) : [];
-        localStorage.setItem(DB_KEY, JSON.stringify([...existing, newEntry]));
-
-        setFormData({ name: "", email: "", topic: "general", message: "" });
+        setFormData({ name: "", email: "", topic: "general", message: "", _hp: "" });
         showToast("Question sent! We'll get back to you soon.", "success");
       } else {
         showToast("Failed to send. Please try again.", "error");
@@ -118,7 +95,6 @@ export default function Home() {
   };
 
   const clearSubmissions = () => {
-    localStorage.removeItem(DB_KEY);
     setSubmissions([]);
     showToast("All submissions cleared", "info");
   };
@@ -129,9 +105,10 @@ export default function Home() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.style.opacity = "1";
-            entry.target.style.transform = "translateY(0)";
-            entry.target.style.filter = "blur(0)";
+            const element = entry.target as HTMLElement;
+            element.style.opacity = "1";
+            element.style.transform = "translateY(0)";
+            element.style.filter = "blur(0)";
             observer.unobserve(entry.target);
           }
         });
@@ -179,6 +156,7 @@ export default function Home() {
       <nav className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center px-6 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.png" alt="Next Call" className="h-8 w-auto" />
           </Link>
           <div className="hidden md:flex items-center gap-8">
@@ -517,7 +495,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <span className="text-[10px] font-medium uppercase tracking-wider text-indigo-400">Pricing</span>
             <h2 className="mt-4 text-3xl md:text-6xl font-semibold tracking-tight">Simple, <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">transparent</span> pricing</h2>
-            <p className="mt-4 text-sm text-neutral-400 max-w-md mx-auto leading-relaxed">No hidden fees. No contracts. Cancel anytime. 7-day free trial included.</p>
+            <p className="mt-4 text-sm text-neutral-400 max-w-md mx-auto leading-relaxed">No hidden fees. No contracts. Cancel anytime. 3-day free trial included.</p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
@@ -556,7 +534,7 @@ export default function Home() {
                 ))}
               </div>
 
-              <a href={`${process.env.NEXT_PUBLIC_LEMON_SQUEEZY_STANDARD_URL}${refCode ? `?checkout[custom_data][ref]=${refCode}` : ''}`} className="lemonsqueezy-button block w-full text-center bg-white/[0.05] border border-white/[0.1] text-white text-sm font-medium px-6 py-3.5 rounded-full hover:bg-white/[0.1] transition-colors">
+              <a href={`/dashboard${refCode ? `?ref=${refCode}` : ''}`} className="block w-full text-center bg-white/[0.05] border border-white/[0.1] text-white text-sm font-medium px-6 py-3.5 rounded-full hover:bg-white/[0.1] transition-colors">
                 Start Free Trial
               </a>
             </div>
@@ -603,7 +581,7 @@ export default function Home() {
                   ))}
                 </div>
 
-                <a href={`${process.env.NEXT_PUBLIC_LEMON_SQUEEZY_PREMIUM_URL}${refCode ? `?checkout[custom_data][ref]=${refCode}` : ''}`} className="lemonsqueezy-button block w-full text-center bg-white text-black text-sm font-medium px-6 py-3.5 rounded-full hover:bg-neutral-200 transition-colors">
+                <a href={`/dashboard${refCode ? `?ref=${refCode}` : ''}`} className="block w-full text-center bg-white text-black text-sm font-medium px-6 py-3.5 rounded-full hover:bg-neutral-200 transition-colors">
                   Start Free Trial
                 </a>
               </div>
@@ -612,7 +590,7 @@ export default function Home() {
 
           {/* Bottom note */}
           <div className="mt-8 text-center">
-            <p className="text-xs text-neutral-600">Both plans include a 7-day free trial. No credit card required to start. Overage billed monthly.</p>
+            <p className="text-xs text-neutral-600">Both plans include a 3-day free trial. No credit card required to start. Overage billed monthly.</p>
           </div>
         </div>
       </section>
@@ -696,6 +674,9 @@ export default function Home() {
                 <label className="block text-[10px] uppercase tracking-wider text-neutral-500 mb-2">Your Question</label>
                 <textarea value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} required rows={4} placeholder="Tell us what you'd like to know..." className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all resize-none" />
               </div>
+              <div className="hidden" aria-hidden="true">
+                <input type="text" name="_hp" value={formData._hp} onChange={(e) => setFormData({ ...formData, _hp: e.target.value })} tabIndex={-1} autoComplete="off" />
+              </div>
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <p className="text-[10px] text-neutral-600">We store this securely. No spam, ever.</p>
                 <button type="submit" disabled={loading} className="inline-flex items-center gap-2 bg-white text-black text-sm font-medium px-8 py-3.5 rounded-full hover:bg-neutral-200 transition-colors w-full sm:w-auto justify-center disabled:opacity-30">
@@ -778,6 +759,7 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-12">
             <div>
               <div className="mb-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/logo.png" alt="Next Call" className="h-8 w-auto" />
               </div>
               <p className="text-xs text-neutral-500 leading-relaxed">AI-powered call & chat receptionist. Never miss another lead.</p>
