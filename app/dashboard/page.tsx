@@ -289,7 +289,6 @@ export default async function DashboardHome() {
                     {business?.plan_type === "premium" || business?.plan === "premium" ? (
                         <PremiumAnalytics
                             calls={formattedCalls}
-                            businessName={businessName}
                             businessType={business?.business_type || "General"}
                             avgJobValue={business?.avg_job_value || 0}
                         />
