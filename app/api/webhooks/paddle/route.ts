@@ -155,7 +155,7 @@ export async function POST(request: Request) {
               twilio_number: twilioPhoneNumber, // Keep for backwards compatibility
               paddle_subscription_id: payload.data.id,
               paddle_customer_id: payload.data.customer_id,
-              status: twilioPhoneNumber !== "PROVISIONING_FAILED" ? "active" : "pending",
+              status: "active",
               plan_type: planType,
               minutes_limit: minutesLimit,
               overage_rate: overageRate,
