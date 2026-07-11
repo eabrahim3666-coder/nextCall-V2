@@ -34,6 +34,18 @@ async function verifyPaidTransaction(transactionId: string, userId: string) {
     return transaction;
 }
 
+function getPlanLimits(plan: string) {
+    if (plan === "premium") {
+        return { minutes_limit: 500, overage_rate: 0.40 };
+    }
+
+    if (plan === "trial") {
+        return { minutes_limit: 50, overage_rate: 0 };
+    }
+
+    return { minutes_limit: 200, overage_rate: 0.50 };
+}
+
 export async function GET(request: Request) {
     const { userId } = await auth();
     if (!userId) {
@@ -49,17 +61,16 @@ export async function GET(request: Request) {
                 const transaction = await verifyPaidTransaction(transactionId, userId);
                 if (transaction) {
                     const customData = transaction.custom_data || {};
-                    const plan = customData.plan || business?.plan || "standard";
-                    const limits = plan === "premium"
-                        ? { minutes_limit: 500, overage_rate: 0.40 }
-                        : plan === "trial"
-                            ? { minutes_limit: 50, overage_rate: 0 }
-                            : { minutes_limit: 200, overage_rate: 0.50 };
+                    const plan = customData.plan || business?.plan_type || business?.plan || "standard";
+                    const limits = getPlanLimits(plan);
+                    const businessName = customData.business_name || business?.business_name || "New Business";
 
                     await businessesCollection.updateOne(
                         { business_id: userId },
                         {
                             $set: {
+                                business_id: userId,
+                                business_name: businessName,
                                 status: "active",
                                 plan_type: plan,
                                 paddle_transaction_id: transaction.id,
@@ -68,7 +79,16 @@ export async function GET(request: Request) {
                                 ...limits,
                                 updated_at: new Date().toISOString(),
                             },
+                            $setOnInsert: {
+                                created_at: new Date().toISOString(),
+                                total_calls_processed: 0,
+                                total_minutes_used: 0,
+                                twilio_subaccount_sid: "PROVISIONING_FAILED",
+                                twilio_number: "PROVISIONING_FAILED",
+                                twilio_numbers: ["PROVISIONING_FAILED"],
+                            },
                         },
+                        { upsert: true },
                     );
                     business = await findBusinessByUserId(userId);
                 }

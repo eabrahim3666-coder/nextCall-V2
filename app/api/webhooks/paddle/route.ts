@@ -3,16 +3,122 @@ import crypto from 'crypto';
 import { businessesCollection, webhookEventsCollection } from '@/lib/astra';
 import { hasValidSecret } from '@/lib/security';
 
-// Helper to generate a unique referral code
+type PaddleEventData = {
+  id?: string;
+  transaction_id?: string;
+  subscription_id?: string;
+  customer_id?: string;
+  custom_data?: {
+    business_name?: string;
+    owner_phone?: string;
+    clerk_user_id?: string;
+    business_type?: string;
+    service_area?: string;
+    ref?: string | null;
+    plan?: string;
+  };
+};
+
 function generateReferralCode(businessName: string) {
   const prefix = businessName.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 4);
   const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
   return `${prefix}-${suffix}`;
 }
 
+function getPlanLimits(planType: string) {
+  if (planType === 'premium') {
+    return { minutesLimit: 500, overageRate: 0.40 };
+  }
+
+  if (planType === 'trial') {
+    return { minutesLimit: 50, overageRate: 0.00 };
+  }
+
+  return { minutesLimit: 200, overageRate: 0.50 };
+}
+
+async function activateBusinessFromPaddleData(data: PaddleEventData) {
+  const customData = data.custom_data || {};
+  const businessName = customData.business_name || "New Business";
+  const ownerPhone = customData.owner_phone;
+  const clerkId = customData.clerk_user_id;
+  const businessType = customData.business_type || "General";
+  const serviceArea = customData.service_area || "Unknown";
+  const refCode = customData.ref || null;
+
+  if (!clerkId) {
+    throw new Error("Missing clerk_user_id in Paddle custom_data");
+  }
+
+  const existingBusiness = await businessesCollection.findOne({ business_id: clerkId });
+  const twilioSubAccountSid = existingBusiness?.twilio_subaccount_sid || "PROVISIONING_FAILED";
+  const twilioPhoneNumber = existingBusiness?.twilio_number || "PROVISIONING_FAILED";
+  const currentNumbers = Array.isArray(existingBusiness?.twilio_numbers) && existingBusiness.twilio_numbers.length > 0
+    ? existingBusiness.twilio_numbers
+    : [twilioPhoneNumber];
+  const planType = customData.plan || existingBusiness?.plan_type || 'standard';
+  const { minutesLimit, overageRate } = getPlanLimits(planType);
+
+  if (refCode && !existingBusiness?.referral_applied_at) {
+    const referrer = await businessesCollection.findOne({ referral_code: refCode });
+    if (referrer) {
+      await businessesCollection.updateOne(
+        { _id: referrer._id },
+        {
+          $inc: { minutes_limit: 50, bonus_minutes: 50 },
+          $set: { updated_at: new Date().toISOString() }
+        }
+      );
+      console.log(`${referrer.business_name} earned 50 bonus minutes from referral!`);
+    }
+  }
+
+  await businessesCollection.updateOne(
+    { business_id: clerkId },
+    {
+      $set: {
+        business_id: clerkId,
+        business_name: businessName,
+        twilio_subaccount_sid: twilioSubAccountSid,
+        twilio_number: twilioPhoneNumber,
+        twilio_numbers: currentNumbers,
+        paddle_transaction_id: data.transaction_id || data.id,
+        paddle_subscription_id: data.subscription_id || data.id,
+        paddle_customer_id: data.customer_id,
+        status: "active",
+        plan_type: planType,
+        minutes_limit: minutesLimit,
+        overage_rate: overageRate,
+        ...(refCode ? { referral_applied_at: new Date().toISOString() } : {}),
+        updated_at: new Date().toISOString()
+      },
+      $setOnInsert: {
+        owner_phone: ownerPhone || "",
+        business_type: businessType,
+        service_area: serviceArea,
+        total_minutes_used: 0,
+        total_calls_processed: 0,
+        referral_code: generateReferralCode(businessName),
+        created_at: new Date().toISOString()
+      }
+    },
+    { upsert: true }
+  );
+
+  console.log(`Business ${businessName} onboarded on ${planType} plan via Paddle!`);
+
+  if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
+    const teleMsg = `<b>New Paid User (Paddle)</b>\n\nBusiness: <b>${businessName}</b>\nPlan: ${planType}\nPhone: ${ownerPhone}`;
+    fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: process.env.TELEGRAM_CHAT_ID, text: teleMsg, parse_mode: 'HTML' })
+    }).catch(err => console.error("Telegram fetch failed:", err));
+  }
+}
+
 export async function POST(request: Request) {
   try {
-    // 1. Get the raw body and signature header
     const rawBody = await request.text();
     const signatureHeader = request.headers.get('paddle-signature');
 
@@ -20,11 +126,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing signature" }, { status: 401 });
     }
 
-    // 2. Parse the signature (ts=...;h1=...)
     const parts = signatureHeader.split(';');
     const tsPart = parts.find(p => p.startsWith('ts='));
     const h1Part = parts.find(p => p.startsWith('h1='));
-    
+
     if (!tsPart || !h1Part) {
       return NextResponse.json({ error: "Invalid signature format" }, { status: 401 });
     }
@@ -41,13 +146,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Webhook is not configured" }, { status: 503 });
     }
 
-    // 3. Verify signature: HMAC-SHA256(ts + ":" + rawBody, secret)
     const signedPayload = `${timestamp}:${rawBody}`;
     const hmac = crypto.createHmac('sha256', process.env.PADDLE_WEBHOOK_SECRET!);
     hmac.update(signedPayload);
     const digest = hmac.digest('hex');
 
-    // 4. If signature doesn't match, return 401
     if (!hasValidSecret(h1Signature, digest)) {
       console.error("Invalid Paddle Signature");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -70,145 +173,28 @@ export async function POST(request: Request) {
     }
     console.log(`Paddle Webhook Received: ${eventName}`);
 
-    // ==========================================
-    // 1. SUBSCRIPTION CREATED (New Paid User)
-    // ==========================================
-    if (eventName === 'subscription.created') {
+    if (eventName === 'subscription.created' || eventName === 'subscription.activated' || eventName === 'transaction.completed') {
       try {
-        const customData = payload.data.custom_data || {};
-        const businessName = customData.business_name || "New Business";
-        const ownerPhone = customData.owner_phone;
-        const clerkId = customData.clerk_user_id;
-        const businessType = customData.business_type || "General";
-        const serviceArea = customData.service_area || "Unknown";
-        const refCode = customData.ref || null;
-        
-        // 1. Fetch existing business to prevent duplicate purchases on Paddle webhook retries
-        const existingBusiness = await businessesCollection.findOne({ business_id: clerkId });
-        
-        const twilioSubAccountSid = existingBusiness?.twilio_subaccount_sid || "PROVISIONING_FAILED";
-        const twilioPhoneNumber = existingBusiness?.twilio_number || "PROVISIONING_FAILED";
-
-        // 2. Only provision Twilio stuff if this is a brand new user or a previous attempt failed
-        if (twilioSubAccountSid === "PROVISIONING_FAILED" || twilioPhoneNumber === "PROVISIONING_FAILED") {
-          // ⚠️ UNCOMMENT THIS BLOCK WHEN GOING LIVE — purchases a real Twilio number (costs money)
-          // try {
-          //   const subAccount = await twilioClient.api.accounts.create({ friendlyName: businessName });
-          //   const availableNumbers = await twilioClient.availablePhoneNumbers('US').local.list({
-          //     limit: 1,
-          //     capabilities: { sms: true, voice: true }
-          //   });
-          //   if (availableNumbers.length === 0) throw new Error("No available Twilio numbers with Voice+SMS");
-          //   const purchasedNumber = await twilioClient.api.accounts(subAccount.sid).incomingPhoneNumbers.create({
-          //     phoneNumber: availableNumbers[0].phoneNumber,
-          //     friendlyName: `${businessName} nextCall Line`,
-          //     voiceUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/twilio/inbound`,
-          //     voiceMethod: 'POST',
-          //     smsUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/twilio/whatsapp-inbound`,
-          //     smsMethod: 'POST'
-          //   });
-          //   twilioSubAccountSid = subAccount.sid;
-          //   twilioPhoneNumber = purchasedNumber.phoneNumber;
-          // } catch (twilioError) {
-          //   console.error("TWILIO ERROR (Marking user active anyway):", twilioError);
-          // }
-        }
-
-        const planType = customData.plan || 'standard';
-
-        let minutesLimit;
-        let overageRate;
-
-        if (planType === 'premium') {
-          minutesLimit = 500;
-          overageRate = 0.40;
-        } else if (planType === 'trial') {
-          minutesLimit = 50; 
-          overageRate = 0.00; 
-        } else {
-          minutesLimit = 200;
-          overageRate = 0.50;
-        }
-
-        // Reward the referrer!
-        if (refCode) {
-          const referrer = await businessesCollection.findOne({ referral_code: refCode });
-          if (referrer) {
-            await businessesCollection.updateOne(
-              { _id: referrer._id },
-              {
-                $inc: { minutes_limit: 50, bonus_minutes: 50 },
-                $set: { updated_at: new Date().toISOString() }
-              }
-            );
-            console.log(`${referrer.business_name} earned 50 bonus minutes from referral!`);
-          }
-        }
-
-        // UPDATE EXISTING BUSINESS IN ASTRADB!
-        await businessesCollection.updateOne(
-          { business_id: clerkId },
-          {
-             $set: {
-              business_name: businessName,
-              twilio_subaccount_sid: twilioSubAccountSid,
-              twilio_number: twilioPhoneNumber, // Keep for backwards compatibility
-              paddle_subscription_id: payload.data.id,
-              paddle_customer_id: payload.data.customer_id,
-              status: "active",
-              plan_type: planType,
-              minutes_limit: minutesLimit,
-              overage_rate: overageRate,
-              updated_at: new Date().toISOString()
-            },
-            $setOnInsert: {
-              // Only set these if the document is brand new. 
-              // This protects the user's onboarding data from being overwritten by Paddle's default payload!
-              owner_phone: ownerPhone || "",
-              business_type: businessType,
-              service_area: serviceArea,
-              twilio_numbers: [twilioPhoneNumber], // Put in setOnInsert so retries don't wipe Premium numbers
-              total_minutes_used: 0,
-              total_calls_processed: 0,
-              referral_code: generateReferralCode(businessName),
-              created_at: new Date().toISOString()
-            }
-          },
-          { upsert: true }
-        );
-
-        console.log(`Business ${businessName} onboarded on ${planType} plan via Paddle!`);
-
-        // Direct Telegram Alert (No n8n needed)
-        if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
-          const teleMsg = `<b>New Paid User (Paddle)</b>\n\nBusiness: <b>${businessName}</b>\nPlan: ${planType}\nPhone: ${ownerPhone}`;
-          fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: process.env.TELEGRAM_CHAT_ID, text: teleMsg, parse_mode: 'HTML' })
-          }).catch(err => console.error("Telegram fetch failed:", err));
-        }
-
+        await activateBusinessFromPaddleData(payload.data);
       } catch (error) {
         console.error("Error during automated onboarding:", error);
       }
     }
 
-    // ==========================================
-    // 2. SUBSCRIPTION CANCELED / EXPIRED
-    // ==========================================
     if (eventName === 'subscription.canceled' || eventName === 'subscription.expired') {
       const subId = payload.data.id;
       const business = await businessesCollection.findOne({ paddle_subscription_id: subId });
-      
+
       if (business) {
         await businessesCollection.updateOne(
           { _id: business._id },
-          { $set: { 
-            status: "cancelled", 
-            cancellation_date: new Date().toISOString(), 
-            scheduled_deletion_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() 
-          }}
+          {
+            $set: {
+              status: "cancelled",
+              cancellation_date: new Date().toISOString(),
+              scheduled_deletion_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+            }
+          }
         );
       }
     }
