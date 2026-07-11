@@ -17,15 +17,19 @@ export default function DashboardAccessGate({
     isActiveBusiness,
 }: DashboardAccessGateProps) {
     const searchParams = useSearchParams();
+    const paddleTransactionId =
+        searchParams.get("_ptxn") ||
+        searchParams.get("ptxn") ||
+        searchParams.get("transaction_id");
     const hasPaddleSuccess =
-        searchParams.getAll("paddle").includes("success") || searchParams.has("ptxn");
+        searchParams.getAll("paddle").includes("success") || Boolean(paddleTransactionId);
 
     if (isActiveBusiness) {
         return <>{children}</>;
     }
 
     if (hasBusiness && hasPaddleSuccess) {
-        return <PaddleSuccessWaiting />;
+        return <PaddleSuccessWaiting transactionId={paddleTransactionId} />;
     }
 
     if (hasBusiness) {

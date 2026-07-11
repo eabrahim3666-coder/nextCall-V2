@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-export default function PaddleSuccessWaiting() {
+export default function PaddleSuccessWaiting({ transactionId }: { transactionId: string | null }) {
     const [timedOut, setTimedOut] = useState(false);
 
     useEffect(() => {
@@ -10,7 +10,10 @@ export default function PaddleSuccessWaiting() {
 
         const pollStatus = async () => {
             try {
-                const res = await fetch("/api/business/status");
+                const query = transactionId
+                    ? `?transaction_id=${encodeURIComponent(transactionId)}`
+                    : "";
+                const res = await fetch(`/api/business/status${query}`, { cache: "no-store" });
                 const data = await res.json();
 
                 if (data.status === "active") {
@@ -35,7 +38,7 @@ export default function PaddleSuccessWaiting() {
         return () => {
             clearInterval(interval);
         };
-    }, []);
+    }, [transactionId]);
 
     if (timedOut) {
         return (
