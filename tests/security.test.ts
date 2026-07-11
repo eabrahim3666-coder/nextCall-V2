@@ -11,7 +11,7 @@ describe('hasValidSecret', () => {
   });
 
   it('returns false when header is undefined', () => {
-    expect(hasValidSecret(undefined, 'Bearer secret')).toBe(false);
+    expect(hasValidSecret(null, 'Bearer secret')).toBe(false);
   });
 
   it('returns true with sha256= prefix format', () => {

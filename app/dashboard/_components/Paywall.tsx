@@ -7,8 +7,9 @@ type PaddleInstance = {
     Initialize: (config: { token?: string }) => void;
     Checkout: {
         open: (config: {
-            items: { priceId: string; quantity: number }[];
-            customData: Record<string, unknown>;
+            transactionId?: string;
+            items?: { priceId: string; quantity: number }[];
+            customData?: Record<string, unknown>;
             settings: { successUrl: string };
         }) => void;
     };
@@ -36,7 +37,7 @@ export default function Paywall() {
         document.body.appendChild(script);
     }, []);
 
-    const handleCheckout = (plan: "trial" | "standard" | "premium") => {
+    const handleCheckout = async (plan: "trial" | "standard" | "premium") => {
         setLoading(plan);
         const Paddle = getPaddle();
 
@@ -46,33 +47,35 @@ export default function Paywall() {
             return;
         }
 
-        const priceIdMap = {
-            trial: process.env.NEXT_PUBLIC_PADDLE_TRIAL_PRICE_ID,
-            standard: process.env.NEXT_PUBLIC_PADDLE_STANDARD_PRICE_ID,
-            premium: process.env.NEXT_PUBLIC_PADDLE_PREMIUM_PRICE_ID
-        };
+        try {
+            // Create the transaction server-side so the authenticated Clerk ID
+            // is always attached to Paddle webhook custom_data.
+            const response = await fetch("/api/checkout/paddle", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    plan,
+                    business_name: user?.firstName || "New Business",
+                }),
+            });
+            const data = await response.json();
 
-        const priceId = priceIdMap[plan];
-
-        if (!priceId) {
-            alert("Pricing configuration missing. Check Vercel env vars.");
-            setLoading(null);
-            return;
-        }
-
-        Paddle.Checkout.open({
-            items: [{ priceId: priceId, quantity: 1 }],
-            customData: {
-                clerk_user_id: user?.id,
-                business_name: user?.firstName || "New Business",
-                plan: plan
-            },
-            settings: {
-                successUrl: `${window.location.origin}/dashboard?paddle=success`
+            if (!response.ok || !data.transactionId) {
+                throw new Error(data.error || "Unable to create checkout");
             }
-        });
 
-        setLoading(null);
+            Paddle.Checkout.open({
+                transactionId: data.transactionId,
+                settings: {
+                    successUrl: `${window.location.origin}/dashboard?paddle=success`,
+                },
+            });
+        } catch (error) {
+            console.error("Paddle checkout error:", error);
+            alert("Unable to start checkout. Please try again.");
+        } finally {
+            setLoading(null);
+        }
     };
 
     return (
