@@ -4,6 +4,16 @@ import { auth } from '@clerk/nextjs/server';
 import { businessesCollection } from '@/lib/astra';
 import { cookies } from 'next/headers';
 
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const payload = token.split('.')[1];
+    const decoded = JSON.parse(Buffer.from(payload, 'base64url').toString('utf-8'));
+    return decoded;
+  } catch {
+    return null;
+  }
+}
+
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
@@ -33,10 +43,20 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL('/dashboard/settings', request.url));
     }
 
+    // Extract the user's email from the ID token
+    let googleEmail: string | null = null;
+    if (tokens.id_token) {
+      const payload = decodeJwtPayload(tokens.id_token);
+      if (payload?.email && typeof payload.email === 'string') {
+        googleEmail = payload.email;
+      }
+    }
+
     await businessesCollection.updateOne(
       { business_id: userId },
       { $set: { 
         google_refresh_token: tokens.refresh_token,
+        google_account_email: googleEmail,
         google_business_connected: true // Flag for the Reviews UI
       }}
     );

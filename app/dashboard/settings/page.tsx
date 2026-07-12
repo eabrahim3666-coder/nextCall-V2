@@ -46,10 +46,14 @@ export default async function SettingsPage() {
         avg_job_value: business?.avg_job_value || 0,
         // Security Fix: Only pass a boolean to the client, NEVER the actual secret token
         google_refresh_token: business?.google_refresh_token ? "connected" : null,
+        google_account_email: business?.google_account_email || null,
         zapier_webhook_url: business?.zapier_webhook_url || null,
         meta_page_access_token: business?.meta_page_access_token ? "connected" : null,
         meta_page_id: business?.meta_page_id ? String(business.meta_page_id) : null,
+        meta_page_name: business?.meta_page_name || null,
+        meta_page_picture: business?.meta_page_picture || null,
         meta_ig_business_id: business?.meta_ig_business_id ? String(business.meta_ig_business_id) : null,
+        meta_ig_business_name: business?.meta_ig_business_name || null,
     };
 
     return (

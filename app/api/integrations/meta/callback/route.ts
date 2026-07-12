@@ -72,27 +72,45 @@ export async function GET(request: Request) {
         const page = pagesData.data[0];
         const pageAccessToken = page.access_token;
         const pageId = page.id;
+        const pageName = page.name || "Unknown Page";
 
         // 5. Get the Instagram Business Account linked to this Page (Optional but recommended for IG DMs)
         let igBusinessId = null;
+        let igBusinessName = null;
         try {
-            const igRes = await fetch(`https://graph.facebook.com/v19.0/${pageId}?fields=instagram_business_account&access_token=${pageAccessToken}`);
+            const igRes = await fetch(`https://graph.facebook.com/v19.0/${pageId}?fields=instagram_business_account{id,name}&access_token=${pageAccessToken}`);
             const igData = await igRes.json();
             if (igData.instagram_business_account) {
                 igBusinessId = igData.instagram_business_account.id;
+                igBusinessName = igData.instagram_business_account.name || null;
             }
         } catch {
             console.log("No IG account linked, skipping IG ID.");
         }
 
-        // 6. Save to AstraDB (Force pageId to String to prevent DB type mismatch lookups)
+        // 6. Fetch the Page's profile picture
+        let pagePicture = null;
+        try {
+            const picRes = await fetch(`https://graph.facebook.com/v19.0/${pageId}/picture?type=large&redirect=false&access_token=${pageAccessToken}`);
+            const picData = await picRes.json();
+            if (picData.data?.url) {
+                pagePicture = picData.data.url;
+            }
+        } catch {
+            console.log("Could not fetch page picture.");
+        }
+
+        // 7. Save to AstraDB (Force pageId to String to prevent DB type mismatch lookups)
         await businessesCollection.updateOne(
             { business_id: userId },
             {
                 $set: {
                     meta_page_access_token: pageAccessToken,
-                    meta_page_id: String(pageId), 
+                    meta_page_id: String(pageId),
+                    meta_page_name: pageName,
+                    meta_page_picture: pagePicture,
                     meta_ig_business_id: igBusinessId ? String(igBusinessId) : null,
+                    meta_ig_business_name: igBusinessName,
                     updated_at: new Date().toISOString()
                 }
             }
@@ -103,7 +121,8 @@ export async function GET(request: Request) {
 
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Unknown error";
-        console.error("Meta Callback Error:", message);
+        console.error("Meta Callback Error:", message, error instanceof Error ? error.stack : "");
+        console.error("Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
         return NextResponse.redirect(new URL(`/dashboard/settings?focus=integrations&meta_error=${encodeURIComponent(message)}`, request.url));
     }
 }

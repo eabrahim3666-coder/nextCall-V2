@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CreditCard, ExternalLink } from "lucide-react";
 
 type RoutingRules = {
@@ -45,10 +45,14 @@ type BusinessData = {
     avg_job_value: number;
     // Integrations
     google_refresh_token: string | null;
+    google_account_email: string | null;
     zapier_webhook_url: string | null;
     meta_page_access_token: string | null;
     meta_page_id: string | null;
+    meta_page_name: string | null;
+    meta_page_picture: string | null;
     meta_ig_business_id: string | null;
+    meta_ig_business_name: string | null;
 };
 
 const TABS = [
@@ -82,11 +86,12 @@ const TONE_OPTIONS = [
 
 export default function SettingsForm({ initialData }: { initialData: BusinessData; userId?: string }) {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState("business");
+    const searchParams = useSearchParams();
+    const [activeTab, setActiveTab] = useState(searchParams.get("focus") || "business");
     const [data, setData] = useState<BusinessData>(initialData);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
-    const [error, setError] = useState("");
+    const [error, setError] = useState(searchParams.get("meta_error") || "");
     const [portalLoading, setPortalLoading] = useState(false); // NEW
     const [copiedReferral, setCopiedReferral] = useState(false);
     const referralLink = typeof window !== 'undefined' ? `${window.location.origin}/?ref=${data.referral_code}` : '';
@@ -96,6 +101,19 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
         setCopiedReferral(true);
         setTimeout(() => setCopiedReferral(false), 2000);
     };
+
+    const metaSuccess = searchParams.get("meta_success") === "true";
+
+    useEffect(() => {
+        if (searchParams.get("meta_error") || searchParams.get("meta_success")) {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("meta_error");
+            url.searchParams.delete("meta_success");
+            url.searchParams.delete("focus");
+            window.history.replaceState({}, "", url.toString());
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const updateField = (key: string, value: string | number | boolean) => {
         setData((prev) => ({ ...prev, [key]: value }));
@@ -228,6 +246,18 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
         );
     }
 
+    const metaErrorBanner = searchParams.get("meta_error") ? (
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-sm text-rose-300">
+            Meta connection failed: {decodeURIComponent(searchParams.get("meta_error")!)}
+        </div>
+    ) : null;
+
+    const metaSuccessBanner = metaSuccess ? (
+        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-300">
+            Facebook & Instagram connected successfully!
+        </div>
+    ) : null;
+
     const inputClass = "w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all";
     const labelClass = "block text-[10px] uppercase tracking-wider text-neutral-500 mb-1.5";
 
@@ -238,6 +268,8 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
+            {metaErrorBanner}
+            {metaSuccessBanner}
             {/* Tab bar */}
             <div className="flex gap-1 p-1 bg-white/[0.03] border border-white/[0.06] rounded-xl overflow-x-auto">
                 {TABS.map((tab) => (
@@ -504,9 +536,14 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                 </div>
 
                                 {data.google_refresh_token ? (
-                                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                                        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                                        <span className="text-xs font-medium text-emerald-400">Connected</span>
+                                    <div className="flex flex-col items-end gap-1">
+                                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                                            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                            <span className="text-xs font-medium text-emerald-400">Connected</span>
+                                        </div>
+                                        {data.google_account_email && (
+                                            <span className="text-[10px] text-neutral-500">{data.google_account_email}</span>
+                                        )}
                                     </div>
                                 ) : (
                                     <button
@@ -555,9 +592,23 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                 </div>
 
                                 {data.meta_page_access_token ? (
-                                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                                        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                                        <span className="text-xs font-medium text-emerald-400">Connected</span>
+                                    <div className="flex flex-col items-end gap-2">
+                                        <div className="flex items-center gap-3">
+                                            <div className="text-right">
+                                                <p className="text-sm font-medium text-white">{data.meta_page_name || 'Connected'}</p>
+                                                {data.meta_ig_business_name && (
+                                                    <p className="text-[10px] text-neutral-400">IG: {data.meta_ig_business_name}</p>
+                                                )}
+                                            </div>
+                                            {data.meta_page_picture && (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img src={data.meta_page_picture} alt="" className="w-8 h-8 rounded-full object-cover border border-white/[0.08]" />
+                                            )}
+                                            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                                                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                                <span className="text-xs font-medium text-emerald-400">Connected</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 ) : (
                                     <button
