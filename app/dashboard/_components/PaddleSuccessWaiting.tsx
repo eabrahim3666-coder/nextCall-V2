@@ -1,70 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export default function PaddleSuccessWaiting({ transactionId }: { transactionId: string | null }) {
-    const [timedOut, setTimedOut] = useState(false);
-
     useEffect(() => {
-        let attempts = 0;
+        // Try to verify + activate the business while showing the spinner
+        if (transactionId) {
+            fetch(`/api/business/status?transaction_id=${encodeURIComponent(transactionId)}`, { cache: "no-store" })
+                .catch(() => {});
+        }
 
-        const pollStatus = async () => {
-            try {
-                const query = transactionId
-                    ? `?transaction_id=${encodeURIComponent(transactionId)}`
-                    : "";
-                const res = await fetch(`/api/business/status${query}`, { cache: "no-store" });
-                const data = await res.json();
+        // After 3 seconds, go to dashboard regardless
+        const timer = setTimeout(() => {
+            window.location.replace("/dashboard");
+        }, 3000);
 
-                if (data.status === "active") {
-                    clearInterval(interval);
-                    window.location.replace("/dashboard");
-                    return;
-                }
-            } catch {
-                // Keep polling silently on transient failures.
-            }
-
-            attempts += 1;
-            if (attempts >= 40) {
-                clearInterval(interval);
-                setTimedOut(true);
-            }
-        };
-
-        const interval = setInterval(pollStatus, 3000);
-        pollStatus();
-
-        return () => {
-            clearInterval(interval);
-        };
+        return () => clearTimeout(timer);
     }, [transactionId]);
-
-    if (timedOut) {
-        return (
-            <div className="min-h-[80vh] flex flex-col items-center justify-center text-center px-4">
-                <h2 className="text-2xl font-semibold text-white tracking-tight mb-2">Payment received</h2>
-                <p className="text-sm text-neutral-400 max-w-sm mb-6">
-                    Your subscription is still being confirmed. Refresh once, or return to billing and try again.
-                </p>
-                <div className="flex gap-3">
-                    <button
-                        type="button"
-                        onClick={() => window.location.reload()}
-                        className="bg-white text-black text-sm font-medium px-6 py-3 rounded-full hover:bg-neutral-200"
-                    >
-                        Check Again
-                    </button>
-                    <a
-                        href="/dashboard/settings"
-                        className="border border-white/10 text-white text-sm font-medium px-6 py-3 rounded-full hover:bg-white/5"
-                    >
-                        Billing Settings
-                    </a>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="min-h-[80vh] flex flex-col items-center justify-center text-center px-4">

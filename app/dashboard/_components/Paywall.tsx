@@ -19,6 +19,8 @@ const getPaddle = (): PaddleInstance | null => {
     return (window as unknown as { Paddle?: PaddleInstance }).Paddle ?? null;
 };
 
+const PADDLE_TRANSACTION_STORAGE_KEY = "nextcall_pending_paddle_transaction_id";
+
 export default function Paywall() {
     const { user } = useUser();
     const [loading, setLoading] = useState<"trial" | "standard" | "premium" | null>(null);
@@ -64,10 +66,12 @@ export default function Paywall() {
                 throw new Error(data.error || "Unable to create checkout");
             }
 
+            sessionStorage.setItem(PADDLE_TRANSACTION_STORAGE_KEY, data.transactionId);
+
             Paddle.Checkout.open({
                 transactionId: data.transactionId,
                 settings: {
-                    successUrl: `${window.location.origin}/dashboard?paddle=success`,
+                    successUrl: `${window.location.origin}/dashboard?paddle=success&transaction_id=${encodeURIComponent(data.transactionId)}`,
                 },
             });
         } catch (error) {
