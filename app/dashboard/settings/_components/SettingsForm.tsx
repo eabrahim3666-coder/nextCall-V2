@@ -92,7 +92,8 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState(searchParams.get("meta_error") || "");
-    const [portalLoading, setPortalLoading] = useState(false); // NEW
+    const [portalLoading, setPortalLoading] = useState(false);
+    const [disconnecting, setDisconnecting] = useState("");
     const [copiedReferral, setCopiedReferral] = useState(false);
     const referralLink = typeof window !== 'undefined' ? `${window.location.origin}/?ref=${data.referral_code}` : '';
 
@@ -609,6 +610,32 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                                 <span className="text-xs font-medium text-emerald-400">Connected</span>
                                             </div>
                                         </div>
+                                        <button
+                                            type="button"
+                                            disabled={disconnecting === "meta"}
+                                            onClick={async () => {
+                                                setDisconnecting("meta");
+                                                try {
+                                                    const res = await fetch('/api/integrations/meta/disconnect', { method: 'POST' });
+                                                    if (res.ok) {
+                                                        setData(prev => ({
+                                                            ...prev,
+                                                            meta_page_access_token: null,
+                                                            meta_page_id: null,
+                                                            meta_page_name: null,
+                                                            meta_page_picture: null,
+                                                            meta_ig_business_id: null,
+                                                            meta_ig_business_name: null,
+                                                        }));
+                                                    }
+                                                } catch { } finally {
+                                                    setDisconnecting("");
+                                                }
+                                            }}
+                                            className="text-[10px] text-rose-400/60 hover:text-rose-400 transition-colors"
+                                        >
+                                            {disconnecting === "meta" ? "Disconnecting..." : "Disconnect"}
+                                        </button>
                                     </div>
                                 ) : (
                                     <button
