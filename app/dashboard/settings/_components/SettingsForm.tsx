@@ -537,7 +537,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                 </div>
 
                                 {data.google_refresh_token ? (
-                                    <div className="flex flex-col items-end gap-1">
+                                    <div className="flex flex-col items-end gap-2">
                                         <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                                             <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
                                             <span className="text-xs font-medium text-emerald-400">Connected</span>
@@ -545,6 +545,28 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                         {data.google_account_email && (
                                             <span className="text-[10px] text-neutral-500">{data.google_account_email}</span>
                                         )}
+                                        <button
+                                            type="button"
+                                            disabled={disconnecting === "google"}
+                                            onClick={async () => {
+                                                setDisconnecting("google");
+                                                try {
+                                                    const res = await fetch('/api/integrations/google-calendar/disconnect', { method: 'POST' });
+                                                    if (res.ok) {
+                                                        setData(prev => ({
+                                                            ...prev,
+                                                            google_refresh_token: null,
+                                                            google_account_email: null,
+                                                        }));
+                                                    }
+                                                } catch { } finally {
+                                                    setDisconnecting("");
+                                                }
+                                            }}
+                                            className="text-[10px] text-rose-400/60 hover:text-rose-400 transition-colors"
+                                        >
+                                            {disconnecting === "google" ? "Disconnecting..." : "Disconnect"}
+                                        </button>
                                     </div>
                                 ) : (
                                     <button
