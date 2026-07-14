@@ -56,8 +56,27 @@ export async function GET(request: Request) {
         const longLivedToken = longLivedData.access_token;
 
         // 3. Get the User's Pages (We need the Page Access Token to read/send messages)
+        let pagesData: { data?: { id: string; name: string; access_token: string }[]; error?: { message: string } };
         const pagesRes = await fetch(`https://graph.facebook.com/v19.0/me/accounts?access_token=${longLivedToken}`);
-        const pagesData = await pagesRes.json();
+        pagesData = await pagesRes.json();
+
+        // 4. If no personal pages, try fetching pages via Business Portfolio
+        if (!pagesData.data || pagesData.data.length === 0) {
+            console.log("No personal pages found. Trying Business Portfolio...");
+            const bizRes = await fetch(`https://graph.facebook.com/v19.0/me/businesses?access_token=${longLivedToken}`);
+            const bizData = await bizRes.json();
+
+            if (bizData.data && bizData.data.length > 0) {
+                for (const business of bizData.data) {
+                    const ownedRes = await fetch(`https://graph.facebook.com/v19.0/${business.id}/owned_pages?access_token=${longLivedToken}&fields=id,name,access_token`);
+                    const ownedData = await ownedRes.json();
+                    if (ownedData.data && ownedData.data.length > 0) {
+                        pagesData = { data: ownedData.data };
+                        break;
+                    }
+                }
+            }
+        }
 
         if (pagesData.error) {
             console.error("Meta Pages Fetch Error:", pagesData.error);
@@ -68,13 +87,13 @@ export async function GET(request: Request) {
             return NextResponse.redirect(new URL('/dashboard/settings?focus=integrations&meta_error=no_pages', request.url));
         }
 
-        // 4. Grab the first Page's token and ID (For V1, we assume they connect their primary page)
+        // 5. Grab the first Page's token and ID (For V1, we assume they connect their primary page)
         const page = pagesData.data[0];
         const pageAccessToken = page.access_token;
         const pageId = page.id;
         const pageName = page.name || "Unknown Page";
 
-        // 5. Get the Instagram Business Account linked to this Page (Optional but recommended for IG DMs)
+        // 6. Get the Instagram Business Account linked to this Page (Optional but recommended for IG DMs)
         let igBusinessId = null;
         let igBusinessName = null;
         try {

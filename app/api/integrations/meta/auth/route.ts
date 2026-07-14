@@ -13,7 +13,8 @@ export async function GET() {
         'pages_show_list',
         'pages_messaging',
         'instagram_manage_messages',
-        'pages_read_engagement'
+        'pages_read_engagement',
+        'business_management'
     ].join(',');
 
     // Security Fix: Generate a secure random nonce for CSRF protection

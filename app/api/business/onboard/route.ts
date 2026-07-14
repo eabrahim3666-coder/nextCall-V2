@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { businessesCollection } from "@/lib/astra";
 
 export async function POST(req: NextRequest) {
@@ -10,11 +10,16 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { business_name, owner_name, phone, business_type, industry, hours, services, notes } = body;
 
+        const client = await clerkClient();
+        const clerkUser = await client.users.getUser(userId);
+        const ownerEmail = clerkUser.emailAddresses?.[0]?.emailAddress || null;
+
         await businessesCollection.updateOne(
             { business_id: userId },
             {
                 $set: {
                     business_id: userId,
+                    owner_email: ownerEmail,
                     business_name: business_name || "",
                     owner_name: owner_name || "",
                     phone: phone || "",
