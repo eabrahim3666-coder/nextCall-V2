@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { callsCollection, businessesCollection, notificationsCollection, webhookEventsCollection } from '@/lib/astra';
 import openai from '@/lib/openai';
 import twilioClient from '@/lib/twilio';
@@ -11,7 +12,13 @@ export async function POST(request: Request) {
     // SECURITY: Verify Retell Signature
     const rawBody = await request.text();
     const retellSignature = request.headers.get('retell-signature');
-    if (!verifyHmacSignature(rawBody, retellSignature, process.env.RETELL_WEBHOOK_SECRET)) {
+    const secret = process.env.RETELL_WEBHOOK_SECRET;
+    const expectedSig = crypto.createHmac('sha256', secret || '').update(rawBody).digest('hex');
+    console.log("--- HMAC DEBUG ---");
+    console.log("Received:", retellSignature);
+    console.log("Expected:", expectedSig);
+    console.log("Body length:", rawBody.length);
+    if (!verifyHmacSignature(rawBody, retellSignature, secret)) {
       console.error("Invalid Retell Signature");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
