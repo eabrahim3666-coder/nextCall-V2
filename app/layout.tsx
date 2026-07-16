@@ -5,9 +5,13 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Next Call Chat — Never Miss a Lead",
   description: "AI-powered call & chat receptionist that captures leads 24/7",
+  verification: {
+    google: "yvH-G_P7BPlNq8U570Cq1xJq40tL2mXGf-73G9b_cVE",
+  },
   icons: {
     icon: "/favicon.ico",
   },
+
 };
 
 export default function RootLayout({
