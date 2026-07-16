@@ -56,7 +56,7 @@ export async function GET(req: Request) {
             const positiveCalls = calls.filter(c => c.sentiment === "Positive").length;
             const appointments = calls.filter(c => c.appointment_booked).length;
             const hotLeads = calls.filter(c => c.lead_quality === "hot").length;
-            const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nextcall.ai';
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://getnextcall.com';
 
             await resend.emails.send({
                 from: `nextCall <updates@${process.env.RESEND_FROM_DOMAIN || 'resend.dev'}>`,
