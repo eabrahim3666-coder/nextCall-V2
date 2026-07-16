@@ -20,4 +20,16 @@ export const businessesCollection = db.collection('businesses');
 export const conversationsCollection = db.collection('conversations');
 
 export const notificationsCollection = db.collection("notifications");
-export const webhookEventsCollection = db.collection("webhook_events");
+const _webhookEventsCollection = db.collection("webhook_events");
+
+type JsonDoc = Record<string, unknown>;
+
+async function webhookOp<T>(op: () => Promise<T>): Promise<T | null> {
+  try { return await op(); } catch { return null; }
+}
+
+export const webhookEventsCollection = {
+  findOne: (filter: JsonDoc) => webhookOp(() => _webhookEventsCollection.findOne(filter)),
+  insertOne: (doc: JsonDoc) => webhookOp(() => _webhookEventsCollection.insertOne(doc)),
+  updateOne: (filter: JsonDoc, update: JsonDoc) => webhookOp(() => _webhookEventsCollection.updateOne(filter, update)),
+};
