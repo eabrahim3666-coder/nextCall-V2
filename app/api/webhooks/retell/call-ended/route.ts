@@ -339,7 +339,9 @@ Output ONLY valid JSON.`
     return NextResponse.json({ received: true });
 
   } catch (error) {
-    console.error("Call-ended webhook error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    const errMsg = error instanceof Error ? error.message : String(error);
+    const errStack = error instanceof Error ? error.stack : "";
+    console.error("Call-ended webhook error:", errMsg, errStack);
+    return NextResponse.json({ error: "Internal Server Error", detail: errMsg }, { status: 500 });
   }
 }
