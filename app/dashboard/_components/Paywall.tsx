@@ -21,7 +21,7 @@ const getPaddle = (): PaddleInstance | null => {
 
 const PADDLE_TRANSACTION_STORAGE_KEY = "nextcall_pending_paddle_transaction_id";
 
-export default function Paywall() {
+export default function Paywall({ refCode }: { refCode?: string }) {
     const { user } = useUser();
     const [loading, setLoading] = useState<"trial" | "standard" | "premium" | null>(null);
 
@@ -58,6 +58,7 @@ export default function Paywall() {
                 body: JSON.stringify({
                     plan,
                     business_name: user?.firstName || "New Business",
+                    ref: refCode || undefined,
                 }),
             });
             const data = await response.json();

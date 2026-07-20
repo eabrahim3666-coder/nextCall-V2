@@ -39,7 +39,8 @@ export async function POST(request: Request) {
         custom_data: {
           clerk_user_id: userId, // Security Fix: Use the secure server-side userId, not the client value
           business_name: body.business_name || "New Business",
-          plan: body.plan
+          plan: body.plan,
+          ...(body.ref ? { ref: body.ref } : {})
         }
       })
     });

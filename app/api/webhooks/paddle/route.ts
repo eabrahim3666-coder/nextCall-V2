@@ -61,15 +61,16 @@ async function activateBusinessFromPaddleData(data: PaddleEventData) {
 
   if (refCode && !existingBusiness?.referral_applied_at) {
     const referrer = await businessesCollection.findOne({ referral_code: refCode });
-    if (referrer) {
+    if (referrer && planType !== 'trial') {
+      const referralBonus = planType === 'premium' ? 70 : 40;
       await businessesCollection.updateOne(
         { _id: referrer._id },
         {
-          $inc: { minutes_limit: 50, bonus_minutes: 50 },
+          $inc: { minutes_limit: referralBonus, bonus_minutes: referralBonus },
           $set: { updated_at: new Date().toISOString() }
         }
       );
-      console.log(`${referrer.business_name} earned 50 bonus minutes from referral!`);
+      console.log(`${referrer.business_name} earned ${referralBonus} bonus minutes from ${planType} referral!`);
     }
   }
 
@@ -173,7 +174,17 @@ export async function POST(request: Request) {
     }
     console.log(`Paddle Webhook Received: ${eventName}`);
 
-    if (eventName === 'subscription.created' || eventName === 'subscription.activated' || eventName === 'transaction.completed') {
+    if (eventName === 'transaction.completed' && payload.data?.custom_data?.purpose === 'additional_minutes') {
+      const minutesAdded = parseInt(payload.data.custom_data.minutes_added, 10) || 50;
+      const clerkId = payload.data.custom_data.clerk_user_id;
+      if (clerkId && minutesAdded > 0) {
+        await businessesCollection.updateOne(
+          { business_id: clerkId },
+          { $inc: { minutes_limit: minutesAdded, bonus_minutes: minutesAdded }, $set: { updated_at: new Date().toISOString() } }
+        );
+        console.log(`Added ${minutesAdded} minutes to ${clerkId}`);
+      }
+    } else if (eventName === 'subscription.created' || eventName === 'subscription.activated' || eventName === 'transaction.completed') {
       try {
         await activateBusinessFromPaddleData(payload.data);
       } catch (error) {

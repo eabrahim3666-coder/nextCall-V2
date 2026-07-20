@@ -33,7 +33,7 @@ export default function DashboardAccessGate({
     }
 
     if (hasBusiness) {
-        return <Paywall />;
+        return <Paywall refCode={searchParams.get("ref") || ""} />;
     }
 
     return <OnboardingFlow />;

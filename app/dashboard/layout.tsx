@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import AIStatusPill from "./_components/AIStatusPill";
 import NavLinks from "./_components/NavLinks";
+import MinutesCounter from "./_components/MinutesCounter";
 import DashboardAccessGate from "./_components/DashboardAccessGate";
 import { findBusinessByUserId } from "@/lib/business";
 
@@ -37,6 +38,14 @@ export default async function DashboardLayout({
 
                 <div className="flex items-center gap-4">
                     {isActiveBusiness && <NotificationBell />}
+                    {isActiveBusiness && business && (
+                        <MinutesCounter
+                            used={Number(business?.total_minutes_used || 0)}
+                            limit={Number(business?.minutes_limit || 200)}
+                            planType={String(business?.plan_type || business?.plan || "standard")}
+                            paddleCustomerId={business?.paddle_customer_id || null}
+                        />
+                    )}
                     {isActiveBusiness && <AIStatusPill isActive={isAIActive} />}
                     <span className="text-sm text-neutral-400 hidden sm:block">
                         {user?.firstName || user?.username}&apos;s Dashboard

@@ -93,15 +93,35 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState(searchParams.get("meta_error") || "");
     const [portalLoading, setPortalLoading] = useState(false);
+    const [minutesLoading, setMinutesLoading] = useState(false);
+    const [minutesToBuy, setMinutesToBuy] = useState(50);
     const [disconnecting, setDisconnecting] = useState("");
     const [copiedReferral, setCopiedReferral] = useState(false);
-    const referralLink = typeof window !== 'undefined' ? `${window.location.origin}/?ref=${data.referral_code}` : '';
+    const [needsReferralCode] = useState(
+        data.referral_code === "N/A" && Boolean(data.paddle_customer_id)
+    );
+    const [referralCode, setReferralCode] = useState(
+        needsReferralCode ? "N/A" : data.referral_code
+    );
+    const [generatingCode, setGeneratingCode] = useState(needsReferralCode);
+    const referralLink = typeof window !== 'undefined' ? `${window.location.origin}/?ref=${referralCode}` : '';
 
     const handleCopyReferral = () => {
         navigator.clipboard.writeText(referralLink);
         setCopiedReferral(true);
         setTimeout(() => setCopiedReferral(false), 2000);
     };
+
+    useEffect(() => {
+        if (!needsReferralCode) return;
+        let cancelled = false;
+        fetch("/api/business/referral-code", { method: "POST" })
+            .then(res => res.json())
+            .then(json => { if (!cancelled) setReferralCode(json.referral_code || "N/A"); })
+            .catch(() => { if (!cancelled) setReferralCode("N/A"); })
+            .finally(() => { if (!cancelled) setGeneratingCode(false); });
+        return () => { cancelled = true; };
+    }, [needsReferralCode]);
 
     const metaSuccess = searchParams.get("meta_success") === "true";
 
@@ -191,7 +211,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             const res = await fetch("/api/billing/portal", { method: "POST" });
             const data = await res.json();
             if (data.url) {
-                window.open(data.url, "_blank"); // Open Lemon Squeezy portal in new tab
+                window.open(data.url, "_blank");
             } else {
                 alert("Failed to load billing portal. Please try again.");
             }
@@ -200,6 +220,35 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             alert("An error occurred.");
         } finally {
             setPortalLoading(false);
+        }
+    };
+
+    const handleBuyMinutes = async () => {
+        setMinutesLoading(true);
+        try {
+            const res = await fetch("/api/checkout/paddle-minutes", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ minutes: minutesToBuy }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                alert(data.error || "Unable to create checkout");
+                return;
+            }
+            const Paddle = (window as unknown as { Paddle?: { Checkout: { open: (config: Record<string, unknown>) => void } } }).Paddle;
+            if (Paddle) {
+                Paddle.Checkout.open({
+                    transactionId: data.transactionId,
+                    settings: { successUrl: `${window.location.origin}/dashboard/settings?focus=billing` },
+                });
+            } else {
+                alert("Payment system loading. Try again.");
+            }
+        } catch {
+            alert("Failed to start checkout.");
+        } finally {
+            setMinutesLoading(false);
         }
     };
 
@@ -437,6 +486,40 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                             )}
                         </div>
 
+                        {/* Buy Additional Minutes */}
+                        <div className="mb-6 p-5 rounded-xl bg-white/[0.02] border border-indigo-500/20">
+                            <div className="flex items-center justify-between mb-3">
+                                <p className="text-sm font-semibold text-white">Buy Additional Minutes</p>
+                                <span className="text-[10px] text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full">{data.plan === "premium" ? "$0.30/min" : "$0.40/min"}</span>
+                            </div>
+                            <p className="text-xs text-neutral-500 mb-4">Add minutes to your plan. Save vs overage rates — minimum 50, up to your plan limit.</p>
+                            <div className="flex items-center gap-3">
+                                <select
+                                    value={minutesToBuy}
+                                    onChange={(e) => setMinutesToBuy(Number(e.target.value))}
+                                    className="bg-white/[0.05] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50"
+                                >
+                                    {Array.from(
+                                        { length: (data.plan === "premium" ? 500 : 200) / 50 },
+                                        (_, i) => (i + 1) * 50
+                                    ).map(n => (
+                                        <option key={n} value={n} className="bg-[#0a0a0a]">{n} min — ${(data.plan === "premium" ? n * 0.3 : n * 0.4).toFixed(0)}</option>
+                                    ))}
+                                </select>
+                                <button
+                                    type="button"
+                                    onClick={handleBuyMinutes}
+                                    disabled={minutesLoading || !data.paddle_customer_id}
+                                    className="bg-indigo-500 text-white text-sm font-medium px-6 py-2.5 rounded-xl hover:bg-indigo-600 transition-colors disabled:opacity-30"
+                                >
+                                    {minutesLoading ? "Opening..." : "Purchase"}
+                                </button>
+                            </div>
+                            {!data.paddle_customer_id && (
+                                <p className="mt-2 text-[10px] text-amber-400">Subscribe to a plan first to purchase additional minutes.</p>
+                            )}
+                        </div>
+
                         {/* Average Job Value — feeds PremiumAnalytics revenue calculation */}
                         <div className="mb-6 p-5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
                             <label className="block text-[10px] uppercase tracking-wider text-neutral-500 mb-1.5">Average Job Value ($)</label>
@@ -472,7 +555,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                 <div className="space-y-5">
                     <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
                         <h2 className="text-lg font-semibold text-white mb-1">Refer a Business, Earn 50 Minutes</h2>
-                        <p className="text-xs text-neutral-500 mb-6">Share your unique link with other businesses. When they sign up, you both get 50 bonus minutes added to your account instantly.</p>
+                        <p className="text-xs text-neutral-500 mb-6">Share your unique link with other businesses. When they subscribe, you earn bonus minutes — no limits per referrer.</p>
 
                         {data.bonus_minutes > 0 && (
                             <div className="mb-6 p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-center gap-3">
@@ -481,31 +564,45 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                         )}
 
                         <div className="space-y-4">
-                            <div>
-                                <label className="block text-[10px] uppercase tracking-wider text-neutral-500 mb-1.5">Your Unique Referral Link</label>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="text"
-                                        readOnly
-                                        value={referralLink}
-                                        className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white font-mono focus:outline-none"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={handleCopyReferral}
-                                        className="bg-white text-black text-sm font-medium px-6 py-3 rounded-xl hover:bg-neutral-200 transition-colors flex-shink-0"
-                                    >
-                                        {copiedReferral ? "Copied!" : "Copy"}
-                                    </button>
+                            {generatingCode ? (
+                                <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                                    <p className="text-xs text-neutral-400">Generating your unique referral link...</p>
                                 </div>
-                            </div>
+                            ) : referralCode === "N/A" ? (
+                                <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
+                                    <p className="text-xs text-amber-400">Subscribe to a plan first to get your referral link.</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div>
+                                        <label className="block text-[10px] uppercase tracking-wider text-neutral-500 mb-1.5">Your Unique Referral Link</label>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="text"
+                                                readOnly
+                                                value={referralLink}
+                                                className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white font-mono focus:outline-none"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleCopyReferral}
+                                                className="bg-white text-black text-sm font-medium px-6 py-3 rounded-xl hover:bg-neutral-200 transition-colors flex-shink-0"
+                                            >
+                                                {copiedReferral ? "Copied!" : "Copy"}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
 
                             <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
                                 <p className="text-xs text-neutral-400 leading-relaxed">
                                     <span className="font-semibold text-neutral-300">How it works:</span>
                                     <br />1. Share your link with a business owner.
                                     <br />2. They click it and sign up for a free trial.
-                                    <br />3. Once they subscribe, 50 minutes are automatically added to your monthly limit. No limits on how many you can refer!
+                                    <br />3. If they subscribe to <strong className="text-white">Standard</strong> — you get <strong className="text-emerald-400">+40 minutes</strong>.
+                                    <br />4. If they subscribe to <strong className="text-white">Premium</strong> — you get <strong className="text-emerald-400">+70 minutes</strong>.
+                                    <br />5. Free trials do not earn any bonus. No limits per referrer!
                                 </p>
                             </div>
                         </div>
