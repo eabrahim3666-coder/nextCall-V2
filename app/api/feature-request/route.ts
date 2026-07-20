@@ -33,9 +33,10 @@ export async function POST(req: NextRequest) {
             const { Resend } = await import("resend");
             const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
             if (resend) {
+                const supportEmail = process.env.SUPPORT_EMAIL || "support@getnextcall.com";
                 await resend.emails.send({
-                    from: "NextCall <onboarding@resend.dev>",
-                    to: [process.env.SUPPORT_EMAIL || "support@getnextcall.com"],
+                    from: "NextCall <support@getnextcall.com>",
+                    to: [supportEmail],
                     subject: `Feature Request: ${featureRequest.title}`,
                     html: `<div style="background:#0a0a0a;padding:32px;border-radius:16px;font-family:Inter,sans-serif;color:#fff;max-width:500px;">
                         <h2 style="margin:0 0 16px;font-size:18px;color:#818cf8;">New Feature Request</h2>
