@@ -14,147 +14,211 @@ interface Node {
   pulseSpeed: number;
   pulseOffset: number;
   layer: number;
+  wanderPhase: number;
+  wanderSpeed: number;
 }
 
-const COLORS = [
+interface LayerConfig {
+  count: number;
+  minR: number;
+  maxR: number;
+  minS: number;
+  maxS: number;
+  minO: number;
+  maxO: number;
+  connDist: number;
+  lineAlpha: number;
+  glowSize: number;
+}
+
+const PALETTE = [
   { dot: "99, 102, 241", glow: "99, 102, 241" },
   { dot: "168, 85, 247", glow: "168, 85, 247" },
-  { dot: "236, 72, 153", glow: "236, 72, 153" },
-  { dot: "56, 189, 248", glow: "56, 189, 248" },
   { dot: "139, 92, 246", glow: "139, 92, 246" },
+  { dot: "56, 189, 248", glow: "56, 189, 248" },
+  { dot: "236, 72, 153", glow: "236, 72, 153" },
+  { dot: "167, 139, 250", glow: "167, 139, 250" },
+  { dot: "34, 211, 238", glow: "34, 211, 238" },
+  { dot: "129, 140, 248", glow: "129, 140, 248" },
 ];
+
+const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 
 export function HeroNetworkBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-    if (prefersReducedMotion) return;
-
     const cvs = canvasRef.current as HTMLCanvasElement;
     const ctx = cvs.getContext("2d") as CanvasRenderingContext2D;
 
     let animationId: number;
     let nodes: Node[] = [];
-    const connectionDist = 180;
-    let mouseX = -9999;
-    let mouseY = -9999;
+    let startTime = 0;
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
 
-    function resize() {
-      cvs.width = window.innerWidth;
-      cvs.height = window.innerHeight;
-    }
+    const LAYERS: LayerConfig[] = [
+      { count: 75, minR: 0.4, maxR: 1.2, minS: 0.05, maxS: 0.12, minO: 0.06, maxO: 0.18, connDist: 300, lineAlpha: 0.035, glowSize: 12 },
+      { count: 55, minR: 0.8, maxR: 2.2, minS: 0.1, maxS: 0.28, minO: 0.12, maxO: 0.35, connDist: 220, lineAlpha: 0.09, glowSize: 20 },
+      { count: 28, minR: 1.5, maxR: 3.5, minS: 0.18, maxS: 0.4, minO: 0.25, maxO: 0.65, connDist: 180, lineAlpha: 0.16, glowSize: 32 },
+    ];
 
     function init() {
-      resize();
-      const count = Math.min(55, Math.floor((window.innerWidth * window.innerHeight) / 20000));
+      const w = cvs.width;
+      const h = cvs.height;
       nodes = [];
-      for (let i = 0; i < count; i++) {
-        const colorSet = COLORS[i % COLORS.length];
-        const layer = i < count * 0.3 ? 0 : 1;
-        nodes.push({
-          x: Math.random() * cvs.width,
-          y: Math.random() * cvs.height,
-          vx: (Math.random() - 0.5) * (layer === 0 ? 0.12 : 0.28),
-          vy: (Math.random() - 0.5) * (layer === 0 ? 0.12 : 0.28),
-          radius: layer === 0 ? Math.random() * 2 + 1.5 : Math.random() * 1.5 + 0.5,
-          baseOpacity: layer === 0 ? Math.random() * 0.3 + 0.1 : Math.random() * 0.5 + 0.25,
-          color: colorSet.dot,
-          glowColor: colorSet.glow,
-          pulseSpeed: Math.random() * 0.02 + 0.008,
-          pulseOffset: Math.random() * Math.PI * 2,
-          layer,
-        });
+      for (let l = 0; l < LAYERS.length; l++) {
+        const cfg = LAYERS[l];
+        for (let i = 0; i < cfg.count; i++) {
+          const p = PALETTE[(nodes.length + i) % PALETTE.length];
+          nodes.push({
+            x: rand(0, w),
+            y: rand(0, h),
+            vx: rand(cfg.minS, cfg.maxS) * (Math.random() > 0.5 ? 1 : -1),
+            vy: rand(cfg.minS, cfg.maxS) * (Math.random() > 0.5 ? 1 : -1),
+            radius: rand(cfg.minR, cfg.maxR),
+            baseOpacity: rand(cfg.minO, cfg.maxO),
+            color: p.dot,
+            glowColor: p.glow,
+            pulseSpeed: rand(0.004, 0.022),
+            pulseOffset: rand(0, Math.PI * 2),
+            layer: l,
+            wanderPhase: rand(0, Math.PI * 2),
+            wanderSpeed: rand(0.0015, 0.007),
+          });
+        }
       }
     }
 
-    function draw(time: number) {
-      ctx.clearRect(0, 0, cvs.width, cvs.height);
+    function draw(ts: number) {
+      if (!startTime) startTime = ts;
+      const t = (ts - startTime) * 0.001;
+      const w = cvs.width;
+      const h = cvs.height;
+
+      ctx.clearRect(0, 0, w, h);
 
       for (const node of nodes) {
-        node.x += node.vx;
-        node.y += node.vy;
-        const mDx = mouseX - node.x;
-        const mDy = mouseY - node.y;
-        const mDist = Math.sqrt(mDx * mDx + mDy * mDy);
-        if (mDist < 300) {
-          const force = (1 - mDist / 300) * 0.02;
-          node.x -= mDx * force;
-          node.y -= mDy * force;
-        }
-        if (node.x < -50) node.x = cvs.width + 50;
-        if (node.x > cvs.width + 50) node.x = -50;
-        if (node.y < -50) node.y = cvs.height + 50;
-        if (node.y > cvs.height + 50) node.y = -50;
+        const wander = Math.sin(t * node.wanderSpeed + node.wanderPhase) * 0.12;
+        node.x += node.vx + wander;
+        node.y += node.vy + wander * 0.6;
+        const pad = 120;
+        if (node.x < -pad) node.x = w + pad;
+        if (node.x > w + pad) node.x = -pad;
+        if (node.y < -pad) node.y = h + pad;
+        if (node.y > h + pad) node.y = -pad;
       }
 
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const ni = nodes[i];
-          const nj = nodes[j];
-          const dx = ni.x - nj.x;
-          const dy = ni.y - nj.y;
+      for (let l = 0; l < LAYERS.length; l++) {
+        const cfg = LAYERS[l];
+        const ln = nodes.filter((n) => n.layer === l);
+        for (let i = 0; i < ln.length; i++) {
+          for (let j = i + 1; j < ln.length; j++) {
+            const ni = ln[i];
+            const nj = ln[j];
+            const dx = ni.x - nj.x;
+            const dy = ni.y - nj.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < cfg.connDist) {
+              const alpha = (1 - dist / cfg.connDist) * cfg.lineAlpha;
+              ctx.beginPath();
+              ctx.moveTo(ni.x, ni.y);
+              ctx.lineTo(nj.x, nj.y);
+              ctx.strokeStyle = `rgba(${ni.glowColor},${alpha})`;
+              ctx.lineWidth = l === 2 ? 0.7 : l === 1 ? 0.5 : 0.25;
+              ctx.stroke();
+            }
+          }
+        }
+      }
+
+      const midNodes = nodes.filter((n) => n.layer === 1);
+      const foreNodes = nodes.filter((n) => n.layer === 2);
+      for (const mn of midNodes) {
+        for (const fn of foreNodes) {
+          const dx = mn.x - fn.x;
+          const dy = mn.y - fn.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < connectionDist) {
-            const alpha = (1 - dist / connectionDist) * 0.08;
-            const lineColor = i % 2 === 0 ? ni.glowColor : nj.glowColor;
+          if (dist < 200) {
+            const alpha = (1 - dist / 200) * 0.05;
             ctx.beginPath();
-            ctx.moveTo(ni.x, ni.y);
-            ctx.lineTo(nj.x, nj.y);
-            ctx.strokeStyle = `rgba(${lineColor}, ${alpha})`;
-            ctx.lineWidth = ni.layer === 0 && nj.layer === 0 ? 0.4 : 0.6;
+            ctx.moveTo(mn.x, mn.y);
+            ctx.lineTo(fn.x, fn.y);
+            ctx.strokeStyle = `rgba(139,92,246,${alpha})`;
+            ctx.lineWidth = 0.5;
             ctx.stroke();
           }
         }
       }
 
       for (const node of nodes) {
-        const pulse = Math.sin(time * node.pulseSpeed + node.pulseOffset) * 0.3 + 0.7;
+        const pulse = Math.sin(t * node.pulseSpeed + node.pulseOffset) * 0.3 + 0.7;
         const opacity = node.baseOpacity * pulse;
-        const glowRadius = node.layer === 0 ? 30 : 18;
+        const cfg = LAYERS[node.layer];
+        const gSize = cfg.glowSize * (node.radius / ((cfg.minR + cfg.maxR) / 2));
 
-        const gradient = ctx.createRadialGradient(
-          node.x, node.y, 0,
-          node.x, node.y, glowRadius
-        );
-        gradient.addColorStop(0, `rgba(${node.glowColor}, ${opacity * 0.15})`);
-        gradient.addColorStop(1, `rgba(${node.glowColor}, 0)`);
-        ctx.fillStyle = gradient;
+        const grad = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, gSize);
+        grad.addColorStop(0, `rgba(${node.glowColor},${opacity * 0.18})`);
+        grad.addColorStop(0.5, `rgba(${node.glowColor},${opacity * 0.06})`);
+        grad.addColorStop(1, `rgba(${node.glowColor},0)`);
+        ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.arc(node.x, node.y, glowRadius, 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, gSize, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = `rgba(${node.color}, ${opacity})`;
+        ctx.fillStyle = `rgba(255,255,255,${opacity * 0.85})`;
         ctx.beginPath();
         ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
         ctx.fill();
+
+        ctx.fillStyle = `rgba(${node.color},${opacity * 0.45})`;
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, node.radius * 0.5, 0, Math.PI * 2);
+        ctx.fill();
       }
 
+      const cx = w / 2;
+      const cy = h * 0.38;
+
+      const outerVignette = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * 0.75);
+      outerVignette.addColorStop(0, "rgba(5,5,5,0)");
+      outerVignette.addColorStop(0.3, "rgba(5,5,5,0)");
+      outerVignette.addColorStop(0.55, "rgba(5,5,5,0.3)");
+      outerVignette.addColorStop(1, "rgba(5,5,5,0.8)");
+      ctx.fillStyle = outerVignette;
+      ctx.fillRect(0, 0, w, h);
+
+      const centerDim = ctx.createRadialGradient(cx, cy * 0.85, 0, cx, cy * 0.85, Math.min(w, h) * 0.3);
+      centerDim.addColorStop(0, "rgba(5,5,5,0.3)");
+      centerDim.addColorStop(1, "rgba(5,5,5,0)");
+      ctx.fillStyle = centerDim;
+      ctx.fillRect(0, 0, w, h);
+
+      if (!prefersReducedMotion) {
+        animationId = requestAnimationFrame(draw);
+      }
+    }
+
+    function resize() {
+      cvs.width = window.innerWidth;
+      cvs.height = window.innerHeight;
+      init();
+      if (prefersReducedMotion) {
+        draw(0);
+      }
+    }
+
+    resize();
+    if (!prefersReducedMotion) {
       animationId = requestAnimationFrame(draw);
     }
 
-    function onMouseMove(e: MouseEvent) {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-    }
-    function onMouseLeave() {
-      mouseX = -9999;
-      mouseY = -9999;
-    }
-
-    init();
-    animationId = requestAnimationFrame(draw);
     window.addEventListener("resize", resize);
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseleave", onMouseLeave);
 
     return () => {
       cancelAnimationFrame(animationId);
       window.removeEventListener("resize", resize);
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseleave", onMouseLeave);
     };
   }, []);
 
