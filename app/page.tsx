@@ -330,7 +330,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* PROUDLY BUILT ON */}
+      {/* POWERED BY */}
       <section id="built-on" className="relative py-32 px-6 overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="w-[600px] h-[600px] bg-indigo-500/[0.04] rounded-full blur-[120px]" />
@@ -338,8 +338,8 @@ export default function Home() {
         <div className="relative z-10 max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <span className="text-[10px] font-medium uppercase tracking-wider text-indigo-400">Infrastructure</span>
-            <h2 className="mt-4 text-3xl md:text-6xl font-semibold tracking-tight">Proudly Built <span className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">On</span></h2>
-            <p className="mt-4 text-sm text-neutral-400 max-w-md mx-auto leading-relaxed">Powered by the most reliable names in AI and communications.</p>
+            <h2 className="mt-4 text-3xl md:text-6xl font-semibold tracking-tight">Powered by proven <span className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">infrastructure</span></h2>
+            <p className="mt-4 text-sm text-neutral-400 max-w-md mx-auto leading-relaxed">Real services. Real production. No filler.</p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5 max-w-4xl mx-auto">
@@ -350,48 +350,57 @@ export default function Home() {
               <div className="text-sm font-medium text-white">OpenAI</div>
               <div className="text-[10px] text-neutral-500 mt-1 uppercase tracking-wider">Conversational AI</div>
             </div>
+            <div ref={addAnimRef} className="glow-card group relative p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-cyan-500/40 transition-all duration-500 hover:-translate-y-1 text-center cursor-default" style={{ "--glow-color": "rgba(6,182,212,0.4)" } as React.CSSProperties}>
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-cyan-500/10 flex items-center justify-center group-hover:bg-cyan-500/20 transition-colors duration-500">
+                <Icon icon="lucide:bot" width={24} className="text-cyan-400" />
+              </div>
+              <div className="text-sm font-medium text-white">Retell AI</div>
+              <div className="text-[10px] text-neutral-500 mt-1 uppercase tracking-wider">Voice Agent</div>
+            </div>
             <div ref={addAnimRef} className="glow-card group relative p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-purple-500/40 transition-all duration-500 hover:-translate-y-1 text-center cursor-default" style={{ "--glow-color": "rgba(168,85,247,0.4)" } as React.CSSProperties}>
               <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors duration-500">
                 <Icon icon="lucide:phone" width={24} className="text-purple-400" />
               </div>
               <div className="text-sm font-medium text-white">Twilio</div>
-              <div className="text-[10px] text-neutral-500 mt-1 uppercase tracking-wider">Voice & SMS</div>
+              <div className="text-[10px] text-neutral-500 mt-1 uppercase tracking-wider">Calls & SMS</div>
             </div>
             <div ref={addAnimRef} className="glow-card group relative p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-emerald-500/40 transition-all duration-500 hover:-translate-y-1 text-center cursor-default" style={{ "--glow-color": "rgba(16,185,129,0.4)" } as React.CSSProperties}>
               <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors duration-500">
-                <Icon icon="lucide:database" width={24} className="text-emerald-400" />
+                <Icon icon="lucide:server" width={24} className="text-emerald-400" />
               </div>
-              <div className="text-sm font-medium text-white">Supabase</div>
-              <div className="text-[10px] text-neutral-500 mt-1 uppercase tracking-wider">Database & Auth</div>
+              <div className="text-sm font-medium text-white">AstraDB</div>
+              <div className="text-[10px] text-neutral-500 mt-1 uppercase tracking-wider">Business Data</div>
             </div>
             <div ref={addAnimRef} className="glow-card group relative p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-cyan-500/40 transition-all duration-500 hover:-translate-y-1 text-center cursor-default" style={{ "--glow-color": "rgba(6,182,212,0.4)" } as React.CSSProperties}>
               <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-cyan-500/10 flex items-center justify-center group-hover:bg-cyan-500/20 transition-colors duration-500">
                 <Icon icon="lucide:cloud" width={24} className="text-cyan-400" />
               </div>
               <div className="text-sm font-medium text-white">Vercel</div>
-              <div className="text-[10px] text-neutral-500 mt-1 uppercase tracking-wider">Edge Hosting</div>
+              <div className="text-[10px] text-neutral-500 mt-1 uppercase tracking-wider">Hosting</div>
+            </div>
+            <div ref={addAnimRef} className="glow-card group relative p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-amber-500/40 transition-all duration-500 hover:-translate-y-1 text-center cursor-default" style={{ "--glow-color": "rgba(245,158,11,0.4)" } as React.CSSProperties}>
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors duration-500">
+                <Icon icon="lucide:mail" width={24} className="text-amber-400" />
+              </div>
+              <div className="text-sm font-medium text-white">Resend</div>
+              <div className="text-[10px] text-neutral-500 mt-1 uppercase tracking-wider">Email Delivery</div>
+            </div>
+            <div ref={addAnimRef} className="glow-card group relative p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-rose-500/40 transition-all duration-500 hover:-translate-y-1 text-center cursor-default" style={{ "--glow-color": "rgba(244,63,94,0.4)" } as React.CSSProperties}>
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-rose-500/10 flex items-center justify-center group-hover:bg-rose-500/20 transition-colors duration-500">
+                <Icon icon="lucide:git-branch" width={24} className="text-rose-400" />
+              </div>
+              <div className="text-sm font-medium text-white">n8n</div>
+              <div className="text-[10px] text-neutral-500 mt-1 uppercase tracking-wider">Automations</div>
             </div>
           </div>
 
-          <div className="mt-16 relative overflow-hidden marquee-mask">
-            <div className="flex marquee-track whitespace-nowrap">
-              <div className="flex items-center gap-12 px-6">
-                <span className="text-neutral-600 text-sm font-medium flex items-center gap-2"><Icon icon="lucide:shield-check" width={16} className="text-neutral-700" />SOC 2 Compliant</span>
-                <span className="text-neutral-600 text-sm font-medium flex items-center gap-2"><Icon icon="lucide:lock" width={16} className="text-neutral-700" />End-to-End Encrypted</span>
-                <span className="text-neutral-600 text-sm font-medium flex items-center gap-2"><Icon icon="lucide:globe" width={16} className="text-neutral-700" />99.9% Uptime SLA</span>
-                <span className="text-neutral-600 text-sm font-medium flex items-center gap-2"><Icon icon="lucide:zap" width={16} className="text-neutral-700" />&lt; 200ms Response</span>
-                <span className="text-neutral-600 text-sm font-medium flex items-center gap-2"><Icon icon="lucide:server" width={16} className="text-neutral-700" />Edge Computing</span>
-                <span className="text-neutral-600 text-sm font-medium flex items-center gap-2"><Icon icon="lucide:git-branch" width={16} className="text-neutral-700" />CI/CD Pipeline</span>
-              </div>
-              <div className="flex items-center gap-12 px-6">
-                <span className="text-neutral-600 text-sm font-medium flex items-center gap-2"><Icon icon="lucide:shield-check" width={16} className="text-neutral-700" />SOC 2 Compliant</span>
-                <span className="text-neutral-600 text-sm font-medium flex items-center gap-2"><Icon icon="lucide:lock" width={16} className="text-neutral-700" />End-to-End Encrypted</span>
-                <span className="text-neutral-600 text-sm font-medium flex items-center gap-2"><Icon icon="lucide:globe" width={16} className="text-neutral-700" />99.9% Uptime SLA</span>
-                <span className="text-neutral-600 text-sm font-medium flex items-center gap-2"><Icon icon="lucide:zap" width={16} className="text-neutral-700" />&lt; 200ms Response</span>
-                <span className="text-neutral-600 text-sm font-medium flex items-center gap-2"><Icon icon="lucide:server" width={16} className="text-neutral-700" />Edge Computing</span>
-                <span className="text-neutral-600 text-sm font-medium flex items-center gap-2"><Icon icon="lucide:git-branch" width={16} className="text-neutral-700" />CI/CD Pipeline</span>
-              </div>
-            </div>
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-x-10 gap-y-4 text-neutral-600 text-xs">
+            <span className="flex items-center gap-2"><Icon icon="lucide:bar-chart-3" width={14} className="text-neutral-700" />Real-time Dashboard</span>
+            <span className="flex items-center gap-2"><Icon icon="lucide:mail" width={14} className="text-neutral-700" />Follow-up Emails</span>
+            <span className="flex items-center gap-2"><Icon icon="lucide:calendar" width={14} className="text-neutral-700" />Calendar Sync</span>
+            <span className="flex items-center gap-2"><Icon icon="lucide:zap" width={14} className="text-neutral-700" />Lead Scoring</span>
+            <span className="flex items-center gap-2"><Icon icon="lucide:message-square" width={14} className="text-neutral-700" />SMS Reminders</span>
+            <span className="flex items-center gap-2"><Icon icon="lucide:webhook" width={14} className="text-neutral-700" />API Webhooks</span>
           </div>
         </div>
       </section>
