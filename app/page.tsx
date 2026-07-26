@@ -219,18 +219,18 @@ export default function Home() {
 
           <div className="anim-up delay-400 mt-16 flex items-center justify-center gap-8 md:gap-16">
             <div className="text-center">
-              <div className="text-2xl md:text-3xl font-medium">98%</div>
-              <div className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">Call Answer Rate</div>
+              <div className="text-sm md:text-base font-medium text-neutral-300">AI Phone Receptionist</div>
+              <div className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">24/7 Call Coverage</div>
             </div>
             <div className="w-px h-10 bg-white/10" />
             <div className="text-center">
-              <div className="text-2xl md:text-3xl font-medium">3.2x</div>
-              <div className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">More Leads Captured</div>
+              <div className="text-sm md:text-base font-medium text-neutral-300">Connect in Minutes</div>
+              <div className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">No Hardware Required</div>
             </div>
             <div className="w-px h-10 bg-white/10" />
             <div className="text-center">
-              <div className="text-2xl md:text-3xl font-medium">24/7</div>
-              <div className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">Always Online</div>
+              <div className="text-sm md:text-base font-medium text-neutral-300">Train With Your Data</div>
+              <div className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">No Coding Needed</div>
             </div>
           </div>
         </div>
@@ -398,90 +398,60 @@ export default function Home() {
 
       {/* ASK US */}
 
-      {/* TESTIMONIALS */}
+      {/* WHY NEXT CALL */}
       <section className="relative py-32 px-6">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-500/[0.03] rounded-full blur-[120px] pointer-events-none" />
 
         <div className="relative z-10 max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <span className="text-[10px] font-medium uppercase tracking-wider text-indigo-400">Testimonials</span>
-            <h2 className="mt-4 text-3xl md:text-6xl font-semibold tracking-tight">Loved by <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">business owners</span></h2>
-            <p className="mt-4 text-sm text-neutral-400 max-w-md mx-auto leading-relaxed">Real results from real businesses using Next Call Chat.</p>
+            <span className="text-[10px] font-medium uppercase tracking-wider text-indigo-400">Why NextCall</span>
+            <h2 className="mt-4 text-3xl md:text-6xl font-semibold tracking-tight">Built for <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">service businesses</span></h2>
+            <p className="mt-4 text-sm text-neutral-400 max-w-md mx-auto leading-relaxed">Plumbers, electricians, HVAC companies, roofers, cleaners, and local service pros who can't afford to miss a call.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
             <div className="group relative p-8 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-white/20 transition-all duration-500">
-              <div className="mb-4 flex gap-1">
-                <span className="text-amber-400 text-sm">★</span>
-                <span className="text-amber-400 text-sm">★</span>
-                <span className="text-amber-400 text-sm">★</span>
-                <span className="text-amber-400 text-sm">★</span>
-                <span className="text-amber-400 text-sm">★</span>
+              <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4">
+                <Icon icon="lucide:phone-call" width={20} className="text-indigo-400" />
               </div>
-              <p className="text-sm text-neutral-300 leading-relaxed mb-6">"We were missing 40% of our calls during busy hours. Next Call Chat captured 23 leads in the first week that we would have completely lost. Paid for itself in 3 days."</p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-sm font-semibold text-indigo-300">MR</div>
-                <div>
-                  <p className="text-sm font-medium text-white">Mike Rodriguez</p>
-                  <p className="text-xs text-neutral-500">Rodriguez Plumbing, Dallas</p>
-                </div>
-              </div>
+              <h3 className="text-base font-semibold text-white mb-2">Never Miss a Call</h3>
+              <p className="text-sm text-neutral-400 leading-relaxed">AI answers every call within two rings — 24/7, even during lunch, after hours, and weekends. When a caller hangs up within 10 seconds, they get an automatic SMS so you don't lose the lead.</p>
             </div>
 
             <div className="group relative p-8 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-white/20 transition-all duration-500">
-              <div className="mb-4 flex gap-1">
-                <span className="text-amber-400 text-sm">★</span>
-                <span className="text-amber-400 text-sm">★</span>
-                <span className="text-amber-400 text-sm">★</span>
-                <span className="text-amber-400 text-sm">★</span>
-                <span className="text-amber-400 text-sm">★</span>
+              <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-4">
+                <Icon icon="lucide:calendar" width={20} className="text-purple-400" />
               </div>
-              <p className="text-sm text-neutral-300 leading-relaxed mb-6">"Our after-hours calls were going straight to voicemail. Now the AI books appointments while we sleep. Last month it scheduled 18 jobs after 6pm. Absolutely game changing."</p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-sm font-semibold text-purple-300">SJ</div>
-                <div>
-                  <p className="text-sm font-medium text-white">Sarah Jensen</p>
-                  <p className="text-xs text-neutral-500">Jensen Electric, Portland</p>
-                </div>
-              </div>
+              <h3 className="text-base font-semibold text-white mb-2">Turn Calls Into Appointments</h3>
+              <p className="text-sm text-neutral-400 leading-relaxed">AI captures preferred dates and times from callers and creates Google Calendar events automatically. Customers get SMS and email reminders so they show up.</p>
             </div>
 
             <div className="group relative p-8 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-white/20 transition-all duration-500">
-              <div className="mb-4 flex gap-1">
-                <span className="text-amber-400 text-sm">★</span>
-                <span className="text-amber-400 text-sm">★</span>
-                <span className="text-amber-400 text-sm">★</span>
-                <span className="text-amber-400 text-sm">★</span>
-                <span className="text-amber-400 text-sm">★</span>
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4">
+                <Icon icon="lucide:message-circle" width={20} className="text-emerald-400" />
               </div>
-              <p className="text-sm text-neutral-300 leading-relaxed mb-6">"I was skeptical about an AI answering my phones. But customers can't tell the difference. It knows my services, my hours, my pricing. Sounds just like my front desk."</p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-sm font-semibold text-emerald-300">DK</div>
-                <div>
-                  <p className="text-sm font-medium text-white">David Kim</p>
-                  <p className="text-xs text-neutral-500">Kim HVAC Solutions, Chicago</p>
-                </div>
-              </div>
+              <h3 className="text-base font-semibold text-white mb-2">Follow Up Automatically</h3>
+              <p className="text-sm text-neutral-400 leading-relaxed">After every call, customers get a branded email summary with what was discussed. Hot leads trigger instant notifications so you can follow up immediately.</p>
             </div>
           </div>
 
-          {/* Stats bar */}
+          {/* Capabilities bar */}
           <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-6 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
-              <p className="text-2xl md:text-3xl font-semibold text-white">2.4M+</p>
-              <p className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">Calls Answered</p>
+              <p className="text-sm font-medium text-white">24/7 AI Call Coverage</p>
+              <p className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">Always On, Always Ready</p>
             </div>
             <div className="text-center p-6 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
-              <p className="text-2xl md:text-3xl font-semibold text-white">98%</p>
-              <p className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">Satisfaction Rate</p>
+              <p className="text-sm font-medium text-white">Google Calendar Booking</p>
+              <p className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">Auto-Scheduled Appointments</p>
             </div>
             <div className="text-center p-6 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
-              <p className="text-2xl md:text-3xl font-semibold text-white">4,800+</p>
-              <p className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">Businesses Active</p>
+              <p className="text-sm font-medium text-white">AI-Powered Lead Capture</p>
+              <p className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">Sentiment & Intent Scoring</p>
             </div>
             <div className="text-center p-6 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
-              <p className="text-2xl md:text-3xl font-semibold text-white">3.2x</p>
-              <p className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">More Leads Captured</p>
+              <p className="text-sm font-medium text-white">Facebook & Instagram DM</p>
+              <p className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">Auto-Replies Included</p>
             </div>
           </div>
         </div>
