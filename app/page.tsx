@@ -396,62 +396,68 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ASK US */}
-
-      {/* WHY NEXT CALL */}
+      {/* WHY BUSINESSES TRUST */}
       <section className="relative py-32 px-6">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-500/[0.03] rounded-full blur-[120px] pointer-events-none" />
 
         <div className="relative z-10 max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <span className="text-[10px] font-medium uppercase tracking-wider text-indigo-400">Why NextCall</span>
-            <h2 className="mt-4 text-3xl md:text-6xl font-semibold tracking-tight">Built for <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">service businesses</span></h2>
-            <p className="mt-4 text-sm text-neutral-400 max-w-md mx-auto leading-relaxed">Plumbers, electricians, HVAC companies, roofers, cleaners, and local service pros who can't afford to miss a call.</p>
+            <span className="text-[10px] font-medium uppercase tracking-wider text-indigo-400">Why Trust</span>
+            <h2 className="mt-4 text-3xl md:text-6xl font-semibold tracking-tight">Why businesses trust <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">NextCall</span></h2>
+            <p className="mt-4 text-sm text-neutral-400 max-w-md mx-auto leading-relaxed">Built for real service businesses. No fluff, no fake claims — just a system that works.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="group relative p-8 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-white/20 transition-all duration-500">
-              <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4">
-                <Icon icon="lucide:phone-call" width={20} className="text-indigo-400" />
+          <div className="grid md:grid-cols-4 gap-5">
+            <div ref={addAnimRef} className="group relative p-8 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-white/20 hover:bg-white/[0.05] transition-all duration-500" onMouseMove={handleCardMouseMove} onMouseLeave={handleCardMouseLeave}>
+              <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500">
+                <Icon icon="lucide:sliders-horizontal" width={22} className="text-indigo-400" />
               </div>
-              <h3 className="text-base font-semibold text-white mb-2">Never Miss a Call</h3>
-              <p className="text-sm text-neutral-400 leading-relaxed">AI answers every call within two rings — 24/7, even during lunch, after hours, and weekends. When a caller hangs up within 10 seconds, they get an automatic SMS so you don't lose the lead.</p>
+              <h3 className="text-sm font-semibold text-white mb-2">Customizable AI</h3>
+              <p className="text-xs text-neutral-400 leading-relaxed">Train the receptionist with your services, pricing, hours, and FAQs. No coding needed.</p>
             </div>
 
-            <div className="group relative p-8 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-white/20 transition-all duration-500">
-              <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-4">
-                <Icon icon="lucide:calendar" width={20} className="text-purple-400" />
+            <div ref={addAnimRef} className="group relative p-8 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-white/20 hover:bg-white/[0.05] transition-all duration-500" onMouseMove={handleCardMouseMove} onMouseLeave={handleCardMouseLeave}>
+              <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500">
+                <Icon icon="lucide:workflow" width={22} className="text-purple-400" />
               </div>
-              <h3 className="text-base font-semibold text-white mb-2">Turn Calls Into Appointments</h3>
-              <p className="text-sm text-neutral-400 leading-relaxed">AI captures preferred dates and times from callers and creates Google Calendar events automatically. Customers get SMS and email reminders so they show up.</p>
+              <h3 className="text-sm font-semibold text-white mb-2">Clear Workflow</h3>
+              <p className="text-xs text-neutral-400 leading-relaxed">Calls &rarr; lead capture &rarr; booking &rarr; follow-up &rarr; dashboard visibility. No chaos.</p>
             </div>
 
-            <div className="group relative p-8 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-white/20 transition-all duration-500">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4">
-                <Icon icon="lucide:message-circle" width={20} className="text-emerald-400" />
+            <div ref={addAnimRef} className="group relative p-8 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-white/20 hover:bg-white/[0.05] transition-all duration-500" onMouseMove={handleCardMouseMove} onMouseLeave={handleCardMouseLeave}>
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500">
+                <Icon icon="lucide:puzzle" width={22} className="text-emerald-400" />
               </div>
-              <h3 className="text-base font-semibold text-white mb-2">Follow Up Automatically</h3>
-              <p className="text-sm text-neutral-400 leading-relaxed">After every call, customers get a branded email summary with what was discussed. Hot leads trigger instant notifications so you can follow up immediately.</p>
+              <h3 className="text-sm font-semibold text-white mb-2">Real Integrations</h3>
+              <p className="text-xs text-neutral-400 leading-relaxed">Google Calendar, SMS, email, Facebook, Instagram, reviews — connected and working.</p>
+            </div>
+
+            <div ref={addAnimRef} className="group relative p-8 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-white/20 hover:bg-white/[0.05] transition-all duration-500" onMouseMove={handleCardMouseMove} onMouseLeave={handleCardMouseLeave}>
+              <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500">
+                <Icon icon="lucide:receipt" width={22} className="text-amber-400" />
+              </div>
+              <h3 className="text-sm font-semibold text-white mb-2">Transparent Pricing</h3>
+              <p className="text-xs text-neutral-400 leading-relaxed">Simple plans, clear minute packs, no contracts, no hidden fees, no fake claims.</p>
             </div>
           </div>
 
-          {/* Capabilities bar */}
+          {/* Trust bar */}
           <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-6 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
-              <p className="text-sm font-medium text-white">24/7 AI Call Coverage</p>
-              <p className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">Always On, Always Ready</p>
+              <p className="text-sm font-medium text-white">Answer Every Call</p>
+              <p className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">24/7 — No Voicemail</p>
             </div>
             <div className="text-center p-6 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
-              <p className="text-sm font-medium text-white">Google Calendar Booking</p>
-              <p className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">Auto-Scheduled Appointments</p>
+              <p className="text-sm font-medium text-white">Capture the Lead</p>
+              <p className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">Name, Intent, Score</p>
             </div>
             <div className="text-center p-6 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
-              <p className="text-sm font-medium text-white">AI-Powered Lead Capture</p>
-              <p className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">Sentiment & Intent Scoring</p>
+              <p className="text-sm font-medium text-white">Book or Follow Up</p>
+              <p className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">Calendar + SMS + Email</p>
             </div>
             <div className="text-center p-6 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
-              <p className="text-sm font-medium text-white">Facebook & Instagram DM</p>
-              <p className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">Auto-Replies Included</p>
+              <p className="text-sm font-medium text-white">See Everything</p>
+              <p className="text-[10px] uppercase tracking-wider text-neutral-500 mt-1">Real-Time Dashboard</p>
             </div>
           </div>
         </div>
