@@ -133,7 +133,18 @@ function Navigation() {
         </nav>
 
         {/* Right section */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="hidden sm:inline-flex items-center gap-2 rounded-full border-white/15 bg-white/[0.04] backdrop-blur-xl text-ds-text-inverse/80 hover:text-ds-text-inverse hover:bg-white/[0.08] hover:border-white/25"
+            asChild
+          >
+            <Link href="/dashboard">
+              Start Free Trial
+              <Icon icon="lucide:arrow-right" width={14} />
+            </Link>
+          </Button>
           <Button
             variant="gradient"
             size="sm"

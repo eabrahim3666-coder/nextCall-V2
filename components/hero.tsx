@@ -1,10 +1,8 @@
 "use client"
 
-import Link from "next/link"
 import { motion } from "framer-motion"
 import { Icon } from "@iconify/react"
 
-import { Button } from "@/components/ui/button"
 import { HeroScene } from "@/components/HeroScene"
 
 /* ------------------------------------------------------------------ */
@@ -28,7 +26,7 @@ const container = {
 
 function Hero() {
   return (
-    <section className="relative min-h-screen overflow-hidden bg-ds-bg-primary py-16 md:py-24">
+    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-ds-bg-primary">
       {/* Full-bleed Spline 3D background — first child so it sits behind everything */}
       <HeroScene />
 
@@ -55,7 +53,8 @@ function Hero() {
       {/* Hero Content                                                     */}
       {/* ---------------------------------------------------------------- */}
       <motion.div
-        className="relative z-10 mx-auto max-w-4xl px-4 text-center"
+        className="relative z-10 mx-auto max-w-4xl px-4 text-center select-none"
+        style={{ pointerEvents: "none" }}
         variants={container}
         initial="initial"
         animate="animate"
@@ -73,11 +72,11 @@ function Hero() {
           </div>
         </motion.div>
 
-        {/* Headline (Gap from Badge) */}
-        <motion.h1
-          variants={fadeUp}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-6 md:mt-8 text-balance text-center text-[clamp(2.5rem,5.5vw,4.25rem)] font-bold leading-[1.08] tracking-[-0.03em] text-ds-text-primary drop-shadow-md"
+          {/* Headline (Gap from Badge) */}
+          <motion.h1
+            variants={fadeUp}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-10 md:mt-14 text-balance text-center text-[clamp(2.5rem,5.5vw,4.25rem)] font-bold leading-[1.08] tracking-[-0.03em] text-ds-text-primary drop-shadow-md"
         >
           Never miss a lead,{" "}
           <span className="bg-linear-to-r from-ds-accent-primary via-ds-accent-secondary to-ds-accent-highlight bg-clip-text text-transparent">
@@ -95,32 +94,12 @@ function Hero() {
           Capture leads, book appointments, and grow your business — 24/7.
         </motion.p>
 
-        {/* CTAs (Increased gap from Description) */}
-        <motion.div
-          variants={fadeUp}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-10 md:mt-12 flex flex-row items-center justify-center gap-3 sm:gap-4"
-        >
-          <Button variant="gradient" size="xl" className="rounded-full shadow-ds-md" asChild>
-            <Link href="/dashboard">
-              Start Free Trial
-              <Icon icon="lucide:arrow-right" width={16} />
-            </Link>
-          </Button>
-          <Button variant="outline" size="xl" className="rounded-full bg-ds-bg-primary/80 backdrop-blur-md border-ds-border-primary/80" asChild>
-            <a href="#how-it-works">
-              <Icon icon="lucide:play-circle" width={18} />
-              See How It Works
-            </a>
-          </Button>
-        </motion.div>
-
-        {/* Trust Indicators (Increased gap from CTAs) */}
-        <motion.div
-          variants={fadeUp}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-16 md:mt-20 flex items-center justify-center gap-x-6 gap-y-3 flex-wrap"
-        >
+          {/* Trust Indicators */}
+          <motion.div
+            variants={fadeUp}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-16 md:mt-20 flex items-center justify-center gap-x-6 gap-y-3 flex-wrap"
+          >
           {[
             { icon: "lucide:phone-call", label: "24/7 AI Receptionist" },
             { icon: "lucide:target", label: "Never Miss A Lead" },

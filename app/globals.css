@@ -4,17 +4,6 @@
   --font-sans: "Inter", sans-serif;
 }
 
-:root {
-  --background: #050505;
-  --foreground: #ededed;
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
-}
-
 /* ===== Next Call Chat Custom Styles ===== */
 
 .grain::before {
