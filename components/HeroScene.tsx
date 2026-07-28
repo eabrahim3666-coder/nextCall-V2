@@ -8,16 +8,20 @@ const SCENE_URL = "https://prod.spline.design/OxfOaa3JyK8qUaVB/scene.splinecode"
 
 export function HeroScene() {
   const [loaded, setLoaded] = useState(false)
+  const [errored, setErrored] = useState(false)
   const appRef = useRef<Application | null>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const posRef = useRef({ x: 0, y: 0, tx: 0, ty: 0 })
   const rafRef = useRef(0)
   const restartRef = useRef(() => {})
 
-  // ─── Spline onLoad ────────────────────────────────────────────────
+  // ─── Spline onLoad / onError ──────────────────────────────────────
   const handleLoad = useCallback((app: Application) => {
     appRef.current = app
     setLoaded(true)
+  }, [])
+  const handleError = useCallback(() => {
+    setErrored(true)
   }, [])
 
   // ─── Mouse + Touch tracking ───────────────────────────────────────
@@ -165,25 +169,30 @@ export function HeroScene() {
         }
       `}</style>
 
-      {!loaded && (
+      {!loaded && !errored && (
         <div
           className="absolute inset-0 pointer-events-none"
           style={{ backgroundColor: "#0a0a0a" }}
         />
       )}
 
-      <div className="hero-spline-wrap absolute inset-0">
-        <Spline
-          scene={SCENE_URL}
-          onLoad={handleLoad}
-          style={{
-            width: "100%",
-            height: "100%",
-            opacity: loaded ? 1 : 0,
-            transition: "opacity 0.5s ease",
-          }}
-        />
-      </div>
+      {errored ? (
+        <div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: "#0a0a0a" }} />
+      ) : (
+        <div className="hero-spline-wrap absolute inset-0">
+          <Spline
+            scene={SCENE_URL}
+            onLoad={handleLoad}
+            onError={handleError}
+            style={{
+              width: "100%",
+              height: "100%",
+              opacity: loaded ? 1 : 0,
+              transition: "opacity 0.5s ease",
+            }}
+          />
+        </div>
+      )}
     </div>
   )
 }
