@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import { Icon } from "@iconify/react"
 
 import { Button } from "@/components/ui/button"
+import { HeroScene } from "@/components/HeroScene"
 
 /* ------------------------------------------------------------------ */
 /*  Variants                                                          */
@@ -27,14 +28,17 @@ const container = {
 
 function Hero() {
   return (
-    <section className="relative overflow-hidden bg-ds-bg-primary py-16 md:py-24">
+    <section className="relative min-h-screen overflow-hidden bg-ds-bg-primary py-16 md:py-24">
+      {/* Full-bleed Spline 3D background — first child so it sits behind everything */}
+      <HeroScene />
+
       {/* ---------------------------------------------------------------- */}
       {/* Background Styling                                               */}
       {/* ---------------------------------------------------------------- */}
       <div className="pointer-events-none absolute inset-0 z-0">
         {/* Grid pattern overlay */}
         <div
-          className="absolute inset-0 opacity-[0.025]"
+          className="pointer-events-none absolute inset-0 opacity-[0.025]"
           style={{
             backgroundImage:
               "linear-gradient(rgba(15,23,42,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.6) 1px, transparent 1px)",
@@ -43,8 +47,8 @@ function Hero() {
         />
 
         {/* Atmospheric gradient orbs */}
-        <div className="absolute top-[-20%] right-[-10%] h-[650px] w-[650px] rounded-full bg-ds-accent-primary/[0.05] blur-[140px]" />
-        <div className="absolute bottom-[5%] left-[-10%] h-[550px] w-[550px] rounded-full bg-ds-accent-highlight/[0.03] blur-[120px]" />
+        <div className="pointer-events-none absolute top-[-20%] right-[-10%] h-[650px] w-[650px] rounded-full bg-ds-accent-primary/[0.05] blur-[140px]" />
+        <div className="pointer-events-none absolute bottom-[5%] left-[-10%] h-[550px] w-[550px] rounded-full bg-ds-accent-highlight/[0.03] blur-[120px]" />
       </div>
 
       {/* ---------------------------------------------------------------- */}
