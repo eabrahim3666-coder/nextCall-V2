@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
+import "./design.css";
 
 export const metadata: Metadata = {
   title: "Next Call Chat — Never Miss a Lead",
@@ -11,7 +12,6 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
-
 };
 
 export default function RootLayout({
@@ -25,11 +25,11 @@ export default function RootLayout({
         <head>
           {/* eslint-disable-next-line @next/next/no-page-custom-font */}
           <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
             rel="stylesheet"
           />
         </head>
-        <body className="antialiased">{children}</body>
+        <body className="antialiased font-sans">{children}</body>
       </html>
     </ClerkProvider>
   );

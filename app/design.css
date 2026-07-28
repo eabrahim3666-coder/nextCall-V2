@@ -1,0 +1,304 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   DESIGN SYSTEM — Theme Definition
+   All tokens are consumed via Tailwind utility classes and CSS custom properties.
+   Every component must reference these tokens — never inline values.
+   ========================================================================== */
+
+@theme {
+
+  /* ------------------------------------------------------------------ */
+  /*  FONTS                                                              */
+  /* ------------------------------------------------------------------ */
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* ------------------------------------------------------------------ */
+  /*  COLORS — Backgrounds                                               */
+  /* ------------------------------------------------------------------ */
+  --color-ds-bg-primary: #FFFFFF;
+  --color-ds-bg-secondary: #FAFBFD;
+  --color-ds-bg-card: #FFFFFF;
+  --color-ds-bg-muted: #F8FAFC;
+  --color-ds-bg-overlay: rgba(15, 23, 42, 0.5);
+  --color-ds-bg-tooltip: #1E293B;
+
+  /* Aliases for shadcn-style compatibility */
+  --color-background: #FFFFFF;
+  --color-foreground: #111827;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #111827;
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #111827;
+  --color-muted: #F8FAFC;
+  --color-muted-foreground: #64748B;
+  --color-secondary: #F1F5F9;
+  --color-secondary-foreground: #1E293B;
+
+  /* ------------------------------------------------------------------ */
+  /*  COLORS — Text                                                      */
+  /* ------------------------------------------------------------------ */
+  --color-ds-text-primary: #111827;
+  --color-ds-text-secondary: #64748B;
+  --color-ds-text-muted: #94A3B8;
+  --color-ds-text-inverse: #FFFFFF;
+
+  /* ------------------------------------------------------------------ */
+  /*  COLORS — Border                                                    */
+  /* ------------------------------------------------------------------ */
+  --color-ds-border-primary: rgba(15, 23, 42, 0.08);
+  --color-ds-border-hover: rgba(79, 70, 229, 0.25);
+  --color-ds-border-accent: rgba(79, 70, 229, 0.3);
+
+  --color-border: rgba(15, 23, 42, 0.08);
+  --color-input: rgba(15, 23, 42, 0.08);
+  --color-ring: #4F46E5;
+
+  /* ------------------------------------------------------------------ */
+  /*  COLORS — Accent                                                    */
+  /* ------------------------------------------------------------------ */
+  --color-ds-accent-primary: #4F46E5;
+  --color-ds-accent-primary-hover: #4338CA;
+  --color-ds-accent-primary-pressed: #3730A3;
+  --color-ds-accent-secondary: #7C3AED;
+  --color-ds-accent-highlight: #06B6D4;
+
+  --color-primary: #4F46E5;
+  --color-primary-foreground: #FFFFFF;
+  --color-primary-hover: #4338CA;
+  --color-accent: #7C3AED;
+  --color-accent-foreground: #FFFFFF;
+
+  /* ------------------------------------------------------------------ */
+  /*  COLORS — Semantic / State                                          */
+  /* ------------------------------------------------------------------ */
+  --color-ds-state-success: #10B981;
+  --color-ds-state-warning: #F59E0B;
+  --color-ds-state-danger: #EF4444;
+  --color-ds-state-info: #3B82F6;
+
+  --color-success: #10B981;
+  --color-success-foreground: #FFFFFF;
+  --color-warning: #F59E0B;
+  --color-warning-foreground: #FFFFFF;
+  --color-danger: #EF4444;
+  --color-danger-foreground: #FFFFFF;
+  --color-info: #3B82F6;
+  --color-info-foreground: #FFFFFF;
+
+  --color-destructive: #EF4444;
+  --color-destructive-foreground: #FFFFFF;
+
+  /* ------------------------------------------------------------------ */
+  /*  GRADIENTS                                                          */
+  /* ------------------------------------------------------------------ */
+  --color-ds-gradient-start: #4F46E5;
+  --color-ds-gradient-mid: #7C3AED;
+  --color-ds-gradient-end: #06B6D4;
+
+  /* ------------------------------------------------------------------ */
+  /*  TYPOGRAPHY — Font Sizes with line-height, letter-spacing, weight   */
+  /* ------------------------------------------------------------------ */
+  --text-ds-hero: 3.5rem;
+  --text-ds-hero--line-height: 1.1;
+  --text-ds-hero--letter-spacing: -0.03em;
+  --text-ds-hero--font-weight: 700;
+
+  --text-ds-section-heading: 2.25rem;
+  --text-ds-section-heading--line-height: 1.2;
+  --text-ds-section-heading--letter-spacing: -0.02em;
+  --text-ds-section-heading--font-weight: 700;
+
+  --text-ds-large-heading: 1.5rem;
+  --text-ds-large-heading--line-height: 1.3;
+  --text-ds-large-heading--letter-spacing: -0.01em;
+  --text-ds-large-heading--font-weight: 600;
+
+  --text-ds-card-title: 1.125rem;
+  --text-ds-card-title--line-height: 1.4;
+  --text-ds-card-title--letter-spacing: -0.01em;
+  --text-ds-card-title--font-weight: 600;
+
+  --text-ds-body: 1rem;
+  --text-ds-body--line-height: 1.6;
+  --text-ds-body--letter-spacing: 0em;
+  --text-ds-body--font-weight: 400;
+
+  --text-ds-small-body: 0.875rem;
+  --text-ds-small-body--line-height: 1.5;
+  --text-ds-small-body--letter-spacing: 0em;
+  --text-ds-small-body--font-weight: 400;
+
+  --text-ds-caption: 0.75rem;
+  --text-ds-caption--line-height: 1.5;
+  --text-ds-caption--letter-spacing: 0.01em;
+  --text-ds-caption--font-weight: 400;
+
+  --text-ds-button: 0.875rem;
+  --text-ds-button--line-height: 1;
+  --text-ds-button--letter-spacing: 0.01em;
+  --text-ds-button--font-weight: 500;
+
+  --text-ds-label: 0.8125rem;
+  --text-ds-label--line-height: 1;
+  --text-ds-label--letter-spacing: 0.02em;
+  --text-ds-label--font-weight: 500;
+
+  --text-ds-overline: 0.625rem;
+  --text-ds-overline--line-height: 1;
+  --text-ds-overline--letter-spacing: 0.08em;
+  --text-ds-overline--font-weight: 500;
+
+  /* ------------------------------------------------------------------ */
+  /*  FONT WEIGHTS                                                       */
+  /* ------------------------------------------------------------------ */
+  --font-weight-ds-regular: 400;
+  --font-weight-ds-medium: 500;
+  --font-weight-ds-semibold: 600;
+  --font-weight-ds-bold: 700;
+
+  /* ------------------------------------------------------------------ */
+  /*  SPACING SCALE                                                      */
+  /* ------------------------------------------------------------------ */
+  --spacing-ds-0: 0px;
+  --spacing-ds-1: 4px;
+  --spacing-ds-2: 8px;
+  --spacing-ds-3: 12px;
+  --spacing-ds-4: 16px;
+  --spacing-ds-5: 20px;
+  --spacing-ds-6: 24px;
+  --spacing-ds-7: 28px;
+  --spacing-ds-8: 32px;
+  --spacing-ds-9: 36px;
+  --spacing-ds-10: 40px;
+  --spacing-ds-11: 44px;
+  --spacing-ds-12: 48px;
+  --spacing-ds-14: 56px;
+  --spacing-ds-16: 64px;
+  --spacing-ds-20: 80px;
+  --spacing-ds-24: 96px;
+  --spacing-ds-28: 112px;
+  --spacing-ds-32: 128px;
+  --spacing-ds-40: 160px;
+  --spacing-ds-48: 192px;
+  --spacing-ds-56: 224px;
+  --spacing-ds-64: 256px;
+
+  /* Tailwind native spacing override */
+  --spacing: 4px;
+
+  /* ------------------------------------------------------------------ */
+  /*  BORDER RADIUS                                                      */
+  /* ------------------------------------------------------------------ */
+  --radius-ds-none: 0px;
+  --radius-ds-xs: 4px;
+  --radius-ds-sm: 6px;
+  --radius-ds-md: 8px;
+  --radius-ds-lg: 12px;
+  --radius-ds-xl: 16px;
+  --radius-ds-2xl: 24px;
+  --radius-ds-full: 9999px;
+
+  /* ------------------------------------------------------------------ */
+  /*  SHADOWS                                                            */
+  /* ------------------------------------------------------------------ */
+  --shadow-ds-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-ds-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-ds-lg: 0 8px 24px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-ds-xl: 0 16px 48px rgba(15, 23, 42, 0.10), 0 4px 8px rgba(15, 23, 42, 0.04);
+  --shadow-ds-glow-primary: 0 0 20px -5px rgba(79, 70, 229, 0.3);
+  --shadow-ds-glow-secondary: 0 0 20px -5px rgba(124, 58, 237, 0.3);
+
+  /* ------------------------------------------------------------------ */
+  /*  ANIMATION DURATIONS & EASING                                       */
+  /* ------------------------------------------------------------------ */
+  --duration-ds-fast: 150ms;
+  --duration-ds-normal: 250ms;
+  --duration-ds-slow: 400ms;
+  --duration-ds-xslow: 600ms;
+
+  --ease-ds-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-ds-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-ds-linear: linear;
+
+  /* Animate utilities (Tailwind v4 syntax) */
+  --animate-ds-fade-in: ds-fade-in var(--duration-ds-normal) var(--ease-ds-smooth);
+  --animate-ds-fade-up: ds-fade-up var(--duration-ds-slow) var(--ease-ds-smooth);
+  --animate-ds-scale-in: ds-scale-in var(--duration-ds-normal) var(--ease-ds-smooth);
+  --animate-ds-slide-up: ds-slide-up var(--duration-ds-slow) var(--ease-ds-smooth);
+  --animate-ds-fade-in-fast: ds-fade-in var(--duration-ds-fast) var(--ease-ds-smooth);
+  --animate-ds-scale-in-fast: ds-scale-in var(--duration-ds-fast) var(--ease-ds-smooth);
+}
+
+/* ==========================================================================
+   KEYFRAMES
+   ========================================================================== */
+
+@keyframes ds-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ds-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ds-scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes ds-slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* ==========================================================================
+   BASE ELEMENTS
+   ========================================================================== */
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-ds-bg-primary);
+  color: var(--color-ds-text-primary);
+}
+
+/* ==========================================================================
+   UTILITY CLASSES
+   ========================================================================== */
+
+/* Gradient text */
+.ds-gradient-text {
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Focus ring */
+.ds-focus-ring {
+  outline: none;
+  transition: box-shadow var(--duration-ds-fast) var(--ease-ds-smooth);
+}
+
+.ds-focus-ring:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-ds-bg-primary), 0 0 0 4px var(--color-ring);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
