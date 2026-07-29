@@ -34,7 +34,7 @@ const TESTIMONIALS = [
     company: "Chen & Associates Law",
     role: "Managing Partner",
     content:
-      "Our call answer rate went from 40% to 98%. The AI screens potential clients so we only spend time on qualified leads.",
+      "NextCall transformed how we handle client calls. The AI screens potential clients so we only spend time on qualified leads.",
     rating: 5,
   },
   {
@@ -48,11 +48,10 @@ const TESTIMONIALS = [
 ] as const
 
 const STATS = [
-  { value: "24/7", label: "Availability" },
-  { value: "AI", label: "Powered Call Answering" },
-  { value: "Smart", label: "Appointment Scheduling" },
-  { value: "<3s", label: "Response Time" },
-  { value: "No", label: "Coding Required" },
+  { title: "Answer Every Call", desc: "24/7 — No Voicemail" },
+  { title: "Capture the Lead", desc: "Name, Intent, Score" },
+  { title: "Book or Follow Up", desc: "Calendar + SMS + Email" },
+  { title: "See Everything", desc: "Real-Time Dashboard" },
 ] as const
 
 const fadeUp = {
@@ -193,20 +192,20 @@ function Industries() {
             variants={{
               animate: { transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
             }}
-            className="mt-16 grid grid-cols-2 gap-4 md:grid-cols-5"
+            className="mt-16 grid grid-cols-2 gap-4 md:grid-cols-4"
           >
             {STATS.map((stat) => (
               <motion.div
-                key={stat.label}
+                key={stat.title}
                 variants={fadeUp}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 className="flex flex-col items-center gap-1 rounded-xl border border-ds-border-primary bg-ds-bg-card p-6 text-center shadow-ds-sm"
               >
-                <span className="text-ds-large-heading font-bold text-ds-accent-primary">
-                  {stat.value}
+                <span className="text-ds-label font-semibold text-ds-accent-primary">
+                  {stat.title}
                 </span>
                 <span className="text-ds-caption text-ds-text-muted">
-                  {stat.label}
+                  {stat.desc}
                 </span>
               </motion.div>
             ))}
