@@ -49,10 +49,10 @@ const TESTIMONIALS = [
 
 const STATS = [
   { value: "24/7", label: "Availability" },
-  { value: "50K+", label: "Conversations Handled" },
-  { value: "10K+", label: "Appointments Booked" },
+  { value: "AI", label: "Powered Call Answering" },
+  { value: "Smart", label: "Appointment Scheduling" },
   { value: "<3s", label: "Response Time" },
-  { value: "500+", label: "Businesses Using NextCall" },
+  { value: "No", label: "Coding Required" },
 ] as const
 
 const fadeUp = {
