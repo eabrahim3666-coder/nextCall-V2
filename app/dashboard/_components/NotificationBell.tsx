@@ -26,6 +26,7 @@ export default function NotificationBell() {
     const [unreadCount, setUnreadCount] = useState(0);
     const [open, setOpen] = useState(false);
     const [now, setNow] = useState(0);
+    const [selectedNotif, setSelectedNotif] = useState<Notification | null>(null);
 
     const fetchNotifications = async () => {
         try {
@@ -76,6 +77,20 @@ export default function NotificationBell() {
             });
             setUnreadCount(0);
             setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+        } catch {
+            // silently fail
+        }
+    };
+
+    const markRead = async (id: string) => {
+        try {
+            await fetch("/api/notifications", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "mark_read", notification_id: id }),
+            });
+            setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, read: true } : n)));
+            setUnreadCount((prev) => Math.max(0, prev - 1));
         } catch {
             // silently fail
         }
@@ -135,7 +150,8 @@ export default function NotificationBell() {
                                 return (
                                     <div
                                         key={n._id}
-                                        className={`p-4 border-b border-white/[0.04] ${!n.read ? "bg-white/[0.02]" : ""}`}
+                                        onClick={() => { setSelectedNotif(n); if (!n.read) markRead(n._id); }}
+                                        className={`p-4 border-b border-white/[0.04] cursor-pointer transition-colors hover:bg-white/[0.04] ${!n.read ? "bg-white/[0.02]" : ""}`}
                                     >
                                         <div className="flex items-start gap-3">
                                             <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${style.badge} flex-shrink-0 mt-0.5`}>{style.badgeText}</span>
@@ -151,6 +167,47 @@ export default function NotificationBell() {
                                 );
                             })
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Notification detail modal */}
+            {selectedNotif && (
+                <div
+                    className="fixed inset-0 z-[100] flex items-start justify-center pt-12 px-4 pb-4"
+                    onClick={() => setSelectedNotif(null)}
+                >
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="relative w-full max-w-md bg-[#0a0a0a] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden"
+                    >
+                        <div className="flex items-center justify-between p-4 border-b border-white/[0.06]">
+                            <div className="flex items-center gap-2">
+                                {(() => {
+                                    const s = TYPE_STYLES[selectedNotif.type] || { badge: "bg-neutral-500/20 text-neutral-300", badgeText: "INFO" };
+                                    return <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${s.badge}`}>{s.badgeText}</span>;
+                                })()}
+                                <span className="text-xs font-semibold text-white">{selectedNotif.title}</span>
+                            </div>
+                            <button
+                                onClick={() => setSelectedNotif(null)}
+                                className="text-neutral-500 hover:text-white transition-colors"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="p-4">
+                            <div className="flex items-center gap-2 text-[11px] text-neutral-500 mb-3">
+                                <span>{new Date(selectedNotif.created_at).toLocaleString()}</span>
+                                {!selectedNotif.read && (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                                )}
+                            </div>
+                            <p className="text-sm text-neutral-300 leading-relaxed whitespace-pre-wrap">{selectedNotif.message}</p>
+                        </div>
                     </div>
                 </div>
             )}
