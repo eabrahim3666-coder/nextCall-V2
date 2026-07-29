@@ -146,7 +146,7 @@ function Navigation() {
             </Link>
           </Button>
           <Button
-            variant="gradient"
+            variant="default"
             size="sm"
             className="hidden sm:inline-flex items-center gap-2 rounded-full"
             asChild
@@ -232,7 +232,7 @@ function Navigation() {
 
           <div className="mt-8 px-4">
             <Button
-              variant="gradient"
+              variant="default"
               size="xl"
               className="w-full rounded-full"
               asChild
