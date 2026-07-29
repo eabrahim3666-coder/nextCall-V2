@@ -19,29 +19,29 @@
   /* ------------------------------------------------------------------ */
   --color-ds-bg-primary: #000000;
   --color-ds-bg-secondary: #000000;
-  --color-ds-bg-card: #FFFFFF;
-  --color-ds-bg-muted: #F8FAFC;
+  --color-ds-bg-card: #0f0f0f;
+  --color-ds-bg-muted: #1a1a1a;
   --color-ds-bg-overlay: rgba(0, 0, 0, 0.7);
   --color-ds-bg-tooltip: #2a2a2a;
 
   /* Aliases for shadcn-style compatibility */
   --color-background: #000000;
-  --color-foreground: #111827;
-  --color-card: #FFFFFF;
-  --color-card-foreground: #111827;
-  --color-popover: #FFFFFF;
-  --color-popover-foreground: #111827;
-  --color-muted: #F8FAFC;
-  --color-muted-foreground: #64748B;
+  --color-foreground: #E2E8F0;
+  --color-card: #0f0f0f;
+  --color-card-foreground: #E2E8F0;
+  --color-popover: #0f0f0f;
+  --color-popover-foreground: #E2E8F0;
+  --color-muted: #1a1a1a;
+  --color-muted-foreground: #94A3B8;
   --color-secondary: #000000;
-  --color-secondary-foreground: #1E293B;
+  --color-secondary-foreground: #E2E8F0;
 
   /* ------------------------------------------------------------------ */
   /*  COLORS — Text                                                      */
   /* ------------------------------------------------------------------ */
-  --color-ds-text-primary: #111827;
-  --color-ds-text-secondary: #64748B;
-  --color-ds-text-muted: #94A3B8;
+  --color-ds-text-primary: #E2E8F0;
+  --color-ds-text-secondary: #94A3B8;
+  --color-ds-text-muted: #64748B;
   --color-ds-text-inverse: #FFFFFF;
 
   /* ------------------------------------------------------------------ */
