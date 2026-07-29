@@ -146,9 +146,9 @@ function Navigation() {
             </Link>
           </Button>
           <Button
-            variant="default"
+            variant="outline"
             size="sm"
-            className="hidden sm:inline-flex items-center gap-2 rounded-full"
+            className="hidden sm:inline-flex items-center gap-2 rounded-full border-white/15 bg-white/[0.04] backdrop-blur-xl text-ds-text-inverse/80 hover:text-ds-text-inverse hover:bg-white/[0.08] hover:border-white/25"
             asChild
           >
             <Link href="/dashboard">
@@ -232,7 +232,7 @@ function Navigation() {
 
           <div className="mt-8 px-4">
             <Button
-              variant="default"
+              variant="outline"
               size="xl"
               className="w-full rounded-full"
               asChild
