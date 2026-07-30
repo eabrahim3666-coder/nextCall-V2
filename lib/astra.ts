@@ -1,5 +1,23 @@
 import { DataAPIClient } from '@datastax/astra-db-ts';
 
+const RETRY_MAX = 3;
+const RETRY_DELAY = 1000;
+
+export async function withRetry<T>(fn: () => Promise<T>, attempt = 1): Promise<T> {
+  try {
+    return await fn();
+  } catch (err: any) {
+    const isRetryable = err?.name === 'DataAPIResponseError'
+      || err?.message?.includes?.('failed to complete')
+      || err?.message?.includes?.('Cassandra failure');
+    if (isRetryable && attempt < RETRY_MAX) {
+      await new Promise((r) => setTimeout(r, RETRY_DELAY * attempt));
+      return withRetry(fn, attempt + 1);
+    }
+    throw err;
+  }
+}
+
 // 1. Initialize the client with your Astra token
 const client = new DataAPIClient(process.env.ASTRA_DB_APPLICATION_TOKEN!);
 

@@ -1,6 +1,6 @@
 import PremiumAnalytics from "./_components/PremiumAnalytics";
 import { auth } from "@clerk/nextjs/server";
-import { callsCollection } from "@/lib/astra";
+import { callsCollection, withRetry } from "@/lib/astra";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import DashboardCards from "./_components/DashboardCards";
@@ -15,11 +15,13 @@ export default async function DashboardHome() {
 
     const business = await findBusinessByUserId(userId);
 
-    const calls = await callsCollection
-        .find({ business_id: userId })
-        .sort({ created_at: -1 })
-        .limit(50)
-        .toArray();
+    const calls = await withRetry(() =>
+        callsCollection
+            .find({ business_id: userId })
+            .sort({ created_at: -1 })
+            .limit(50)
+            .toArray()
+    );
 
     const formattedCalls = calls.map(call => ({
         call_id: call.call_id,
