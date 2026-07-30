@@ -1,6 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+
+const REVIEW_TEXT =
+  "I recently visited Farjana Refrigeration to buy a new compressor and some AC accessories. The store has a massive collection of genuine fridge and AC parts, and their pricing is very reasonable compared to others in the market. However, the customer service was quite disappointing. The shop was very crowded, and I had to wait almost 30 minutes just to get a staff member to assist me. Overall, great products and prices, but they really need to improve their staff management and waiting time.";
 
 function StarRating({
   value,
@@ -35,27 +38,10 @@ function StarRating({
 
 export default function SimulateReviewPage() {
   const [rating, setRating] = useState(4);
-  const [reviewText, setReviewText] = useState("");
+  const [reviewText, setReviewText] = useState(REVIEW_TEXT);
   const [posted, setPosted] = useState(false);
   const [aiReply, setAiReply] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   const [isPosting, setIsPosting] = useState(false);
-
-  const fetchReview = async () => {
-    setIsLoading(true);
-    try {
-      const res = await fetch("/api/reviews/generate-review-text", { method: "POST" });
-      const data = await res.json();
-      if (data.success && data.review) setReviewText(data.review);
-    } catch {
-      // fallback silently
-    }
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    fetchReview();
-  }, []);
 
   const handlePost = async () => {
     if (!reviewText.trim()) return;
@@ -81,9 +67,9 @@ export default function SimulateReviewPage() {
 
   const handleReset = () => {
     setRating(4);
+    setReviewText(REVIEW_TEXT);
     setPosted(false);
     setAiReply("");
-    fetchReview();
   };
 
   return (
@@ -117,24 +103,18 @@ export default function SimulateReviewPage() {
         </div>
 
         <div className="p-4">
-          {isLoading ? (
-            <div className="min-h-[160px] flex items-center justify-center">
-              <div className="w-5 h-5 border-2 border-neutral-600 border-t-indigo-400 rounded-full animate-spin" />
-            </div>
-          ) : (
-            <textarea
-              value={reviewText}
-              onChange={(e) => setReviewText(e.target.value)}
-              className="w-full min-h-[160px] bg-transparent border border-white/[0.08] rounded-lg p-3 text-sm text-neutral-300 placeholder-neutral-600 resize-y focus:outline-none focus:border-indigo-500/50 transition-colors"
-              placeholder="Write your review..."
-            />
-          )}
+          <textarea
+            value={reviewText}
+            onChange={(e) => setReviewText(e.target.value)}
+            className="w-full min-h-[160px] bg-transparent border border-white/[0.08] rounded-lg p-3 text-sm text-neutral-300 placeholder-neutral-600 resize-y focus:outline-none focus:border-indigo-500/50 transition-colors"
+            placeholder="Write your review..."
+          />
         </div>
 
         <div className="flex items-center gap-3 px-4 pb-4">
           <button
             onClick={handlePost}
-            disabled={isPosting || !reviewText.trim() || isLoading}
+            disabled={isPosting || !reviewText.trim()}
             className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
           >
             {isPosting ? "Posting..." : "Post Review"}
