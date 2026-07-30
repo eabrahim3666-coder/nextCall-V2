@@ -15,13 +15,18 @@ export default async function DashboardHome() {
 
     const business = await findBusinessByUserId(userId);
 
-    const calls = await withRetry(() =>
-        callsCollection
-            .find({ business_id: userId })
-            .sort({ created_at: -1 })
-            .limit(50)
-            .toArray()
-    );
+    let calls: any[] = [];
+    try {
+        calls = await withRetry(() =>
+            callsCollection
+                .find({ business_id: userId })
+                .sort({ created_at: -1 })
+                .limit(50)
+                .toArray()
+        );
+    } catch {
+        console.error("AstraDB unavailable — showing empty calls");
+    }
 
     const formattedCalls = calls.map(call => ({
         call_id: call.call_id,
