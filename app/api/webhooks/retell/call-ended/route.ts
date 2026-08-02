@@ -95,7 +95,7 @@ export async function POST(request: Request) {
 5. Customer email if mentioned, or null
 6. Customer name if mentioned, or null
 7. Is emergency: true if the caller mentioned emergency keywords, false otherwise
-8. Appointment date and time in ISO 8601 format (e.g., 2024-12-25T14:00:00) if mentioned, otherwise null. Assume the current year.
+8. Appointment date and time in ISO 8601 format (e.g., 2024-12-25T14:00:00) if mentioned, otherwise null. TODAY IS ${new Date().toISOString().split('T')[0]}. Interpret relative dates like "tomorrow", "next week", "this Friday" based on TODAY. NEVER use dates in the past or from training data.
 9. Appointment duration in minutes if mentioned, or 60 by default.
 Output ONLY valid JSON.`
           },
@@ -172,6 +172,7 @@ Output ONLY valid JSON.`
         try {
           startDateTime = appointmentDateTimeStr ? new Date(appointmentDateTimeStr) : new Date(Date.now() + 24 * 60 * 60 * 1000);
           if (isNaN(startDateTime.getTime())) startDateTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+          if (startDateTime.getTime() < Date.now()) startDateTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
           if (startDateTime.getHours() === 0) startDateTime.setHours(10, 0, 0);
         } catch {
             startDateTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
