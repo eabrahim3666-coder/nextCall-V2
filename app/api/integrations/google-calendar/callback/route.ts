@@ -31,7 +31,7 @@ export async function GET(request: Request) {
   const cookieStore = await cookies();
   const savedState = cookieStore.get('google_oauth_state')?.value;
   if (!code || !state || !savedState || state !== savedState) {
-    return NextResponse.redirect(new URL('/dashboard/settings', request.url));
+    return NextResponse.redirect(new URL('/dashboard/settings?focus=integrations&connected=0', request.url));
   }
   cookieStore.delete('google_oauth_state');
 
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
     
     if (!tokens.refresh_token) {
       console.error("No refresh token received from Google");
-      return NextResponse.redirect(new URL('/dashboard/settings', request.url));
+      return NextResponse.redirect(new URL('/dashboard/settings?focus=integrations&connected=0', request.url));
     }
 
     // Extract the user's email from the ID token
@@ -61,10 +61,10 @@ export async function GET(request: Request) {
       }}
     );
 
-    return NextResponse.redirect(new URL('/dashboard/settings?focus=integrations', request.url));
+    return NextResponse.redirect(new URL('/dashboard/settings?focus=integrations&connected=1', request.url));
 
   } catch (error) {
     console.error("Google Calendar Auth Error:", error);
-    return NextResponse.redirect(new URL('/dashboard/settings', request.url));
+    return NextResponse.redirect(new URL('/dashboard/settings?focus=integrations&connected=0', request.url));
   }
 }

@@ -124,12 +124,15 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
     }, [needsReferralCode]);
 
     const metaSuccess = searchParams.get("meta_success") === "true";
+    const googleConnected = searchParams.get("connected") === "1";
+    const googleFailed = searchParams.get("connected") === "0";
 
     useEffect(() => {
-        if (searchParams.get("meta_error") || searchParams.get("meta_success")) {
+        if (searchParams.get("meta_error") || searchParams.get("meta_success") || searchParams.get("connected")) {
             const url = new URL(window.location.href);
             url.searchParams.delete("meta_error");
             url.searchParams.delete("meta_success");
+            url.searchParams.delete("connected");
             url.searchParams.delete("focus");
             window.history.replaceState({}, "", url.toString());
         }
@@ -308,6 +311,24 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
         </div>
     ) : null;
 
+    const googleConnectedBanner = googleConnected ? (
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+            <span className="mt-0.5 flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500/20 flex-shrink-0">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+            </span>
+            <div>
+                <p className="text-sm font-medium text-emerald-300">Google Account connected successfully!</p>
+                <p className="text-xs text-emerald-400/70 mt-0.5">Appointments booked by your AI will now appear in your Google Calendar.</p>
+            </div>
+        </div>
+    ) : null;
+
+    const googleFailedBanner = googleFailed ? (
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-sm text-rose-300">
+            Google connection failed. Please try again.
+        </div>
+    ) : null;
+
     const inputClass = "w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all";
     const labelClass = "block text-[10px] uppercase tracking-wider text-neutral-500 mb-1.5";
 
@@ -320,6 +341,8 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
         <form onSubmit={handleSubmit} className="space-y-6">
             {metaErrorBanner}
             {metaSuccessBanner}
+            {googleConnectedBanner}
+            {googleFailedBanner}
             {/* Tab bar */}
             <div className="flex gap-1 p-1 bg-white/[0.03] border border-white/[0.06] rounded-xl overflow-x-auto">
                 {TABS.map((tab) => (
