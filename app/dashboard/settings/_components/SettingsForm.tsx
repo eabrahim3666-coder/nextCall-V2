@@ -126,6 +126,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
     const metaSuccess = searchParams.get("meta_success") === "true";
     const googleConnected = searchParams.get("connected") === "1";
     const googleFailed = searchParams.get("connected") === "0";
+    const [googleDisconnected, setGoogleDisconnected] = useState(false);
 
     useEffect(() => {
         if (searchParams.get("meta_error") || searchParams.get("meta_success") || searchParams.get("connected")) {
@@ -329,6 +330,12 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
         </div>
     ) : null;
 
+    const googleDisconnectedBanner = googleDisconnected ? (
+        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm text-amber-300">
+            Google account disconnected. Appointments will no longer sync to Google Calendar.
+        </div>
+    ) : null;
+
     const inputClass = "w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all";
     const labelClass = "block text-[10px] uppercase tracking-wider text-neutral-500 mb-1.5";
 
@@ -343,6 +350,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             {metaSuccessBanner}
             {googleConnectedBanner}
             {googleFailedBanner}
+            {googleDisconnectedBanner}
             {/* Tab bar */}
             <div className="flex gap-1 p-1 bg-white/[0.03] border border-white/[0.06] rounded-xl overflow-x-auto">
                 {TABS.map((tab) => (
@@ -678,6 +686,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                                             google_refresh_token: null,
                                                             google_account_email: null,
                                                         }));
+                                                        setGoogleDisconnected(true);
                                                     }
                                                 } catch { } finally {
                                                     setDisconnecting("");
