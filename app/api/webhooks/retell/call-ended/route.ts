@@ -5,6 +5,7 @@ import twilioClient from '@/lib/twilio';
 import { Resend } from 'resend';
 import { google } from 'googleapis';
 import { escapeHtml, isSafeWebhookUrl, verifyHmacSignature } from '@/lib/security';
+import { notifyActivity, type Activity } from '@/lib/pusher';
 
 export async function POST(request: Request) {
   try {
@@ -59,6 +60,24 @@ export async function POST(request: Request) {
     const callDuration = Math.round((endTime - startTime) / 1000);
     const callDurationMin = Math.ceil(callDuration / 60);
     const businessId = metadata.business_id || 'unknown_business';
+
+    // Live activity feed (never blocks business logic if it fails)
+    const activity = (a: Omit<Activity, "created_at">) =>
+      notifyActivity(businessId, a).catch(() => {});
+
+    const caller = body.phone_number && body.phone_number !== 'unknown' ? body.phone_number : 'a caller';
+    const person = (name: string | null, fallback: string) => (name ? name : fallback);
+    const formatSlot = (iso: string | null) => {
+      if (!iso) return 'time to be confirmed';
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return 'time to be confirmed';
+      const date = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      return `${date} • ${time}`;
+    };
+
+    await activity({ type: "incoming_call", title: "Incoming call received", message: `Calling from ${caller}`, icon: "lucide:phone-incoming", status: "pending", agent_state: "Answering Call", href: "/dashboard/calls" });
+    await activity({ type: "ai_answered", title: "AI answered the customer", message: `Connected with ${caller}`, icon: "lucide:headset", status: "success", agent_state: "Answering Call", href: "/dashboard/calls" });
     
     // 1. Get business + routing rules
     const business = await businessesCollection.findOne({ business_id: businessId });
@@ -71,6 +90,7 @@ export async function POST(request: Request) {
     const overageRate = plan === 'premium' ? 0.40 : 0.50;
 
     // 2. Ask GPT for Summary, Sentiment, Lead Quality, Appointment status, and Date/Time
+    await activity({ type: "understanding", title: "Understanding customer request", message: "Reading the transcript and checking for appointments", icon: "lucide:file-search", status: "pending", agent_state: "Processing Call" });
     let summary = "Summary unavailable.";
     let sentiment = "Neutral";
     let leadQuality = "warm";
@@ -161,6 +181,8 @@ Output ONLY valid JSON.`
     // 5. GOOGLE CALENDAR INTEGRATION
     if (appointmentBooked && business?.google_refresh_token) {
       try {
+        await activity({ type: "appointment_confirmed", title: "Appointment confirmed", message: `${person(customerName, 'A customer')} • ${formatSlot(appointmentDateTimeStr)}`, icon: "lucide:calendar-check", status: "success", agent_state: "Scheduling Appointment", href: "/dashboard/calls" });
+        await activity({ type: "creating_event", title: "Creating Google Calendar event...", message: `${person(customerName, 'A customer')} • ${formatSlot(appointmentDateTimeStr)}`, icon: "lucide:calendar-plus", status: "pending", agent_state: "Updating Calendar" });
         const oAuth2Client = new google.auth.OAuth2(
           process.env.GOOGLE_CLIENT_ID,
           process.env.GOOGLE_CLIENT_SECRET
@@ -189,8 +211,10 @@ Output ONLY valid JSON.`
         };
 
         await calendar.events.insert({ calendarId: 'primary', requestBody: event });
+        await activity({ type: "event_created", title: "Google Calendar updated", message: `${person(customerName, 'A customer')} • ${formatSlot(appointmentDateTimeStr)}`, icon: "lucide:calendar-check", status: "success", agent_state: "Updating Calendar", href: "/dashboard/calls" });
         console.log(`Google Calendar event created for ${business.business_name}`);
       } catch (calError) {
+        await activity({ type: "event_failed", title: "Google Calendar sync failed", message: "Reconnect your calendar in Settings", icon: "lucide:calendar-x", status: "error", agent_state: "Updating Calendar", href: `/dashboard/settings?focus=integrations` });
         console.error("Failed to create Google Calendar event:", calError);
       }
     }
@@ -225,7 +249,8 @@ Output ONLY valid JSON.`
     // 7. FOLLOW-UP EMAIL to customer
     if (routingRules.email_followup && customerEmail && business) {
       try {
-        if (!resend) throw new Error("Email service is not configured");
+if (!resend) throw new Error("Email service is not configured");
+        await activity({ type: "email_sending", title: "Sending confirmation email", message: `To ${customerEmail}`, icon: "lucide:mail", status: "pending", agent_state: "Sending Confirmation", href: "/dashboard/calls" });
         if (resend) await resend.emails.send({
           from: "Next Call Chat <onboarding@resend.dev>",
           to: [customerEmail],
@@ -244,6 +269,7 @@ Output ONLY valid JSON.`
             </div>
           `,
         });
+        await activity({ type: "email_sent", title: "Confirmation email sent", message: `To ${customerEmail}`, icon: "lucide:mail-check", status: "success" });
         console.log(`Follow-up email sent to ${customerEmail}`);
       } catch (emailError) {
         console.error("Failed to send follow-up email:", emailError);
@@ -253,6 +279,7 @@ Output ONLY valid JSON.`
     // 8. IN-APP NOTIFICATIONS (Hot lead, Emergency, Appointment, Missed call)
     if (routingRules.notify_hot_lead && leadQuality === "hot" && business) {
       try { await notificationsCollection.insertOne({ business_id: businessId, type: "hot_lead", title: "Hot Lead Detected", message: `${customerName || 'A caller'} (${body.phone_number}) is ready to buy. Call back ASAP! Summary: ${summary}`, read: false, created_at: new Date().toISOString() }); } catch (e) { console.error(e); }
+      await activity({ type: "hot_lead", title: "High-value lead identified", message: `${person(customerName, 'A caller')} (${caller}) is ready to buy. ${summary.length > 90 ? summary.slice(0, 90) + '…' : summary}`, icon: "lucide:flame", status: "success", agent_state: "Following Up", href: "/dashboard/calls" });
       
       // 🔔 N8N BOSS ALERT: Hot Lead
       if (process.env.N8N_BOSS_ALERT_URL) {
@@ -270,6 +297,7 @@ Output ONLY valid JSON.`
 
     if (isEmergency && business) {
       try { await notificationsCollection.insertOne({ business_id: businessId, type: "emergency", title: "Emergency Call", message: `Emergency call from ${customerName || body.phone_number}: ${summary}`, read: false, created_at: new Date().toISOString() }); } catch (e) { console.error(e); }
+      await activity({ type: "emergency", title: "Emergency detected", message: `${person(customerName, 'A caller')} (${caller}) — ${summary.length > 110 ? summary.slice(0, 110) + '…' : summary}`, icon: "lucide:siren", status: "error", agent_state: "Handling Emergency", href: "/dashboard/calls" });
       
       // 🔔 N8N BOSS ALERT: Emergency
       if (process.env.N8N_BOSS_ALERT_URL) {
@@ -288,7 +316,6 @@ Output ONLY valid JSON.`
     if (appointmentBooked && business) {
       try { await notificationsCollection.insertOne({ business_id: businessId, type: "appointment", title: "New Appointment", message: `Appointment booked for ${customerName || 'a customer'}. ${summary}`, read: false, created_at: new Date().toISOString() }); } catch (e) { console.error(e); }
     }
-    
      if (callDuration < 10 && routingRules.sms_missed_call && business) {
       try {
         // 1. Create in-app notification for the business owner
@@ -308,12 +335,16 @@ Output ONLY valid JSON.`
           : business.twilio_number;
 
         if (customerPhone && customerPhone !== 'unknown' && businessTwilioNumber && businessTwilioNumber !== "PROVISIONING_FAILED") {
+          await activity({ type: "sms_sending", title: "Sending SMS reminder", message: `"Sorry we missed you" - ${customerPhone}`, icon: "lucide:message-square", status: "pending", agent_state: "Sending SMS", href: "/dashboard/calls" });
           await twilioClient.messages.create({
             body: `Hi! Sorry we missed your call. We're here to help—reply to this text or call us back at ${businessTwilioNumber}. - ${business.business_name}`,
             from: businessTwilioNumber,
             to: customerPhone
           });
+          await activity({ type: "sms_sent", title: "SMS reminder sent", message: `Auto-follow-up sent to ${customerPhone}`, icon: "lucide:check-circle", status: "success" });
           console.log(`Missed call auto-SMS sent to ${customerPhone}`);
+        } else {
+          await activity({ type: "missed_call", title: "Brief call missed", message: `From ${caller} (${callDuration}s) — hung up early`, icon: "lucide:phone-missed", status: "error", href: "/dashboard/calls" });
         }
       } catch (smsError) {
         console.error("Failed to send missed call SMS:", smsError);
@@ -328,10 +359,13 @@ Output ONLY valid JSON.`
          if (resend) await resend.emails.send({ from: "Next Call Chat <onboarding@resend.dev>", to: [process.env.SUPPORT_EMAIL || "owner@business.com"], subject: `Minutes Exceeded — ${business.business_name}`, html: `<div style="background:#0a0a0a;padding:32px;border-radius:16px;font-family:Inter,sans-serif;color:#fff;max-width:500px;"><h2 style="margin:0 0 16px;font-size:18px;color:#f43f5e;">Minutes Limit Exceeded</h2><p style="margin:0 0 16px;color:#a3a3a3;font-size:14px;">${escapeHtml(business.business_name)} has used <strong style="color:#fff;">${newTotalMinutes} of ${minutesLimit} minutes</strong>. Overages at $${overageRate}/min.</p></div>` });
         await notificationsCollection.insertOne({ business_id: businessId, type: "minutes_100", title: "Minutes Exceeded", message: `You've used ${newTotalMinutes}/${minutesLimit} minutes. Overage rate: $${overageRate}/min.`, read: false, created_at: new Date().toISOString() });
       } catch (e) { console.error(e); }
+      await activity({ type: "minutes_100", title: "Minutes limit exceeded", message: `You've used ${newTotalMinutes} of ${minutesLimit} minutes. Overage: $${overageRate}/min.`, icon: "lucide:gauge", status: "error" });
     } else if (usagePercent >= 90 && business) {
       try { await notificationsCollection.insertOne({ business_id: businessId, type: "minutes_90", title: "90% Minutes Used", message: `You've used ${newTotalMinutes}/${minutesLimit} minutes. Only ${minutesLimit - newTotalMinutes} remaining.`, read: false, created_at: new Date().toISOString() }); } catch (e) { console.error(e); }
+      await activity({ type: "minutes_90", title: "90% of minutes used", message: `Only ${minutesLimit - newTotalMinutes} minutes remaining this month.`, icon: "lucide:gauge", status: "info" });
     } else if (usagePercent >= 80 && business) {
       try { await notificationsCollection.insertOne({ business_id: businessId, type: "minutes_80", title: "80% Minutes Used", message: `You've used ${newTotalMinutes}/${minutesLimit} minutes this month.`, read: false, created_at: new Date().toISOString() }); } catch (e) { console.error(e); }
+      await activity({ type: "minutes_80", title: "80% of minutes used", message: `You've used ${newTotalMinutes}/${minutesLimit} minutes this month.`, icon: "lucide:gauge", status: "info" });
     }
 
     console.log(`Call ${callId} processed: ${callDurationMin}min, ${sentiment}, ${leadQuality} lead${appointmentBooked ? ', APPT BOOKED' : ''}${isEmergency ? ', EMERGENCY' : ''} (${newTotalMinutes}/${minutesLimit} min used)`);

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import twilioClient from '@/lib/twilio';
 import { verifyHmacSignature } from '@/lib/security';
+import { notifyActivity } from '@/lib/pusher';
 
 export async function POST(request: Request) {
   try {
@@ -36,6 +37,19 @@ export async function POST(request: Request) {
       } catch (smsError) {
         console.error("Failed to send emergency SMS, but continuing transfer:", smsError);
       }
+    }
+
+    // 3. Live activity toast on the owner's dashboard (never blocks the transfer)
+    if (body.metadata?.business_id) {
+      notifyActivity(body.metadata.business_id, {
+        type: "emergency",
+        title: "Emergency detected",
+        icon: "lucide:siren",
+        status: "error",
+        agent_state: "Handling Emergency",
+        message: `${customerName} is on the line — warm transfer in progress`,
+        href: "/dashboard/calls",
+      }).catch(() => {});
     }
 
     // 3. CRITICAL: Return the exact format Retell requires to bridge the call live

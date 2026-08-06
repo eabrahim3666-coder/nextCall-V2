@@ -10,6 +10,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/cron/(.*)",     // Cron jobs need to be public so Vercel/curl can trigger them!
   "/api/test/(.*)",     // Test routes
   "/api/reviews/(.*)",  // n8n & Google hit these routes without auth cookies!
+  "/api/pusher/(.*)",   // Pusher channel auth (route validates Clerk session itself)
   "/api/contact",
 ]);
 
