@@ -8,6 +8,7 @@ import { getPusherClient } from "@/lib/pusher-client";
 import type { Activity } from "@/lib/pusher";
 
 const MAX_TOASTS = 3;
+const REVEAL_GAP_MS = 1400; // one activity at a time, readable
 const STATUS_DURATION_MS: Record<Activity["status"], number> = {
   success: 4000,
   pending: 5000,
@@ -45,6 +46,9 @@ export default function ActivityFeed({ businessId }: { businessId: string }) {
     end: null,
     hide: null,
   });
+  const queueRef = useRef<Activity[]>([]);
+  const drainingRef = useRef(false);
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearCycle = useCallback(() => {
     if (cycleTimers.current.end) clearTimeout(cycleTimers.current.end);
@@ -107,7 +111,7 @@ export default function ActivityFeed({ businessId }: { businessId: string }) {
     [clearCycle, scheduleCycle]
   );
 
-  const handleActivity = useCallback(
+  const revealOne = useCallback(
     (activity: Activity) => {
       const id = Date.now() + Math.random();
       setToasts((prev) => [...prev.slice(-(MAX_TOASTS - 1)), { ...activity, id }]);
@@ -115,6 +119,29 @@ export default function ActivityFeed({ businessId }: { businessId: string }) {
       wake(activity.agent_state);
     },
     [scheduleDismiss, wake]
+  );
+
+  const drainQueue = useCallback(() => {
+    if (drainingRef.current) return;
+    drainingRef.current = true;
+    const step = () => {
+      const next = queueRef.current.shift();
+      if (!next) {
+        drainingRef.current = false;
+        return;
+      }
+      revealOne(next);
+      revealTimerRef.current = setTimeout(step, REVEAL_GAP_MS);
+    };
+    step();
+  }, [revealOne]);
+
+  const handleActivity = useCallback(
+    (activity: Activity) => {
+      queueRef.current.push(activity);
+      drainQueue();
+    },
+    [drainQueue]
   );
 
   useEffect(() => {
@@ -129,6 +156,7 @@ export default function ActivityFeed({ businessId }: { businessId: string }) {
       channel.unbind("activity:new", handler);
       pusher.unsubscribe(`private-business-${businessId}`);
       clearCycle();
+      if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
       dismissTimers.current.forEach((entry) => {
         if (entry.timer) clearTimeout(entry.timer);
       });
