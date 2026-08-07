@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, startTransition } from "react";
+import { useState, useEffect, useRef, startTransition } from "react";
 
 type Notification = {
     _id: string;
@@ -27,6 +27,7 @@ export default function NotificationBell() {
     const [open, setOpen] = useState(false);
     const [now, setNow] = useState(0);
     const [selectedNotif, setSelectedNotif] = useState<Notification | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const fetchNotifications = async () => {
         try {
@@ -67,6 +68,25 @@ export default function NotificationBell() {
             clearInterval(timeInterval);
         };
     }, []);
+
+    // Close the dropdown when clicking anywhere outside it (or pressing Escape)
+    useEffect(() => {
+        if (!open) return;
+        const handleClickOutside = (e: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+                setOpen(false);
+            }
+        };
+        const handleKey = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setOpen(false);
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("keydown", handleKey);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keydown", handleKey);
+        };
+    }, [open]);
 
     const markAllRead = async () => {
         try {
@@ -124,7 +144,7 @@ export default function NotificationBell() {
     };
 
     return (
-        <div className="relative">
+        <div className="relative" ref={containerRef}>
             <button
                 onClick={() => {
                     if (!open) fetchNotifications(); // Refresh list when opening
