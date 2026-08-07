@@ -53,3 +53,24 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const body = await request.json();
+    if (!body.notification_id) {
+      return NextResponse.json({ error: "Missing notification_id" }, { status: 400 });
+    }
+
+    await notificationsCollection.deleteOne({
+      business_id: userId,
+      _id: body.notification_id,
+    });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Notifications DELETE error:", error);
+    return NextResponse.json({ error: "Failed" }, { status: 500 });
+  }
+}

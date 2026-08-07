@@ -96,6 +96,22 @@ export default function NotificationBell() {
         }
     };
 
+    const deleteNotification = async (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        const target = notifications.find((n) => n._id === id);
+        try {
+            await fetch("/api/notifications", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ notification_id: id }),
+            });
+            setNotifications((prev) => prev.filter((n) => n._id !== id));
+            if (target && !target.read) setUnreadCount((prev) => Math.max(0, prev - 1));
+        } catch {
+            // silently fail
+        }
+    };
+
     const timeAgo = (dateStr: string) => {
         const diff = now - new Date(dateStr).getTime();
         const mins = Math.floor(diff / 60000);
@@ -113,7 +129,6 @@ export default function NotificationBell() {
                 onClick={() => {
                     if (!open) fetchNotifications(); // Refresh list when opening
                     setOpen(!open);
-                    if (!open && unreadCount > 0) markAllRead();
                 }}
                 className="relative p-2 text-neutral-400 hover:text-white transition-colors"
             >
@@ -131,7 +146,10 @@ export default function NotificationBell() {
             {open && (
                 <div className="absolute right-0 top-full mt-2 w-80 bg-[#0a0a0a] border border-white/[0.08] rounded-2xl shadow-2xl z-50 overflow-hidden">
                     <div className="flex items-center justify-between p-4 border-b border-white/[0.06]">
-                        <span className="text-xs font-semibold text-white">Notifications</span>
+                        <span className="flex items-center gap-2 text-xs font-semibold text-white">
+                            Notifications
+                            {unreadCount > 0 && <span className="text-[10px] font-normal text-neutral-500">({unreadCount} unread)</span>}
+                        </span>
                         {unreadCount > 0 && (
                             <button onClick={markAllRead} className="text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors">
                                 Mark all read
@@ -151,18 +169,30 @@ export default function NotificationBell() {
                                     <div
                                         key={n._id}
                                         onClick={() => { setSelectedNotif(n); if (!n.read) markRead(n._id); }}
-                                        className={`p-4 border-b border-white/[0.04] cursor-pointer transition-colors hover:bg-white/[0.04] ${!n.read ? "bg-white/[0.02]" : ""}`}
+                                        className={`group relative flex items-start gap-3 pl-4 pr-3 py-3.5 border-b border-white/[0.04] cursor-pointer transition-colors ${n.read
+                                            ? "hover:bg-white/[0.03]"
+                                            : "bg-indigo-500/[0.07] hover:bg-indigo-500/[0.11]"}`}
                                     >
-                                        <div className="flex items-start gap-3">
-                                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${style.badge} flex-shrink-0 mt-0.5`}>{style.badgeText}</span>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <span className="text-xs font-medium text-white">{n.title}</span>
-                                                    <span className="text-[9px] text-neutral-600 flex-shrink-0">{timeAgo(n.created_at)}</span>
-                                                </div>
-                                                <p className="text-[11px] text-neutral-500 mt-0.5 leading-relaxed line-clamp-2">{n.message}</p>
+                                        {!n.read && (
+                                            <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-indigo-400" />
+                                        )}
+                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${style.badge} flex-shrink-0 mt-0.5`}>{style.badgeText}</span>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span className={`text-xs truncate ${n.read ? "text-neutral-400 font-normal" : "text-white font-semibold"}`}>{n.title}</span>
+                                                <span className="text-[9px] text-neutral-600 flex-shrink-0">{timeAgo(n.created_at)}</span>
                                             </div>
+                                            <p className={`text-[11px] mt-0.5 leading-relaxed line-clamp-2 ${n.read ? "text-neutral-600" : "text-neutral-400"}`}>{n.message}</p>
                                         </div>
+                                        <button
+                                            aria-label="Delete notification"
+                                            onClick={(e) => deleteNotification(n._id, e)}
+                                            className={`flex-shrink-0 p-1 rounded-md transition-all ${n.read ? "opacity-0 group-hover:opacity-100" : "opacity-40 group-hover:opacity-100"} text-neutral-500 hover:text-rose-400 hover:bg-white/[0.06]`}
+                                        >
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><path d="M10 11v6" /><path d="M14 11v6" />
+                                            </svg>
+                                        </button>
                                     </div>
                                 );
                             })
