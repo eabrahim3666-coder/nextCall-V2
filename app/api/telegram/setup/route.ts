@@ -11,7 +11,9 @@ export async function GET(request: Request) {
 
     let setData: unknown = { skipped: probeOnly };
     if (!probeOnly) {
-        const webhookUrl = `${appUrl}/api/webhooks/telegram`;
+        const host = String(appUrl).replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+        const wwwHost = host.startsWith("www.") ? host : `www.${host}`;
+        const webhookUrl = `https://${wwwHost}/api/webhooks/telegram`;
         const setRes = await fetch(
             `https://api.telegram.org/bot${token}/setWebhook?url=${encodeURIComponent(webhookUrl)}&drop_pending_updates=true`
         );
