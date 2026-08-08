@@ -8,9 +8,17 @@ export async function GET() {
     }
 
     const webhookUrl = `${appUrl}/api/webhooks/telegram`;
-    const res = await fetch(
+    const setRes = await fetch(
         `https://api.telegram.org/bot${token}/setWebhook?url=${encodeURIComponent(webhookUrl)}&drop_pending_updates=true`
     );
-    const data = await res.json();
-    return NextResponse.json({ webhookUrl, telegram: data });
+    const setData = await setRes.json();
+
+    const infoRes = await fetch(`https://api.telegram.org/bot${token}/getWebhookInfo`);
+    const infoData = await infoRes.json();
+
+    return NextResponse.json({
+        webhookUrl,
+        setWebhook: setData,
+        webhookInfo: infoData?.result || infoData,
+    });
 }
