@@ -1,12 +1,19 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { businessesCollection } from '@/lib/astra';
+import { findBusinessByUserId } from '@/lib/business';
 
 export async function POST(request: Request) {
   try {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Knowledge base training is a paid feature
+    const business = await findBusinessByUserId(userId);
+    if (!business || (business.plan_type || 'standard') === 'trial') {
+      return NextResponse.json({ error: "Available on paid plans" }, { status: 403 });
     }
 
     const formData = await request.formData();

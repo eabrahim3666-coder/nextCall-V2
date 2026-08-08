@@ -3,15 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const links = [
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/dashboard/docs", label: "Docs" },
-    { href: "/dashboard/simulate-review", label: "Simulate New Review" },
-    { href: "/dashboard/settings", label: "Settings" },
-];
-
-export default function NavLinks() {
+export default function NavLinks({ planType = "standard" }: { planType?: string }) {
     const pathname = usePathname();
+    const isTrial = planType === "trial";
+
+    const links = [
+        { href: "/dashboard", label: "Dashboard" },
+        { href: "/dashboard/docs", label: "Docs" },
+        ...(isTrial ? [] : [{ href: "/dashboard/simulate-review", label: "Simulate New Review" }]),
+        { href: "/dashboard/settings", label: "Settings" },
+    ];
 
     return (
         <div className="flex gap-1 text-sm font-medium">

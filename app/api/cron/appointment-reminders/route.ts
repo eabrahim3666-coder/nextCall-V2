@@ -42,6 +42,9 @@ export async function GET(request: Request) {
             if (!business || !business.routing_rules?.appointment_reminders) continue;
             if (!business.twilio_number) continue; // Need a number to text from
 
+            // Trial gets email reminders only — no SMS
+            const isTrial = (business.plan_type || 'standard') === 'trial';
+
             try {
                 // 3. Format the time nicely (e.g., "2:30 PM")
                 const apptTime = new Date(appt.appointment_date_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -74,8 +77,8 @@ export async function GET(request: Request) {
                     }
                 }
 
-                // 4b. SMS fallback — if no email or email failed
-                if (!sent && business.twilio_number && appt.customer_phone) {
+                // 4b. SMS fallback — if no email or email failed (paid plans only)
+                if (!sent && !isTrial && business.twilio_number && appt.customer_phone) {
                     await twilioClient.messages.create({
                         body: `Reminder: You have an appointment with ${business.business_name || 'us'} at ${apptTime} today. Reply HELP to reschedule.`,
                         from: business.twilio_number,

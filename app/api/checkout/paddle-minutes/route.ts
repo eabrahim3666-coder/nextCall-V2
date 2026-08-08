@@ -23,6 +23,9 @@ export async function POST(request: Request) {
 
         const biz = business as Record<string, unknown>;
         const planType = (biz.plan_type as string) || 'standard';
+        if (planType === 'trial') {
+            return NextResponse.json({ error: "Upgrade to a paid plan to buy minutes." }, { status: 403 });
+        }
         const { maxBatch, priceEnv } = getLimits(planType);
 
         const priceId = process.env[priceEnv];

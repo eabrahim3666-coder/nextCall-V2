@@ -178,7 +178,7 @@ Output ONLY valid JSON.`
 
     // ============ AUTOMATIONS ============
 
-    // 5. GOOGLE CALENDAR INTEGRATION
+    // 5. GOOGLE CALENDAR INTEGRATION (all plans — needed for AI appointment booking)
     if (appointmentBooked && business?.google_refresh_token) {
       try {
         await activity({ type: "appointment_confirmed", title: "Appointment confirmed", message: `${person(customerName, 'A customer')} • ${formatSlot(appointmentDateTimeStr)}`, icon: "lucide:calendar-check", status: "success", agent_state: "Scheduling Appointment", href: "/dashboard/calls" });
@@ -246,8 +246,8 @@ Output ONLY valid JSON.`
       }
     }
 
-    // 7. FOLLOW-UP EMAIL to customer
-    if (routingRules.email_followup && customerEmail && business) {
+    // 7. FOLLOW-UP EMAIL to customer (Standard & Premium)
+    if (routingRules.email_followup && customerEmail && business && plan !== 'trial') {
       try {
 if (!resend) throw new Error("Email service is not configured");
         await activity({ type: "email_sending", title: "Sending confirmation email", message: `To ${customerEmail}`, icon: "lucide:mail", status: "pending", agent_state: "Sending Confirmation", href: "/dashboard/calls" });
@@ -277,7 +277,7 @@ if (!resend) throw new Error("Email service is not configured");
     }
 
     // 8. IN-APP NOTIFICATIONS (Hot lead, Emergency, Appointment, Missed call)
-    if (routingRules.notify_hot_lead && leadQuality === "hot" && business) {
+    if (routingRules.notify_hot_lead && leadQuality === "hot" && business && plan !== 'trial') {
       try { await notificationsCollection.insertOne({ business_id: businessId, type: "hot_lead", title: "Hot Lead Detected", message: `${customerName || 'A caller'} (${body.phone_number}) is ready to buy. Call back ASAP! Summary: ${summary}`, read: false, created_at: new Date().toISOString() }); } catch (e) { console.error(e); }
       await activity({ type: "hot_lead", title: "High-value lead identified", message: `${person(customerName, 'A caller')} (${caller}) is ready to buy. ${summary.length > 90 ? summary.slice(0, 90) + '…' : summary}`, icon: "lucide:flame", status: "success", agent_state: "Following Up", href: "/dashboard/calls" });
       
@@ -316,7 +316,7 @@ if (!resend) throw new Error("Email service is not configured");
     if (appointmentBooked && business) {
       try { await notificationsCollection.insertOne({ business_id: businessId, type: "appointment", title: "New Appointment", message: `Appointment booked for ${customerName || 'a customer'}. ${summary}`, read: false, created_at: new Date().toISOString() }); } catch (e) { console.error(e); }
     }
-     if (callDuration < 10 && routingRules.sms_missed_call && business) {
+     if (callDuration < 10 && routingRules.sms_missed_call && business && plan !== 'trial') {
       try {
         // 1. Create in-app notification for the business owner
         await notificationsCollection.insertOne({ 

@@ -118,6 +118,12 @@ async function handleMessage(event: MetaMessagingEvent) {
             return;
         }
 
+        // Meta DM auto-reply is a Premium feature
+        if (business.plan_type !== 'premium') {
+            console.log(`Skipping Meta DM for ${business.business_name} — not a Premium subscriber`);
+            return;
+        }
+
         console.log(`Business found: ${business.business_name}`);
 
         // 3. Fetch or Create Conversation Memory + State

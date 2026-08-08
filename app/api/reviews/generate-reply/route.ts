@@ -19,6 +19,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Business not found" }, { status: 404 });
     }
 
+    // Google Reviews is a paid feature
+    if ((business.plan_type || 'standard') === 'trial') {
+      return NextResponse.json({ error: "Available on paid plans" }, { status: 403 });
+    }
+
     // 2. Prompt GPT-4o-mini to write the perfect SEO reply
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",

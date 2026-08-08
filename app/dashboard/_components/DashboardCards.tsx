@@ -20,7 +20,7 @@ type PhoneNumber = {
     label: string;
 };
 
-export default function DashboardCards({ calls, minutesUsed, totalCalls, activeNumbers }: { calls: Call[], minutesUsed: number, totalCalls: number, activeNumbers: PhoneNumber[] }) {
+export default function DashboardCards({ calls, minutesUsed, totalCalls, activeNumbers, planType }: { calls: Call[], minutesUsed: number, totalCalls: number, activeNumbers: PhoneNumber[], planType: string }) {
     const [localCalls, setLocalCalls] = useState<Call[]>(calls);
     const [localNumbers, setLocalNumbers] = useState<PhoneNumber[]>(activeNumbers);
     const [buyingNumber, setBuyingNumber] = useState(false);
@@ -188,9 +188,13 @@ export default function DashboardCards({ calls, minutesUsed, totalCalls, activeN
                                                 </Button>
                                             </div>
                                         ))}
-                                        <Button onClick={handleBuyNumber} disabled={buyingNumber} className="w-full bg-indigo-600 hover:bg-indigo-500 mt-4 text-sm font-medium">
-                                            {buyingNumber ? "Buying..." : "+ Add New Number"}
-                                        </Button>
+                                        {planType === "premium" ? (
+                                            <Button onClick={handleBuyNumber} disabled={buyingNumber} className="w-full bg-indigo-600 hover:bg-indigo-500 mt-4 text-sm font-medium">
+                                                {buyingNumber ? "Buying..." : "+ Add New Number"}
+                                            </Button>
+                                        ) : (
+                                            <p className="text-xs text-neutral-500 text-center mt-4">Extra numbers are available on the Premium plan.</p>
+                                        )}
                                     </div>
                                 )}
 

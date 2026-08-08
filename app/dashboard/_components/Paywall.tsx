@@ -115,6 +115,7 @@ export default function Paywall({ refCode, allowTrial = true }: { refCode?: stri
                                 "AI answers calls 24/7",
                                 "1 phone number",
                                 "Basic call dashboard",
+                                "Appointment booking + Google Calendar sync",
                                 "50 minutes included",
                             ].map((item, i) => (
                                 <div key={i} className="flex items-start gap-2.5">
@@ -125,7 +126,6 @@ export default function Paywall({ refCode, allowTrial = true }: { refCode?: stri
 
                             {[
                                 "No follow-up emails",
-                                "No Google Calendar sync",
                                 "No Zapier integrations",
                             ].map((item, i) => (
                                 <div key={i} className="flex items-start gap-2.5 opacity-50">

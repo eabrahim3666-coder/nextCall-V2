@@ -20,6 +20,7 @@ const PLANS = [
     features: [
       "AI answers calls 24/7",
       "1 phone number",
+      "Appointment booking + Google Calendar sync",
       "Basic call dashboard",
       "50 minutes included",
     ],

@@ -27,6 +27,9 @@ export async function GET(request: Request) {
 
     for (const business of businesses) {
       try {
+        // Skip trial users — Google Reviews are a paid feature
+        if ((business.plan_type || 'standard') === 'trial') continue;
+
         // 3. Refresh the Google Access Token using their refresh token
         oauth2Client.setCredentials({ refresh_token: business.google_refresh_token });
         const { token } = await oauth2Client.getAccessToken();

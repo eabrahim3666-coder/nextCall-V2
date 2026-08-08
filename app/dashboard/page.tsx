@@ -154,6 +154,7 @@ export default async function DashboardHome() {
                 totalCalls={business?.total_calls_processed || 0}
                 minutesUsed={minutesUsed}
                 activeNumbers={activeNumbers}
+                planType={String(business?.plan_type || business?.plan || "standard")}
             />
 
             {isAIActive && (

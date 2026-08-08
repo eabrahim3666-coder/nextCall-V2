@@ -13,6 +13,25 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Webhook URL must be a public HTTPS URL" }, { status: 400 });
         }
 
+        const existing = await businessesCollection.findOne({ business_id: userId });
+        const plan = existing?.plan_type || existing?.plan || "standard";
+
+        // Paid-only routing rules — trial users can never enable these
+        const routingRules = body.routing_rules || {
+            forward_emergency: true,
+            notify_hot_lead: true,
+            sms_missed_call: true,
+            email_followup: true,
+            daily_summary: true,
+            appointment_reminders: true,
+        };
+        if (plan === "trial") {
+            routingRules.notify_hot_lead = false;
+            routingRules.sms_missed_call = false;
+            routingRules.email_followup = false;
+            routingRules.daily_summary = false;
+        }
+
         await businessesCollection.updateOne(
             { business_id: userId },
             {
@@ -33,22 +52,15 @@ export async function POST(request: Request) {
                     greeting_text: body.greeting_text || "",
                     ai_name: body.ai_name || "",
                     // Routing
-                    routing_rules: body.routing_rules || {
-                        forward_emergency: true,
-                        notify_hot_lead: true,
-                        sms_missed_call: true,
-                        email_followup: true,
-                        daily_summary: true,
-                        appointment_reminders: true,
-                    },
+                    routing_rules: routingRules,
                      // Emergency logic & Integrations (P0 Bug Fix)
                     emergency_definition: body.emergency_definition || "",
-                    zapier_webhook_url: body.zapier_webhook_url || null,
+                    zapier_webhook_url: plan === "premium" ? (body.zapier_webhook_url || null) : null,
                     
                     // Compiled knowledge base (what Retell reads)
                     knowledge_base_text: body.knowledge_base_text || "",
-                    // Revenue analytics — user-defined actual job value
-                    avg_job_value: typeof body.avg_job_value === 'number' ? body.avg_job_value : 0,
+                    // Revenue analytics — premium only
+                    avg_job_value: plan === "premium" && typeof body.avg_job_value === 'number' ? body.avg_job_value : 0,
                     updated_at: new Date().toISOString(),
                 },
             }

@@ -25,6 +25,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // Google Reviews is a paid feature
+    const business = await businessesCollection.findOne({ business_id: call.business_id });
+    if (!business || (business.plan_type || 'standard') === 'trial') {
+      return NextResponse.json({ error: "Available on paid plans" }, { status: 403 });
+    }
+
     const claimed = await callsCollection.updateOne(
       { call_id, review_status: { $in: [null, "awaiting_owner_reply"] } },
       { $set: { review_status: "sending_link" } }
@@ -33,7 +39,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Review link already sent or unavailable" }, { status: 409 });
     }
 
-    const business = await businessesCollection.findOne({ business_id: call.business_id });
     const fromNumber =
       (Array.isArray(business?.twilio_numbers) && business.twilio_numbers[0]) ||
       business?.twilio_number ||

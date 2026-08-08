@@ -34,7 +34,11 @@ export default async function DashboardLayout({
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src="/logo.png" alt="Next Call" className="h-7 w-auto" />
                     </Link>
-                    {isActiveBusiness && <NavLinks />}
+                    {isActiveBusiness && (
+                        <NavLinks
+                            planType={String(business?.plan_type || business?.plan || "standard")}
+                        />
+                    )}
                 </div>
 
                 <div className="flex items-center gap-4">

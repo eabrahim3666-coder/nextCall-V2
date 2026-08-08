@@ -3,12 +3,16 @@ import { callsCollection } from "@/lib/astra";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import RequestReviewButton from "../_components/RequestReviewButton";
+import { findBusinessByUserId } from "@/lib/business";
 
 export const dynamic = 'force-dynamic';
 
 export default async function CallsPage() {
     const { userId } = await auth();
     if (!userId) redirect("/");
+
+    const business = await findBusinessByUserId(userId);
+    const isTrial = (business?.plan_type || business?.plan || "standard") === "trial";
 
     // Fetch the 100 most recent calls
     const calls = await callsCollection
@@ -97,7 +101,7 @@ export default async function CallsPage() {
                                                 </p>
                                             </td>
                                             <td className="py-4 px-6 align-top">
-                                                <RequestReviewButton callId={call.call_id} initialStatus={call.review_status} />
+                                                {!isTrial && <RequestReviewButton callId={call.call_id} initialStatus={call.review_status} />}
                                             </td>
                                         </tr>
                                     );

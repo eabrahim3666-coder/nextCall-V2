@@ -12,6 +12,9 @@ export async function POST(request: Request) {
     if (!review_text) return NextResponse.json({ error: "review_text is required" }, { status: 400 });
 
     const business = await businessesCollection.findOne({ business_id: userId });
+    if (!business || (business.plan_type || 'standard') === 'trial') {
+      return NextResponse.json({ error: "Available on paid plans" }, { status: 403 });
+    }
     const name = business?.business_name || "Farjana Refrigeration";
     const type = business?.business_type || "business";
     const area = business?.service_area || "your area";

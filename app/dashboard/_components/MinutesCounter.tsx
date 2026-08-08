@@ -75,7 +75,7 @@ export default function MinutesCounter({
                             style={{ width: `${percent}%` }}
                         />
                     </div>
-                    {paddleCustomerId && (
+                    {paddleCustomerId && planType !== "trial" && (
                         <>
                             <p className="text-xs font-medium text-white mb-2">Buy more minutes</p>
                             <div className="flex items-center gap-2">
@@ -109,6 +109,9 @@ export default function MinutesCounter({
                     )}
                     {!paddleCustomerId && (
                         <p className="text-[10px] text-amber-400">Subscribe to a plan to buy minutes.</p>
+                    )}
+                    {paddleCustomerId && planType === "trial" && (
+                        <p className="text-[10px] text-amber-400">Upgrade to a paid plan to buy minutes.</p>
                     )}
                 </div>
             )}

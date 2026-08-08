@@ -25,6 +25,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Business or owner phone not found" }, { status: 404 });
     }
 
+    // Google Reviews is a paid feature
+    if ((business.plan_type || 'standard') === 'trial') {
+      return NextResponse.json({ error: "Available on paid plans" }, { status: 403 });
+    }
+
     const claimed = await callsCollection.updateOne(
       { call_id, business_id: userId, review_status: { $nin: ["sending_owner_prompt", "awaiting_owner_reply", "link_sent", "rejected_by_owner"] } },
       { $set: { review_status: "sending_owner_prompt" } }

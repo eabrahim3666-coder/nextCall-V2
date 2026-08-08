@@ -128,6 +128,12 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
     const googleFailed = searchParams.get("connected") === "0";
     const [googleDisconnected, setGoogleDisconnected] = useState(false);
 
+    const plan = String(data.plan || "standard").toLowerCase();
+    const isTrial = plan === "trial";
+    const isPremium = plan === "premium";
+    const hiddenTabs = isTrial ? ["knowledge", "greeting"] : [];
+    const currentTab = hiddenTabs.includes(activeTab) ? "business" : activeTab;
+
     useEffect(() => {
         if (searchParams.get("meta_error") || searchParams.get("meta_success") || searchParams.get("connected")) {
             const url = new URL(window.location.href);
@@ -351,14 +357,21 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             {googleConnectedBanner}
             {googleFailedBanner}
             {googleDisconnectedBanner}
+            {isTrial && (
+                <div className="p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/20 text-xs text-neutral-300 leading-relaxed">
+                    You&apos;re on the <span className="font-medium text-indigo-300">Free Trial</span> — only trial features are shown.
+                    Upgrade to <span className="font-medium text-white">Standard</span> to unlock AI knowledge base, follow-up emails, daily summaries and more.{" "}
+                    <a href="/dashboard" className="text-indigo-400 font-medium hover:text-indigo-300">Choose a plan →</a>
+                </div>
+            )}
             {/* Tab bar */}
             <div className="flex gap-1 p-1 bg-white/[0.03] border border-white/[0.06] rounded-xl overflow-x-auto">
-                {TABS.map((tab) => (
+                {TABS.filter((tab) => !hiddenTabs.includes(tab.id)).map((tab) => (
                     <button
                         key={tab.id}
                         type="button"
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex-1 py-2.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap px-3 ${activeTab === tab.id ? "bg-white/[0.08] text-white" : "text-neutral-500 hover:text-neutral-300"}`}
+                        className={`flex-1 py-2.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap px-3 ${currentTab === tab.id ? "bg-white/[0.08] text-white" : "text-neutral-500 hover:text-neutral-300"}`}
                     >
                         {tab.label}
                     </button>
@@ -366,7 +379,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             </div>
 
             {/* TAB 1: Business Info */}
-            {activeTab === "business" && (
+            {currentTab === "business" && (
                 // ... EXACTLY THE SAME AS YOUR CURRENT CODE ...
                 <div className="space-y-6">
                     <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
@@ -383,7 +396,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             )}
 
             {/* TAB 2: AI Knowledge */}
-            {activeTab === "knowledge" && (
+            {currentTab === "knowledge" && (
                 // ... EXACTLY THE SAME AS YOUR CURRENT CODE ...
                 <div className="space-y-5">
                     <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
@@ -414,7 +427,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             )}
 
             {/* TAB 3: Greeting & Tone */}
-            {activeTab === "greeting" && (
+            {currentTab === "greeting" && (
                 // ... EXACTLY THE SAME AS YOUR CURRENT CODE ...
                 <div className="space-y-5">
                     <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
@@ -439,7 +452,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             )}
 
             {/* TAB 4: Call Routing */}
-            {activeTab === "routing" && (
+            {currentTab === "routing" && (
                 // ... EXACTLY THE SAME AS YOUR CURRENT CODE ...
                 <div className="space-y-5">
                     <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
@@ -460,7 +473,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                         </div>
                         <p className="text-xs text-neutral-500 mb-6">Control what happens after each call. Toggle rules on/off.</p>
                         <div className="space-y-4">
-                            {[{ key: "forward_emergency" as keyof RoutingRules, title: "Forward emergency calls to my cell", desc: "When caller says words like 'emergency', 'burst pipe', 'flooding' — AI forwards to your phone", premium: false }, { key: "notify_hot_lead" as keyof RoutingRules, title: "Notify me about hot leads", desc: "Get an in-app notification when AI detects a high-intent lead ready to buy", premium: false }, { key: "sms_missed_call" as keyof RoutingRules, title: "SMS customer if we miss their call", desc: "Auto-send: 'Sorry we missed you! Call us back or reply here.' — Costs ~$0.008 per SMS", premium: false }, { key: "email_followup" as keyof RoutingRules, title: "Send follow-up email after every call", desc: "Customer gets a branded confirmation email with their request details", premium: false }, { key: "daily_summary" as keyof RoutingRules, title: "Daily summary email", desc: "Every morning you get an email with: calls, leads, appointments, and revenue captured", premium: false }, { key: "appointment_reminders" as keyof RoutingRules, title: "Appointment reminders (SMS + Email)", desc: "1 hour before appointment: SMS to customer. 24 hours before: email reminder", premium: false }].map((rule) => (
+                            {[{ key: "forward_emergency" as keyof RoutingRules, title: "Forward emergency calls to my cell", desc: "When caller says words like 'emergency', 'burst pipe', 'flooding' — AI forwards to your phone", paidOnly: false }, { key: "notify_hot_lead" as keyof RoutingRules, title: "Notify me about hot leads", desc: "Get an in-app notification when AI detects a high-intent lead ready to buy", paidOnly: true }, { key: "sms_missed_call" as keyof RoutingRules, title: "SMS customer if we miss their call", desc: "Auto-send: 'Sorry we missed you! Call us back or reply here.' — Costs ~$0.008 per SMS", paidOnly: true }, { key: "email_followup" as keyof RoutingRules, title: "Send follow-up email after every call", desc: "Customer gets a branded confirmation email with their request details", paidOnly: true }, { key: "daily_summary" as keyof RoutingRules, title: "Daily summary email", desc: "Every morning you get an email with: calls, leads, appointments, and revenue captured", paidOnly: true }, { key: "appointment_reminders" as keyof RoutingRules, title: "Appointment reminders", desc: isTrial ? "Email reminder 24 hours before the appointment" : "SMS 1 hour before + email 24 hours before the appointment", paidOnly: false }].filter(rule => !rule.paidOnly || !isTrial).map((rule) => (
                                 <div key={rule.key} className="flex items-start justify-between gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
                                     <div className="flex-1"><p className="text-sm font-medium text-white">{rule.title}</p><p className="text-xs text-neutral-500 mt-1 leading-relaxed">{rule.desc}</p></div>
                                     <button type="button" onClick={() => updateRouting(rule.key, !data.routing_rules[rule.key])} className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${data.routing_rules[rule.key] ? "bg-indigo-500" : "bg-white/10"}`}>
@@ -474,7 +487,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             )}
 
             {/* TAB 5: Billing & Plan */}
-            {activeTab === "billing" && (
+            {currentTab === "billing" && (
                 <div className="space-y-5">
                     <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
                         <h2 className="text-lg font-semibold text-white mb-1">Plan & Billing</h2>
@@ -518,6 +531,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                         </div>
 
                         {/* Buy Additional Minutes */}
+                        {!isTrial && (
                         <div className="mb-6 p-5 rounded-xl bg-white/[0.02] border border-indigo-500/20">
                             <div className="flex items-center justify-between mb-3">
                                 <p className="text-sm font-semibold text-white">Buy Additional Minutes</p>
@@ -550,8 +564,10 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                 <p className="mt-2 text-[10px] text-amber-400">Subscribe to a plan first to purchase additional minutes.</p>
                             )}
                         </div>
+                        )}
 
                         {/* Average Job Value — feeds PremiumAnalytics revenue calculation */}
+                        {isPremium && (
                         <div className="mb-6 p-5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
                             <label className="block text-[10px] uppercase tracking-wider text-neutral-500 mb-1.5">Average Job Value ($)</label>
                             <input
@@ -564,6 +580,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                             />
                             <p className="text-[10px] text-neutral-600 mt-1.5">Used to calculate estimated revenue in your analytics dashboard. Enter your typical job or service value.</p>
                         </div>
+                        )}
 
                         {/* Invoices Notice */}
                         <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
@@ -582,7 +599,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             )}
 
             {/* TAB 6: Referrals */}
-            {activeTab === "referrals" && (
+            {currentTab === "referrals" && (
                 <div className="space-y-5">
                     <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
                         <h2 className="text-lg font-semibold text-white mb-1">Refer a Business, Earn 50 Minutes</h2>
@@ -643,14 +660,14 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
 
 
             {/* TAB 7: Integrations */}
-            {activeTab === "integrations" && (
+            {currentTab === "integrations" && (
                 <div className="space-y-5">
                     <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
                         <h2 className="text-lg font-semibold text-white mb-1">Integrations</h2>
                         <p className="text-xs text-neutral-500 mb-6">Connect your favorite tools to automate your workflow.</p>
 
                         <div className="space-y-4">
-                            {/* Unified Google Account Card */}
+                            {/* Unified Google Account Card — all plans (calendar sync needed for AI booking) */}
                             <div className="flex items-center justify-between p-5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
                                 <div className="flex items-center gap-4">
                                     <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20">
@@ -708,7 +725,8 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                 )}
                             </div>
 
-                            {/* Zapier / Webhooks Card */}
+                            {/* Zapier / Webhooks Card — Premium only */}
+                            {isPremium && (
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-xl bg-white/[0.02] border border-white/[0.06] gap-4">
                                 <div className="flex items-center gap-4">
                                     <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20">
@@ -730,8 +748,10 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                     />
                                 </div>
                             </div>
+                            )}
 
-                            {/* Social Channels Card */}
+                            {/* Social Channels Card — Premium only */}
+                            {isPremium && (
                             <div className="flex items-center justify-between p-5 rounded-xl bg-white/[0.02] border border-white/[0.06] gap-4">
                                 <div className="flex items-center gap-4">
                                     <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20">
@@ -798,6 +818,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                     </button>
                                 )}
                             </div>
+                            )}
 
                         </div>
                     </div>

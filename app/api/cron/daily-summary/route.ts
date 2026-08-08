@@ -28,6 +28,9 @@ export async function GET(req: Request) {
         let emailsSent = 0;
 
         for (const business of activeBusinesses) {
+            // Skip trial users — daily summaries are a paid feature
+            if ((business.plan_type || 'standard') === 'trial') continue;
+
             // Skip if business owner has daily summary turned off
             if (business.routing_rules?.daily_summary === false) continue;
 
