@@ -242,11 +242,6 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
             </motion.div>
           ))}
         </motion.div>
-
-        <p className="mt-10 text-center text-ds-caption text-ds-text-muted">
-          Every paid plan starts with a 3-day free trial · No credit card
-          required · Cancel anytime
-        </p>
       </div>
     </section>
   )
