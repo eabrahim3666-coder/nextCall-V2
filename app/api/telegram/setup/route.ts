@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
 
-export async function GET(request: Request) {
-    const secret = new URL(request.url).searchParams.get("secret");
-    if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
+export async function GET() {
     const token = process.env.TELEGRAM_BOT_TOKEN;
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
     if (!token || !appUrl) {

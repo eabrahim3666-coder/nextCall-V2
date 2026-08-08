@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { conversationsCollection, webhookEventsCollection } from "@/lib/astra";
 import { notifyChat } from "@/lib/pusher";
+import { sendTelegramMessage, downloadTelegramPhoto } from "@/lib/telegram";
 import type { ChatMessage } from "@/app/api/chat/send/route";
 
 const OWNER_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -19,7 +20,9 @@ export async function POST(request: Request) {
         }
 
         const msg = body?.message || body?.edited_message;
-        if (!msg || typeof msg?.text !== "string" || !msg.text.trim()) {
+        const isText = typeof msg?.text === "string" && msg.text.trim().length > 0;
+        const isPhoto = Array.isArray(msg?.photo) && msg.photo.length > 0;
+        if (!msg || (!isText && !isPhoto)) {
             return NextResponse.json({ ok: true });
         }
 
@@ -37,7 +40,7 @@ export async function POST(request: Request) {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         chat_id: OWNER_CHAT_ID,
-                        text: "Reply to a message to respond to that person.",
+                        text: "Reply to a message to respond to that customer.",
                     }),
                 }).catch(() => {});
             }
@@ -53,7 +56,7 @@ export async function POST(request: Request) {
             conv = null;
         }
         if (!conv) {
-            const all = await conversationsCollection.find({ kind: "support" }).limit(200).toArray();
+            const all = await conversationsCollection.find({ kind: "support" }).limit(500).toArray();
             conv = all.find((c) => Array.isArray(c.messages) && c.messages.some((m) => m.telegram_message_id === replyId)) || null;
         }
         if (!conv) {
@@ -63,9 +66,13 @@ export async function POST(request: Request) {
         const replyMessage: ChatMessage = {
             id: `tg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
             role: "owner",
-            content: msg.text.trim(),
+            content: isText ? msg.text.trim() : "📷 Photo",
             at: new Date().toISOString(),
         };
+        if (isPhoto && Array.isArray(msg.photo)) {
+            const photo = await downloadTelegramPhoto(msg.photo[msg.photo.length - 1].file_id);
+            if (photo) replyMessage.photo = photo;
+        }
 
         const existing = Array.isArray(conv.messages) ? conv.messages : [];
         const messages = [...existing.slice(-99), replyMessage];
@@ -77,6 +84,8 @@ export async function POST(request: Request) {
         if (conv.business_id) {
             await notifyChat(String(conv.business_id), replyMessage);
         }
+
+        await sendTelegramMessage(`✅ Reply delivered to the dashboard${conv.business_name ? ` (${String(conv.business_name)})` : ""}.`);
 
         return NextResponse.json({ ok: true });
     } catch (error) {
