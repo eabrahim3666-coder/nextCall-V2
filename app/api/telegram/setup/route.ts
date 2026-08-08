@@ -21,9 +21,19 @@ export async function GET(request: Request) {
     const infoRes = await fetch(`https://api.telegram.org/bot${token}/getWebhookInfo`);
     const infoData = await infoRes.json();
 
+    const meRes = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+    const meData = await meRes.json();
+
     return NextResponse.json({
         probeOnly,
         setWebhook: setData,
         webhookInfo: infoData?.result || infoData,
+        bot: meData?.result || meData,
+        env_check: {
+            botToken_set: Boolean(process.env.TELEGRAM_BOT_TOKEN),
+            ownerChatId_set: Boolean(process.env.TELEGRAM_CHAT_ID),
+            ownerChatId: process.env.TELEGRAM_CHAT_ID || null,
+            appUrl: process.env.NEXT_PUBLIC_APP_URL || null,
+        },
     });
 }
