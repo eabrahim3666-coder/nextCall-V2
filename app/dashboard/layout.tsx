@@ -1,6 +1,6 @@
 import NotificationBell from "./_components/NotificationBell";
 import ActivityFeed from "./_components/ActivityFeed";
-import TawkWidget from "./_components/TawkWidget";
+import ChatWidget from "./_components/ChatWidget";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { UserButton } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
@@ -85,8 +85,8 @@ export default async function DashboardLayout({
                 )}
             </main>
 
-            {isActiveBusiness && (business?.plan === "premium" || business?.plan_type === "premium") && process.env.NEXT_PUBLIC_TAWK_PROPERTY_ID && (
-                <TawkWidget propertyId={process.env.NEXT_PUBLIC_TAWK_PROPERTY_ID} widgetId={process.env.NEXT_PUBLIC_TAWK_WIDGET_ID || "default"} />
+            {isActiveBusiness && (business?.plan === "premium" || business?.plan_type === "premium") && (
+                <ChatWidget businessId={userId} />
             )}
 
             {isActiveBusiness && business && <ActivityFeed businessId={userId} />}

@@ -54,3 +54,23 @@ export async function notifyActivity(
     console.error(`[activity] Failed to push activity to ${businessId}:`, error);
   }
 }
+
+/**
+ * Push a new chat message to the business owner's dashboard.
+ * Never throws and never blocks business logic if Pusher is down.
+ */
+export async function notifyChat(
+  businessId: string,
+  message: Record<string, unknown>
+): Promise<void> {
+  const pusher = getPusher();
+  if (!pusher) {
+    console.log(`[chat] Pusher not configured, skipping (${businessId})`);
+    return;
+  }
+  try {
+    await pusher.trigger(`private-business-${businessId}`, "chat:new", message);
+  } catch (error) {
+    console.error(`[chat] Failed to push message to ${businessId}:`, error);
+  }
+}
