@@ -86,7 +86,7 @@ export default function GoogleUserDataPage() {
                             <li>NextCall does not use Google user data to train or improve generalized AI/ML models.</li>
                         </ul>
                         <p className="mt-3">
-                            Google connection credentials are removed entirely, and review content is no longer processed once an owner disconnects the Google integration as described in section 6. Service data that does not originate from Google APIs, such as call records, is governed by our <Link href="/privacy" className="text-indigo-400 hover:text-indigo-300">Privacy Policy</Link>.
+                            NextCall removes the stored Google connection credentials, including the refresh token, when the owner disconnects the Google integration, and review content is no longer processed through NextCall. Service data that does not originate from Google APIs, such as call records, is governed by our <Link href="/privacy" className="text-indigo-400 hover:text-indigo-300">Privacy Policy</Link>.
                         </p>
                     </section>
 
