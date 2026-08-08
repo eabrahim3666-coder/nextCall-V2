@@ -12,7 +12,7 @@ type ChatMessage = {
     photo?: string;
 };
 
-const compressImage = (file: File, maxSize = 1200, quality = 0.7): Promise<string> =>
+const compressImage = (file: File, maxSize = 900, quality = 0.6): Promise<string> =>
     new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {

@@ -78,6 +78,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ ok: true, message, telegram_sent: tg.ok });
     } catch (error) {
         console.error("Chat send error:", error);
-        return NextResponse.json({ error: "Failed to send" }, { status: 500 });
+        return NextResponse.json({ error: `Failed to send: ${(error as Error)?.message || "unknown"}` }, { status: 500 });
     }
 }
