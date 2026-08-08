@@ -129,6 +129,14 @@ function Footer() {
                   Security
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/google-user-data"
+                  className="text-ds-small-body text-ds-text-secondary transition-colors hover:text-ds-text-primary"
+                >
+                  Google User Data & Limited Use
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

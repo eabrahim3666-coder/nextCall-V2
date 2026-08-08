@@ -6,6 +6,7 @@ const isPublicRoute = createRouteMatcher([
   "/privacy",           // Public legal page
   "/terms",             // Public legal page
   "/pricing-policy",    // Public pricing policy page (Required for Paddle)
+  "/google-user-data",  // Public Google User Data & Limited Use compliance page
   "/api/webhooks/(.*)", // Retell, Stripe, and Twilio webhooks must be public!
   "/api/cron/(.*)",     // Cron jobs need to be public so Vercel/curl can trigger them!
   "/api/test/(.*)",     // Test routes

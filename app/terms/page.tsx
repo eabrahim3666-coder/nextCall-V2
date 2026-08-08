@@ -144,9 +144,7 @@ export default function TermsPage() {
                         <h2 className="text-lg font-medium text-white mb-3">20. Contact & Legal Notices</h2>
                         <p>If you have any questions, notices, or legal requests regarding these Terms or the Service, please contact us at:</p>
                         <p className="mt-3">
-                            NextCall Technologies<br />
-                            1201 Orange St, Suite 600, Wilmington, DE 19801<br />
-                            Email: <a href="mailto:support@getnextcall.com" className="text-indigo-400 hover:text-indigo-300">support@getnextcall.com</a>
+                            NextCall Technologies — Email: <a href="mailto:support@getnextcall.com" className="text-indigo-400 hover:text-indigo-300">support@getnextcall.com</a>
                         </p>
                     </section>
                 </div>

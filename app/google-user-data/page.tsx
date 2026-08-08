@@ -1,0 +1,125 @@
+import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Google User Data & Limited Use Compliance | Next Call",
+    description: "How NextCall uses and handles Google user data, including Google Calendar and Google Business Profile integrations.",
+};
+
+export default function GoogleUserDataPage() {
+    return (
+        <div className="min-h-screen bg-[#050505] text-white">
+            <div className="max-w-4xl mx-auto px-6 py-24">
+                <Link href="/" className="text-sm text-indigo-400 hover:text-indigo-300 mb-8 inline-block">
+                    &larr; Back to Home
+                </Link>
+
+                <h1 className="text-3xl font-semibold tracking-tight mb-2">Google User Data &amp; Limited Use Compliance</h1>
+                <p className="text-xs text-neutral-500 mb-12">Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+
+                <div className="space-y-10 text-sm text-neutral-300 leading-relaxed">
+
+                    <section>
+                        <h2 className="text-lg font-medium text-white mb-3">1. Introduction</h2>
+                        <p>
+                            Next Technologies (&quot;NextCall,&quot; &quot;we,&quot; &quot;us&quot;) provides an AI receptionist platform that answers calls, books appointments, and manages customer communication for business owners.
+                        </p>
+                        <p className="mt-3">
+                            NextCall uses Google APIs only to provide features that business owners explicitly request and authorize through Google&apos;s OAuth consent screen. This page describes how Google user data is handled and how NextCall complies with Google&apos;s User Data Policy, including the Limited Use requirements.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-lg font-medium text-white mb-3">2. How We Use Google Data</h2>
+
+                        <div className="mb-6">
+                            <h3 className="font-medium text-white mb-2">Google Calendar <span className="text-neutral-500 font-normal">(calendar.events scope)</span></h3>
+                            <p>
+                                When a business owner connects their Google account, NextCall uses the <code className="text-neutral-400">calendar.events</code> permission to create calendar events for appointments booked by the AI receptionist during a call. Events are only created after a caller books an appointment and only when an owner has an active Google Calendar connection.
+                            </p>
+                            <ul className="list-disc list-inside space-y-1.5 mt-3">
+                                <li>NextCall only uses the <code className="text-neutral-400">calendar.events.insert</code> API to create events in the owner&apos;s <strong>primary calendar</strong>.</li>
+                                <li>NextCall does <strong>not</strong> read, list, update, or delete existing calendar events.</li>
+                                <li>Each created event can contain: the appointment/customer name, the appointment start and end time, a short AI call summary, the customer&apos;s phone number, and a limited snippet of the call transcript.</li>
+                            </ul>
+                            <p className="mt-3">
+                                Calendar data is used solely to record appointments booked through NextCall. NextCall does not read or analyze an owner&apos;s existing calendar or its contents.
+                            </p>
+                        </div>
+
+                        <div>
+                            <h3 className="font-medium text-white mb-2">Google Business Profile <span className="text-neutral-500 font-normal">(business.manage scope)</span></h3>
+                            <p>
+                                Owners may connect their Google Business Profile to automate replies to customer reviews. When connected, NextCall periodically checks the owner&apos;s profile for customer reviews that have not yet been answered. For each such review, NextCall receives the review text and star rating and uses them to generate an AI-assisted response, which is then posted back to the owner&apos;s Google Business Profile.
+                            </p>
+                            <p className="mt-3">
+                                The <code className="text-neutral-400">business.manage</code> permission is requested for the sole purpose of this review-response feature. NextCall does not use Business Profile data for any other purpose.
+                            </p>
+                        </div>
+
+                        <p className="mt-6">
+                            During connection, NextCall also requests <code className="text-neutral-400">userinfo.email</code> so it can display which Google account is connected in the Settings page. No other Google account data is collected.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-lg font-medium text-white mb-3">3. Third-Party AI Processing</h2>
+                        <p>
+                            To generate review responses, review text and ratings may be sent from Google to <strong>OpenAI</strong>, a third-party AI provider, through NextCall&apos;s servers. Review text is transmitted to OpenAI only for the purpose of generating the requested AI review response on behalf of the business owner. NextCall does not sell or share Google user data with any other third party, and does not use it for advertising, ad measurement, or ad targeting.
+                        </p>
+                        <p className="mt-3">
+                            NextCall does not use Google user data to train, improve, or develop generalized AI/ML models. Review content is processed solely to produce the review response the owner asked for.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-lg font-medium text-white mb-3">4. Limited Use Compliance</h2>
+                        <p className="font-semibold text-white">
+                            NextCall&apos;s use and transfer of information received from Google APIs complies with Google&apos;s User Data Policy, including the Limited Use requirements.
+                        </p>
+                        <p className="mt-3">Specifically:</p>
+                        <ul className="list-disc list-inside space-y-2 mt-3">
+                            <li>NextCall uses information received from Google APIs only to provide the features described in this statement, which the business owner explicitly authorizes.</li>
+                            <li>NextCall does not sell Google user data.</li>
+                            <li>NextCall does not use Google user data for advertising, including no advertising targeting, ad measurement, or retargeting.</li>
+                            <li>NextCall does not transfer Google user data to third parties except the AI provider in the limited manner described above to provide the requested review-response feature.</li>
+                            <li>NextCall does not use Google user data to train or improve generalized AI/ML models.</li>
+                        </ul>
+                        <p className="mt-3">
+                            Google connection credentials are removed entirely, and review content is no longer processed once an owner disconnects the Google integration as described in section 6. Service data that does not originate from Google APIs, such as call records, is governed by our <Link href="/privacy" className="text-indigo-400 hover:text-indigo-300">Privacy Policy</Link>.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-lg font-medium text-white mb-3">5. Data Security</h2>
+                        <ul className="list-disc list-inside space-y-2 mt-3">
+                            <li>All Google OAuth exchanges and API calls happen server-side. Google access and refresh tokens are never sent to, or stored in, a web browser.</li>
+                            <li>Google access tokens are only generated server-side, on demand, and are used only to make the Google API calls described above.</li>
+                            <li>All communications with Google occur over encrypted HTTPS/TLS connections.</li>
+                            <li>Owner access to the NextCall dashboard is protected by authentication.</li>
+                            <li>The refresh token required to keep the Google integration connected is stored in NextCall&apos;s managed data store, on the server only.</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h2 className="text-lg font-medium text-white mb-3">6. User Control</h2>
+                        <p>
+                            Business owners can disconnect the Google integration at any time from <strong>Settings &rarr; Integrations</strong> in the NextCall dashboard.
+                        </p>
+                        <p className="mt-3">
+                            Disconnecting removes the stored Google connection credentials (including the refresh token) from NextCall <strong>and stops both</strong> appointment calendar-event creation and automated review responses going forward. Disconnecting does <strong>not</strong> erase calendar events already created, responses already posted, or Google&apos;s own copy of the OAuth grant. To fully revoke NextCall&apos;s access to a Google account, an owner can visit Google&apos;s &quot;Third-party apps &amp; services&quot; page in their Google Account and remove NextCall there.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 className="text-lg font-medium text-white mb-3">7. Contact</h2>
+                        <p>
+                            If you have questions about how NextCall handles Google data, contact us at <a href="mailto:support@getnextcall.com" className="text-indigo-400 hover:text-indigo-300">support@getnextcall.com</a>, or use the contact form on the homepage.
+                        </p>
+                    </section>
+
+                </div>
+            </div>
+        </div>
+    );
+}
