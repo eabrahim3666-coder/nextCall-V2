@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { conversationsCollection, webhookEventsCollection } from "@/lib/astra";
+import { conversationsCollection, webhookEventsCollection, saveChatPhoto } from "@/lib/astra";
 import { notifyChat } from "@/lib/pusher";
 import { sendTelegramMessage, downloadTelegramPhoto } from "@/lib/telegram";
 import type { ChatMessage } from "@/app/api/chat/send/route";
@@ -89,9 +89,14 @@ export async function POST(request: Request) {
             content: isText ? msg.text.trim() : "📷 Photo",
             at: new Date().toISOString(),
         };
+        let replyPhoto: string | undefined;
         if (isPhoto && Array.isArray(msg.photo)) {
             const photo = await downloadTelegramPhoto(msg.photo[msg.photo.length - 1].file_id);
-            if (photo) replyMessage.photo = photo;
+            if (photo) {
+                replyMessage.photoId = `p_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+                await saveChatPhoto(replyMessage.photoId, photo);
+                replyPhoto = photo;
+            }
         }
 
         const existing = Array.isArray(conv.messages) ? conv.messages : [];
@@ -102,7 +107,7 @@ export async function POST(request: Request) {
         );
 
         if (conv.business_id) {
-            await notifyChat(String(conv.business_id), replyMessage);
+            await notifyChat(String(conv.business_id), replyPhoto ? { ...replyMessage, photo: replyPhoto } : replyMessage);
         }
 
         await ownerMessage(`✅ Reply delivered to dashboard${conv.business_name ? ` (${String(conv.business_name)})` : ""}.`);

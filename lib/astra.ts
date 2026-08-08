@@ -40,6 +40,41 @@ export const conversationsCollection = db.collection('conversations');
 export const notificationsCollection = db.collection("notifications");
 const _webhookEventsCollection = db.collection("webhook_events");
 
+// Photos live in their own unindexed collection — indexed strings are capped
+// at 8,000 bytes in Astra, so big base64 blobs must stay out of the `messages` array.
+const chatPhotosCollection = db.collection("chat_photos");
+
+export async function saveChatPhoto(photoId: string, data: string): Promise<boolean> {
+    try {
+        await chatPhotosCollection.insertOne({ _id: photoId, data, created_at: new Date().toISOString() });
+        return true;
+    } catch (e) {
+        const msg = (e as Error)?.message || "";
+        if (msg.includes("does not exist") || msg.includes("collection") || msg.includes("COLLECTION")) {
+            try {
+                await db.createCollection("chat_photos");
+                await chatPhotosCollection.insertOne({ _id: photoId, data, created_at: new Date().toISOString() });
+                return true;
+            } catch {
+                console.error("[chat_photos] could not create collection");
+                return false;
+            }
+        }
+        console.error("[chat_photos] save failed:", e);
+        return false;
+    }
+}
+
+export async function getChatPhoto(photoId: string): Promise<string | null> {
+    try {
+        const doc = await chatPhotosCollection.findOne({ _id: photoId });
+        return typeof doc?.data === "string" ? doc.data : null;
+    } catch (e) {
+        console.error("[chat_photos] read failed:", e);
+        return null;
+    }
+}
+
 type JsonDoc = Record<string, unknown>;
 
 async function webhookOp<T>(op: () => Promise<T>): Promise<T | null> {

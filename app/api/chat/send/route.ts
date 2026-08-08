@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { businessesCollection, conversationsCollection } from "@/lib/astra";
+import { businessesCollection, conversationsCollection, saveChatPhoto } from "@/lib/astra";
 import { sendTelegramMessage, sendTelegramPhoto } from "@/lib/telegram";
 import { escapeHtml } from "@/lib/security";
 
@@ -12,6 +12,7 @@ export type ChatMessage = {
     content: string;
     at: string;
     photo?: string;
+    photoId?: string;
     telegram_message_id?: number;
 };
 
@@ -40,7 +41,12 @@ export async function POST(request: Request) {
             content: content || "📷 Photo",
             at: new Date().toISOString(),
         };
-        if (photo) message.photo = photo;
+        const photoForReply = photo;
+        if (photo) {
+            message.photoId = `p_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+            const saved = await saveChatPhoto(message.photoId, photo);
+            if (!saved) return NextResponse.json({ error: "Failed to store photo. Try again." }, { status: 500 });
+        }
 
         const senderName = String(business.owner_name || business.business_name || business.owner_email || "Dashboard user").trim();
         const senderEmail = business.owner_email ? String(business.owner_email) : null;
@@ -75,7 +81,7 @@ export async function POST(request: Request) {
             { upsert: true }
         );
 
-        return NextResponse.json({ ok: true, message, telegram_sent: tg.ok });
+        return NextResponse.json({ ok: true, message: photoForReply ? { ...message, photo: photoForReply } : message, telegram_sent: tg.ok });
     } catch (error) {
         console.error("Chat send error:", error);
         return NextResponse.json({ error: `Failed to send: ${(error as Error)?.message || "unknown"}` }, { status: 500 });
