@@ -45,7 +45,7 @@ export default function PrivacyPage() {
                         <p>NextCall offers optional integrations with Google services. These integrations are enabled only when a business owner explicitly chooses to connect their Google Account through the NextCall dashboard.</p>
 
                         <p className="mt-3 font-semibold text-white">Google Calendar</p>
-                        <p className="mt-3">Authorized Google Calendar access is used to create calendar events for appointments confirmed through the NextCall AI receptionist. Events are created in the connected business owner&apos;s primary calendar, and may include the appointment/customer name, the scheduled start and end time, a short AI summary of the call, and limited context such as the customer&apos;s phone number and a brief excerpt of the call transcript.</p>
+                        <p className="mt-3">Authorized Google Calendar access is used to create calendar events for appointments confirmed through the NextCall AI receptionist. Events are created in the connected business owner&apos;s primary calendar, and may include the appointment/customer name, the scheduled start and end time, the business owner&apos;s company name as the event location, a short AI summary of the call, and limited context such as the customer&apos;s phone number and a brief excerpt of the call transcript.</p>
                         <p className="mt-3">NextCall uses this access only to create events for new appointments. The application does not use the Google Calendar integration to read, list, modify, or delete existing calendar events, and does not access the contents of your other calendars.</p>
 
                         <p className="mt-3 font-semibold text-white">Google Business Profile</p>
@@ -58,7 +58,7 @@ export default function PrivacyPage() {
                         <p className="mt-3">NextCall&apos;s use and transfer of information received from Google APIs complies with Google&apos;s User Data Policy, including the Limited Use requirements.</p>
 
                         <p className="mt-3 font-semibold text-white">User Control</p>
-                        <p className="mt-3">Connecting Google services is optional. You can disconnect your Google integrations at any time from the NextCall dashboard (Settings &rarr; Integrations). Disconnecting removes the stored Google access and refresh tokens and stops the creation of new appointment events and automated review responses. When you disconnect, we do not automatically revoke the Google OAuth authorization on Google&apos;s side; you can also remove NextCall&apos;s access from your Google Account&apos;s third-party app permissions.</p>
+                        <p className="mt-3">Connecting Google services is optional. You can disconnect your Google integrations at any time from the NextCall dashboard (Settings &rarr; Integrations). Disconnecting removes the stored Google refresh token and stops the creation of new appointment events and automated review responses. When you disconnect, we do not automatically revoke the Google OAuth authorization on Google&apos;s side; you can also remove NextCall&apos;s access from your Google Account&apos;s third-party app permissions.</p>
                     </section>
 
                     <section id="security" className="border border-white/[0.06] rounded-2xl p-6 bg-white/[0.02]">
@@ -116,7 +116,7 @@ export default function PrivacyPage() {
                         <p>For active subscriptions, we retain Call Data (audio, transcripts, summaries) for the duration of your subscription to provide historical insights and improve AI context. Usage Data is retained for up to 12 months for analytics and security purposes.</p>
                         <p className="mt-3">Upon cancellation of your subscription, your account will enter a 30-day grace period. During this time, data is retained to allow for reactivation. After 30 days, all associated business data, call logs, and configurations are permanently scheduled for deletion from active systems.</p>
                         <p className="mt-3">Certain records may be retained in an anonymized format, or where required for legal, security, fraud prevention, accounting, or compliance purposes.</p>
-                        <p className="mt-3"><strong>Google Integration Data:</strong> Google OAuth credentials and integration information are retained while the corresponding integration remains connected, subject to your account&apos;s service lifecycle. Calendar events created by NextCall may remain in your Google Calendar after they are created; we do not maintain a copy of your existing calendar contents. You can disconnect your Google integrations at any time from the dashboard.</p>
+                        <p className="mt-3"><strong>Google Integration Data:</strong> Google OAuth credentials are retained while the integration is connected and are removed when you disconnect the integration; no separate retention period applies. Calendar events created by NextCall may remain in your Google Calendar after they are created; we do not maintain a copy of your existing calendar contents. You can disconnect your Google integrations at any time from the dashboard.</p>
                     </section>
 
                     <section>
