@@ -1,23 +1,28 @@
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(request: Request) {
     const token = process.env.TELEGRAM_BOT_TOKEN;
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
     if (!token || !appUrl) {
         return NextResponse.json({ error: "Missing TELEGRAM_BOT_TOKEN or NEXT_PUBLIC_APP_URL" }, { status: 500 });
     }
 
-    const webhookUrl = `${appUrl}/api/webhooks/telegram`;
-    const setRes = await fetch(
-        `https://api.telegram.org/bot${token}/setWebhook?url=${encodeURIComponent(webhookUrl)}&drop_pending_updates=true`
-    );
-    const setData = await setRes.json();
+    const probeOnly = new URL(request.url).searchParams.get("probe") === "1";
+
+    let setData: unknown = { skipped: probeOnly };
+    if (!probeOnly) {
+        const webhookUrl = `${appUrl}/api/webhooks/telegram`;
+        const setRes = await fetch(
+            `https://api.telegram.org/bot${token}/setWebhook?url=${encodeURIComponent(webhookUrl)}&drop_pending_updates=true`
+        );
+        setData = await setRes.json();
+    }
 
     const infoRes = await fetch(`https://api.telegram.org/bot${token}/getWebhookInfo`);
     const infoData = await infoRes.json();
 
     return NextResponse.json({
-        webhookUrl,
+        probeOnly,
         setWebhook: setData,
         webhookInfo: infoData?.result || infoData,
     });

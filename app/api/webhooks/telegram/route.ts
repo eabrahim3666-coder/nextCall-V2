@@ -20,16 +20,18 @@ export async function POST(request: Request) {
     try {
         const body = await request.json();
         const updateId = body?.update_id;
-
         const msg = body?.message || body?.edited_message;
         const isText = typeof msg?.text === "string" && msg.text.trim().length > 0;
         const isPhoto = Array.isArray(msg?.photo) && msg.photo.length > 0;
 
-        // First ever update from the owner = webhook is now live. Tell them.
-        if (updateId && msg && isText && String(msg.text).startsWith("/start")) {
+        console.log(`[telegram] update ${updateId} from ${msg?.from?.id}: text=${isText} photo=${isPhoto} reply_to=${msg?.reply_to_message?.message_id ?? "none"}`);
+
+        if (msg && isText && String(msg.text).startsWith("/start")) {
             await ownerMessage("✅ Telegram bridge is live! Send a message from the dashboard, then reply to it here.");
         }
-        if (updateId && !isText && !isPhoto && !msg) {
+
+        if (!msg || (!isText && !isPhoto)) {
+            console.log("[telegram] no usable message, acked");
             return NextResponse.json({ ok: true });
         }
 
@@ -40,17 +42,13 @@ export async function POST(request: Request) {
             await webhookEventsCollection.insertOne({ _id: key, provider: "telegram", event_id: String(updateId), created_at: new Date().toISOString() });
         }
 
-        if (!msg || (!isText && !isPhoto)) {
-            return NextResponse.json({ ok: true });
-        }
-
-        // Only the app owner can reply from Telegram
+        // Only the app owner can reply
         if (!OWNER_CHAT_ID || String(msg.from?.id) !== String(OWNER_CHAT_ID)) {
-            console.log(`Telegram: ignoring message from non-owner chat ${msg.from?.id}`);
+            console.log(`[telegram] ignoring non-owner ${msg.from?.id} (expected ${OWNER_CHAT_ID})`);
+            await ownerMessage(`ℹ️ Received your message but your Telegram ID (${msg.from?.id}) doesn't match TELEGRAM_CHAT_ID (${OWNER_CHAT_ID}). No reply was routed.`);
             return NextResponse.json({ ok: true });
         }
 
-        // Replies must target a specific forwarded message (reply_to_message)
         const reply = msg.reply_to_message;
         if (!reply?.message_id) {
             await ownerMessage("ℹ️ Reply to one of the dashboard messages so I know who it's for.");
@@ -58,26 +56,30 @@ export async function POST(request: Request) {
         }
 
         const replyId = reply.message_id;
+        const replyText = typeof reply.text === "string" ? reply.text : "";
 
         let conv = null;
         try {
             conv = await conversationsCollection.findOne({ "messages.telegram_message_id": replyId });
         } catch (e) {
-            console.error("Telegram: direct conversation lookup failed", e);
+            console.error("[telegram] direct lookup failed:", e);
             conv = null;
         }
         if (!conv) {
             try {
                 const all = await conversationsCollection.find({ kind: "support" }).limit(500).toArray();
-                conv = all.find((c) => Array.isArray(c.messages) && c.messages.some((m) => m.telegram_message_id === replyId)) || null;
+                conv =
+                    all.find((c) => Array.isArray(c.messages) && c.messages.some((m) => m.telegram_message_id === replyId)) ||
+                    all.find((c) => Array.isArray(c.messages) && replyText && c.messages.some((m) => m.role === "user" && String(m.content) === replyText)) ||
+                    (all.length === 1 ? all[0] : null);
             } catch (e) {
-                console.error("Telegram: fallback scan failed:", e);
+                console.error("[telegram] fallback scan failed:", e);
                 await ownerMessage(`⚠️ Database scan failed on reply id ${replyId}: ${(e as Error)?.message}`);
                 return NextResponse.json({ ok: true });
             }
         }
         if (!conv) {
-            await ownerMessage(`⚠️ Could not find the conversation for message id ${replyId}. Send a new message from the dashboard and reply to THAT one.`);
+            await ownerMessage(`⚠️ Could not find the conversation for message id ${replyId}. Send a NEW message from the dashboard and reply to THAT one.`);
             return NextResponse.json({ ok: true });
         }
 
@@ -104,10 +106,11 @@ export async function POST(request: Request) {
         }
 
         await ownerMessage(`✅ Reply delivered to dashboard${conv.business_name ? ` (${String(conv.business_name)})` : ""}.`);
+        console.log(`[telegram] reply delivered for business ${conv.business_id}`);
 
         return NextResponse.json({ ok: true });
     } catch (error) {
-        console.error("Telegram webhook error:", error);
+        console.error("[telegram] webhook error:", error);
         await ownerMessage(`❌ Telegram webhook error: ${(error as Error)?.message}`);
         return NextResponse.json({ ok: true }, { status: 200 });
     }
