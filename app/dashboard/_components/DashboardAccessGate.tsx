@@ -4,17 +4,20 @@ import { useSearchParams } from "next/navigation";
 import OnboardingFlow from "./OnboardingFlow";
 import PaddleSuccessWaiting from "./PaddleSuccessWaiting";
 import Paywall from "./Paywall";
+import TrialEndedScreen from "./TrialEndedScreen";
 
 type DashboardAccessGateProps = {
     children: React.ReactNode;
     hasBusiness: boolean;
     isActiveBusiness: boolean;
+    isTrialEnded?: boolean;
 };
 
 export default function DashboardAccessGate({
     children,
     hasBusiness,
     isActiveBusiness,
+    isTrialEnded = false,
 }: DashboardAccessGateProps) {
     const searchParams = useSearchParams();
     const paddleTransactionId =
@@ -30,6 +33,10 @@ export default function DashboardAccessGate({
 
     if (hasBusiness && hasPaddleSuccess) {
         return <PaddleSuccessWaiting transactionId={paddleTransactionId} />;
+    }
+
+    if (hasBusiness && isTrialEnded) {
+        return <TrialEndedScreen refCode={searchParams.get("ref") || ""} />;
     }
 
     if (hasBusiness) {

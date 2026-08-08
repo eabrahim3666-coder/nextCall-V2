@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { businessesCollection } from "@/lib/astra";
-import { findBusinessByUserId } from "@/lib/business";
+import { findBusinessByUserId, TRIAL_DURATION_MS } from "@/lib/business";
 
 function paddleApiBase() {
     return process.env.PADDLE_API_KEY?.startsWith("pdl_sdbx_")
@@ -64,6 +64,12 @@ export async function GET(request: Request) {
                     const plan = customData.plan || business?.plan_type || business?.plan || "standard";
                     const limits = getPlanLimits(plan);
                     const businessName = customData.business_name || business?.business_name || "New Business";
+                    const trialStart = plan === "trial"
+                        ? (business?.trial_started_at || new Date().toISOString())
+                        : undefined;
+                    const trialEnd = trialStart
+                        ? new Date(new Date(trialStart).getTime() + TRIAL_DURATION_MS).toISOString()
+                        : undefined;
 
                     await businessesCollection.updateOne(
                         { business_id: userId },
@@ -77,6 +83,9 @@ export async function GET(request: Request) {
                                 paddle_subscription_id: transaction.subscription_id,
                                 paddle_customer_id: transaction.customer_id,
                                 ...limits,
+                                ...(trialStart && trialEnd
+                                    ? { trial_started_at: trialStart, trial_ends_at: trialEnd }
+                                    : {}),
                                 updated_at: new Date().toISOString(),
                             },
                             $setOnInsert: {

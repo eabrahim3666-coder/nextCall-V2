@@ -9,7 +9,7 @@ import AIStatusPill from "./_components/AIStatusPill";
 import NavLinks from "./_components/NavLinks";
 import MinutesCounter from "./_components/MinutesCounter";
 import DashboardAccessGate from "./_components/DashboardAccessGate";
-import { findBusinessByUserId } from "@/lib/business";
+import { findBusinessByUserId, isTrialExpired } from "@/lib/business";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +60,7 @@ export default async function DashboardLayout({
                     <DashboardAccessGate
                         hasBusiness={Boolean(business)}
                         isActiveBusiness={isActiveBusiness}
+                        isTrialEnded={business ? isTrialExpired(business) : false}
                     >
                         {children}
                     </DashboardAccessGate>

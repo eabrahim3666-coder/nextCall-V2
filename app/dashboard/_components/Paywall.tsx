@@ -21,7 +21,7 @@ const getPaddle = (): PaddleInstance | null => {
 
 const PADDLE_TRANSACTION_STORAGE_KEY = "nextcall_pending_paddle_transaction_id";
 
-export default function Paywall({ refCode }: { refCode?: string }) {
+export default function Paywall({ refCode, allowTrial = true }: { refCode?: string; allowTrial?: boolean }) {
     const { user } = useUser();
     const [loading, setLoading] = useState<"trial" | "standard" | "premium" | null>(null);
 
@@ -93,8 +93,9 @@ export default function Paywall({ refCode }: { refCode?: string }) {
                     <p className="text-sm text-neutral-400 mt-3">Your AI is configured and ready. Choose a plan to bring it to life.</p>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-6">
+                <div className={`grid gap-6 ${allowTrial ? "md:grid-cols-3" : "md:grid-cols-2 max-w-3xl mx-auto"}`}>
                     {/* Free Trial */}
+                    {allowTrial && (
                     <div className="relative p-8 rounded-2xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-xl text-center">
                         <div className="mb-5">
                             <h3 className="text-lg font-semibold text-white">Free Trial</h3>
@@ -144,6 +145,7 @@ export default function Paywall({ refCode }: { refCode?: string }) {
                             </button>
                         </div>
                     </div>
+                    )}
 
                     {/* Standard Plan */}
                     <div className="relative p-8 rounded-2xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-xl text-center">

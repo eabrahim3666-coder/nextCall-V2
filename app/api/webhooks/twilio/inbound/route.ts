@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { businessesCollection } from '@/lib/astra';
 import { verifyTwilioRequest } from '@/lib/security';
+import { isTrialExpired } from '@/lib/business';
 
 export async function POST(request: Request) {
   try {
@@ -24,6 +25,28 @@ export async function POST(request: Request) {
       console.error("Business not found for number:", twilioNumber);
       const errorTwiml = `<Response><Say>Sorry, this number is not configured.</Say></Response>`;
       return new NextResponse(errorTwiml, { headers: { 'Content-Type': 'text/xml' } });
+    }
+
+    // ============ TRIAL EXPIRY PROTECTION ============
+    if (isTrialExpired(business)) {
+      console.warn(`🛑 Call rejected for ${business.business_name}: Free trial has ended`);
+
+      if (business.business_id) {
+        try {
+          const { notificationsCollection } = await import('@/lib/astra');
+          await notificationsCollection.insertOne({
+            business_id: business.business_id,
+            type: "trial_expired",
+            title: "Call Missed - Trial Ended",
+            message: `You missed a call from ${callerNumber} because your free trial has ended. Choose a plan to reactivate your AI receptionist.`,
+            read: false,
+            created_at: new Date().toISOString(),
+          });
+        } catch (e) { console.error("Failed to send trial-expired notification:", e); }
+      }
+
+      const trialTwiml = `<Response><Say voice="alice">The party you are calling is currently unavailable. Please try again later.</Say><Hangup /></Response>`;
+      return new NextResponse(trialTwiml, { headers: { 'Content-Type': 'text/xml' } });
     }
 
 

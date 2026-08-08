@@ -7,12 +7,34 @@ import { cn } from "@/lib/utils"
 
 const PLANS = [
   {
+    name: "Free Trial",
+    subtitle: "Try your AI receptionist risk-free for 3 days.",
+    price: "$0",
+    period: "/3 days",
+    minutes: "50 minutes included",
+    badge: "Free",
+    free: true,
+    label: null,
+    ctaText: "Start Free Trial",
+    cta: "outline",
+    features: [
+      "AI answers calls 24/7",
+      "1 phone number",
+      "Basic call dashboard",
+      "50 minutes included",
+    ],
+  },
+  {
     name: "Standard",
     subtitle: "For small businesses getting started with AI",
     price: "$299",
     period: "/month",
-    minutes: "200 minutes included + $0.50/min overage",
-    badge: null,
+    minutes: "200 minutes included · $0.50/min overage",
+    badge: "Best Value",
+    free: false,
+    label: null,
+    ctaText: "Get Standard",
+    cta: "outline",
     features: [
       "AI answers calls 24/7",
       "Follow-up emails after every call",
@@ -25,17 +47,19 @@ const PLANS = [
       "Daily summary emails",
       "Email support",
     ],
-    cta: "outline",
   },
   {
     name: "Premium",
     subtitle: "For growing businesses that need more power",
     price: "$399",
     period: "/month",
-    minutes: "500 minutes included + $0.40/min overage",
-    badge: "Popular",
+    minutes: "500 minutes included · $0.40/min overage",
+    badge: "Most Popular",
+    free: false,
+    label: "Everything in Standard, plus:",
+    ctaText: "Get Premium",
+    cta: "primary",
     features: [
-      "Everything in Standard, plus:",
       "3 phone numbers",
       "Priority call routing rules",
       "Advanced analytics dashboard",
@@ -46,7 +70,6 @@ const PLANS = [
       "AI performance score",
       "Priority support chat",
     ],
-    cta: "primary",
   },
 ] as const
 
@@ -61,8 +84,8 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
       id="pricing"
       className="relative bg-ds-bg-primary py-24 md:py-32 overflow-hidden"
     >
-      <div className="pointer-events-none absolute top-[-15%] left-[10%] h-[500px] w-[500px] rounded-full bg-ds-accent-primary/[0.02] blur-[100px]" />
-      <div className="pointer-events-none absolute bottom-[-10%] right-[5%] h-[400px] w-[400px] rounded-full bg-ds-accent-secondary/[0.015] blur-[80px]" />
+      <div className="pointer-events-none absolute top-[-15%] left-[10%] h-[500px] w-[500px] rounded-full bg-ds-accent-primary/[0.03] blur-[100px]" />
+      <div className="pointer-events-none absolute bottom-[-10%] right-[5%] h-[400px] w-[400px] rounded-full bg-ds-accent-secondary/[0.02] blur-[80px]" />
 
       <div className="relative z-10 mx-auto max-w-7xl px-6">
         {/* Section header */}
@@ -96,8 +119,8 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="mt-4 text-ds-body text-ds-text-secondary leading-relaxed"
           >
-            No hidden fees. No contracts. Cancel anytime. 3-day free trial
-            included.
+            No hidden fees. No contracts. Cancel anytime. Start with a free
+            3-day trial — no credit card required.
           </motion.p>
         </motion.div>
 
@@ -109,7 +132,7 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
           variants={{
             animate: { transition: { staggerChildren: 0.12, delayChildren: 0.15 } },
           }}
-          className="mt-16 grid gap-6 md:grid-cols-2 max-w-4xl mx-auto"
+          className="mt-16 grid gap-6 lg:grid-cols-3 max-w-6xl mx-auto items-stretch"
         >
           {PLANS.map((plan) => (
             <motion.div
@@ -117,99 +140,113 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
               variants={fadeUp}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               className={cn(
-                "relative rounded-xl border bg-ds-bg-card p-8 overflow-hidden",
+                "relative flex flex-col rounded-2xl border p-10 overflow-hidden",
                 "transition-all duration-300",
-                plan.badge
-                  ? "border-ds-border-accent shadow-ds-md"
-                  : "border-ds-border-primary shadow-ds-sm hover:shadow-ds-md hover:border-ds-border-hover"
+                plan.free
+                  ? "border-dashed border-ds-border-primary bg-ds-bg-card/60 hover:border-ds-border-hover"
+                  : plan.badge
+                    ? "border-ds-accent-primary/40 bg-gradient-to-b from-ds-accent-primary/[0.07] via-ds-bg-card to-ds-bg-card shadow-ds-md"
+                    : "border-ds-border-primary bg-ds-bg-card shadow-ds-sm hover:shadow-ds-md hover:border-ds-border-hover hover:-translate-y-1"
               )}
             >
-              {/* Glow for premium */}
+              {/* Glow for highlighted plan */}
               {plan.badge && (
-                <div className="pointer-events-none absolute top-0 right-0 h-32 w-32 rounded-full bg-ds-accent-primary/10 blur-[50px]" />
+                <div className="pointer-events-none absolute -top-16 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-ds-accent-primary/20 blur-[60px]" />
               )}
 
-              <div className="relative z-10">
+              <div className="relative z-10 flex flex-col flex-1">
                 {/* Header */}
-                <div className="mb-6 flex items-start justify-between">
+                <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="text-ds-large-heading text-ds-text-primary">
                       {plan.name}
                     </h3>
-                    <p className="mt-1 text-ds-small-body text-ds-text-secondary">
+                    <p className="mt-1.5 text-ds-small-body text-ds-text-secondary leading-relaxed">
                       {plan.subtitle}
                     </p>
                   </div>
                   {plan.badge && (
-                    <span className="shrink-0 rounded-full border border-ds-accent-primary/20 bg-ds-accent-primary/10 px-3 py-1 text-ds-overline font-medium uppercase tracking-[0.08em] text-ds-accent-primary">
+                    <span className="shrink-0 rounded-full border border-ds-accent-primary/30 bg-ds-accent-primary/10 px-3 py-1 text-ds-overline font-semibold uppercase tracking-[0.08em] text-ds-accent-primary">
                       {plan.badge}
                     </span>
                   )}
                 </div>
 
                 {/* Price */}
-                <div className="mb-6">
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-semibold text-ds-text-primary">
+                <div className="mt-6">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-6xl font-semibold tracking-tight text-ds-text-primary">
                       {plan.price}
                     </span>
                     <span className="text-ds-small-body text-ds-text-secondary">
                       {plan.period}
                     </span>
                   </div>
-                  <p className="mt-1 text-ds-caption text-ds-text-muted">
+                  <p className="mt-2 text-ds-caption text-ds-text-muted">
                     {plan.minutes}
                   </p>
                 </div>
 
+                {/* Divider */}
+                <div className="my-7 h-px w-full bg-linear-to-r from-transparent via-ds-border-primary to-transparent" />
+
                 {/* Features */}
-                <ul className="mb-8 space-y-3">
-                  {plan.features.map((item, i) => {
-                    const isLabel = i === 0 && plan.badge
-                    return (
-                      <li key={i} className="flex items-start gap-3">
-                        <span
-                          className={cn(
-                            "mt-0.5 shrink-0 text-xs",
-                            isLabel
-                              ? "text-ds-accent-primary"
-                              : "text-ds-state-success"
-                          )}
-                        >
-                          {isLabel ? "+" : <Icon icon="lucide:check" width={14} />}
-                        </span>
-                        <span
-                          className={cn(
-                            "text-ds-small-body",
-                            isLabel
-                              ? "text-ds-accent-primary font-medium"
-                              : "text-ds-text-secondary"
-                          )}
-                        >
-                          {item}
-                        </span>
-                      </li>
-                    )
-                  })}
+                <ul className="flex-1 space-y-3.5">
+                  {plan.label && (
+                    <li className="flex items-start gap-3 pb-2">
+                      <span className="mt-0.5 text-xs font-bold text-ds-accent-primary">
+                        +
+                      </span>
+                      <span className="text-ds-small-body font-semibold text-ds-accent-primary">
+                        {plan.label}
+                      </span>
+                    </li>
+                  )}
+                  {plan.features.map((item, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <span
+                        className={cn(
+                          "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full",
+                          plan.free
+                            ? "bg-ds-state-success/10 text-ds-state-success"
+                            : "bg-ds-accent-primary/10 text-ds-accent-secondary"
+                        )}
+                      >
+                        <Icon icon="lucide:check" width={11} />
+                      </span>
+                      <span className="text-ds-small-body text-ds-text-secondary leading-relaxed">
+                        {item}
+                      </span>
+                    </li>
+                  ))}
                 </ul>
 
                 {/* CTA */}
                 <a
                   href={`/dashboard${refCode ? `?ref=${refCode}` : ""}`}
                   className={cn(
-                    "flex w-full items-center justify-center rounded-full px-6 py-3.5 text-ds-button font-medium transition-all duration-300",
+                    "mt-8 flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-ds-button font-semibold transition-all duration-300",
                     plan.cta === "primary"
-                      ? "bg-ds-text-primary text-ds-bg-primary hover:opacity-90"
-                      : "border border-ds-border-primary bg-ds-bg-card text-ds-text-primary hover:bg-ds-bg-muted"
+                      ? "bg-ds-text-primary text-ds-bg-primary shadow-ds-md hover:opacity-90"
+                      : plan.free
+                        ? "border border-ds-state-success/25 bg-ds-state-success/5 text-ds-text-primary hover:bg-ds-state-success/10"
+                        : "border border-ds-border-primary bg-ds-bg-card text-ds-text-primary hover:bg-ds-bg-muted"
                   )}
                 >
-                  Start Free Trial
+                  {plan.ctaText}
+                  {plan.cta === "primary" && (
+                    <Icon icon="lucide:arrow-right" width={15} />
+                  )}
                 </a>
               </div>
             </motion.div>
           ))}
         </motion.div>
 
+        <p className="mt-10 text-center text-ds-caption text-ds-text-muted">
+          Every paid plan starts with a 3-day free trial · No credit card
+          required · Cancel anytime
+        </p>
       </div>
     </section>
   )

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { businessesCollection, webhookEventsCollection } from '@/lib/astra';
 import { hasValidSecret } from '@/lib/security';
+import { TRIAL_DURATION_MS } from '@/lib/business';
 
 type PaddleEventData = {
   id?: string;
@@ -59,6 +60,13 @@ async function activateBusinessFromPaddleData(data: PaddleEventData) {
   const planType = customData.plan || existingBusiness?.plan_type || 'standard';
   const { minutesLimit, overageRate } = getPlanLimits(planType);
 
+  const trialStart = planType === 'trial'
+    ? (existingBusiness?.trial_started_at || new Date().toISOString())
+    : undefined;
+  const trialEnd = trialStart
+    ? new Date(new Date(trialStart).getTime() + TRIAL_DURATION_MS).toISOString()
+    : undefined;
+
   if (refCode && !existingBusiness?.referral_applied_at) {
     const referrer = await businessesCollection.findOne({ referral_code: refCode });
     if (referrer && planType !== 'trial') {
@@ -90,6 +98,9 @@ async function activateBusinessFromPaddleData(data: PaddleEventData) {
         plan_type: planType,
         minutes_limit: minutesLimit,
         overage_rate: overageRate,
+        ...(trialStart && trialEnd
+          ? { trial_started_at: trialStart, trial_ends_at: trialEnd }
+          : {}),
         ...(refCode ? { referral_applied_at: new Date().toISOString() } : {}),
         updated_at: new Date().toISOString()
       },
