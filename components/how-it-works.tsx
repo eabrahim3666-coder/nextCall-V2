@@ -31,15 +31,12 @@ const STEPS = [
 
 const INTEGRATIONS = [
   { icon: "lucide:calendar", name: "Google Calendar", description: "Sync bookings" },
-  { icon: "lucide:calendar-check", name: "Outlook", description: "Calendar sync" },
   { icon: "lucide:message-circle", name: "WhatsApp", description: "Two-way chat" },
   { icon: "lucide:instagram", name: "Instagram", description: "DM automation" },
   { icon: "lucide:message-square", name: "Messenger", description: "Facebook DM" },
   { icon: "lucide:sms", name: "SMS", description: "Text messaging" },
   { icon: "lucide:star", name: "Google Reviews", description: "Auto replies" },
-  { icon: "lucide:layers", name: "HubSpot", description: "CRM sync" },
-  { icon: "lucide:zap", name: "Zapier", description: "Automations" },
-  { icon: "lucide:cloud", name: "Salesforce", description: "CRM integration" },
+  { icon: "lucide:zap", name: "Zapier (Premium)", description: "Call data via webhooks" },
 ] as const
 
 const fadeUp = {
@@ -206,7 +203,7 @@ function HowItWorks() {
             variants={{
               animate: { transition: { staggerChildren: 0.05, delayChildren: 0.15 } },
             }}
-            className="mt-16 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
+            className="mt-16 flex flex-wrap items-center justify-center gap-x-4 gap-y-8"
           >
             {INTEGRATIONS.map((item) => (
               <motion.div
@@ -214,24 +211,26 @@ function HowItWorks() {
                 variants={fadeUp}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 className={cn(
-                  "group flex flex-col items-center gap-3 rounded-xl border p-6 text-center",
+                  "group flex w-full items-center gap-3 rounded-full border p-3 pr-6",
+                  "sm:w-[calc(50%-0.5rem)]",
+                  "lg:w-[calc(20%-0.8rem)]",
                   "border-ds-border-primary bg-ds-bg-card shadow-ds-sm",
                   "transition-all duration-300",
                   "hover:shadow-ds-md hover:border-ds-border-hover hover:-translate-y-0.5"
                 )}
               >
-                <div className="flex size-12 items-center justify-center rounded-lg bg-ds-accent-primary/10 border border-ds-accent-primary/20 transition-transform duration-300 group-hover:scale-105">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-ds-accent-primary/10 border border-ds-accent-primary/20 transition-transform duration-300 group-hover:scale-105">
                   <Icon
                     icon={item.icon}
-                    width={22}
+                    width={20}
                     className="text-ds-accent-primary"
                   />
                 </div>
-                <div>
-                  <p className="text-ds-label font-medium text-ds-text-primary">
+                <div className="text-left">
+                  <p className="text-ds-label font-medium text-ds-text-primary leading-tight">
                     {item.name}
                   </p>
-                  <p className="text-ds-caption text-ds-text-muted mt-0.5">
+                  <p className="text-ds-caption text-ds-text-muted leading-tight">
                     {item.description}
                   </p>
                 </div>
