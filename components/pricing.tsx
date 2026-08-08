@@ -140,7 +140,7 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
               variants={fadeUp}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               className={cn(
-                "relative flex flex-col rounded-2xl border p-10 overflow-hidden",
+                "relative flex flex-col rounded-[2rem] border p-7 overflow-hidden",
                 "transition-all duration-300",
                 plan.free
                   ? "border-dashed border-ds-border-primary bg-ds-bg-card/60 hover:border-ds-border-hover"
@@ -173,7 +173,7 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
                 </div>
 
                 {/* Price */}
-                <div className="mt-6">
+                <div className="mt-4">
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-6xl font-semibold tracking-tight text-ds-text-primary">
                       {plan.price}
@@ -182,16 +182,16 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
                       {plan.period}
                     </span>
                   </div>
-                  <p className="mt-2 text-ds-caption text-ds-text-muted">
+                  <p className="mt-1.5 text-ds-caption text-ds-text-muted">
                     {plan.minutes}
                   </p>
                 </div>
 
                 {/* Divider */}
-                <div className="my-7 h-px w-full bg-linear-to-r from-transparent via-ds-border-primary to-transparent" />
+                <div className="my-5 h-px w-full bg-linear-to-r from-transparent via-ds-border-primary to-transparent" />
 
                 {/* Features */}
-                <ul className="flex-1 space-y-3.5">
+                <ul className="flex-1 space-y-2.5">
                   {plan.label && (
                     <li className="flex items-start gap-3 pb-2">
                       <span className="mt-0.5 text-xs font-bold text-ds-accent-primary">
@@ -225,7 +225,7 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
                 <a
                   href={`/dashboard${refCode ? `?ref=${refCode}` : ""}`}
                   className={cn(
-                    "mt-8 flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-ds-button font-semibold transition-all duration-300",
+                    "mt-5 flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-ds-button font-semibold transition-all duration-300",
                     plan.cta === "primary"
                       ? "bg-ds-text-primary text-ds-bg-primary shadow-ds-md hover:opacity-90"
                       : plan.free
