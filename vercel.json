@@ -5,6 +5,6 @@
     { "path": "/api/cron/sync-reviews", "schedule": "0 2 * * *" },
     { "path": "/api/cron/daily-summary", "schedule": "0 3 * * *" },
     { "path": "/api/cron/expire-trials", "schedule": "0 4 * * *" },
-    { "path": "/api/cron/job-done-followup", "schedule": "0 * * * *" }
+    { "path": "/api/cron/job-done-followup", "schedule": "0 5 * * *" }
   ]
 }

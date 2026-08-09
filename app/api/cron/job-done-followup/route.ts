@@ -3,7 +3,7 @@ import { callsCollection, businessesCollection } from "@/lib/astra";
 import { hasValidSecret } from "@/lib/security";
 import { sendReviewSms, recordCompletedJob, asCallLike } from "@/lib/review-sms";
 
-const FOLLOWUP_HOURS = 8;
+const FOLLOWUP_HOURS = 24;
 
 export async function GET(request: Request) {
     const authHeader = request.headers.get("authorization");
