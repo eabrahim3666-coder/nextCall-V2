@@ -24,6 +24,7 @@ export async function POST(request: Request) {
             email_followup: true,
             daily_summary: true,
             appointment_reminders: true,
+            review_followup: true,
         };
         if (plan === "trial") {
             routingRules.notify_hot_lead = false;

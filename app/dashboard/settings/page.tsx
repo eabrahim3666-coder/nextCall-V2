@@ -33,6 +33,7 @@ export default async function SettingsPage() {
             email_followup: true,
             daily_summary: true,
             appointment_reminders: true,
+            review_followup: true,
         },
         knowledge_base_text: business?.knowledge_base_text || "",
         referral_code: business?.referral_code || "N/A",
