@@ -304,6 +304,8 @@ export default function AdminDashboardClient({ allBusinesses, totalCallsProcesse
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="bg-white/[0.03] p-3 rounded-lg"><p className="text-[10px] text-neutral-500 uppercase">Plan</p><p className="text-sm text-white font-medium">{selectedBusiness.plan || 'trial'}</p></div>
                                 <div className="bg-white/[0.03] p-3 rounded-lg"><p className="text-[10px] text-neutral-500 uppercase">Status</p><p className="text-sm text-white font-medium">{selectedBusiness.status || 'pending'}</p></div>
+                                <div className="bg-white/[0.03] p-3 rounded-lg"><p className="text-[10px] text-neutral-500 uppercase">Owner Email</p><p className="text-sm text-white font-medium break-all">{selectedBusiness.email || 'N/A'}</p></div>
+                                <div className="bg-white/[0.03] p-3 rounded-lg"><p className="text-[10px] text-neutral-500 uppercase">Owner Phone</p><p className="text-sm text-white font-medium">{selectedBusiness.owner_phone || 'N/A'}</p></div>
                                 <div className="bg-white/[0.03] p-3 rounded-lg"><p className="text-[10px] text-neutral-500 uppercase">Twilio Number</p><p className="text-sm text-white font-medium">{selectedBusiness.twilio_number || 'N/A'}</p></div>
                                 <div className="bg-white/[0.03] p-3 rounded-lg"><p className="text-[10px] text-neutral-500 uppercase">Referral Code</p><p className="text-sm text-white font-medium">{selectedBusiness.referral_code || 'N/A'}</p></div>
                             </div>

@@ -33,10 +33,10 @@ export default async function AdminDashboard() {
     const serializedBusinesses = allBusinesses.map(b => ({
         business_id: b.business_id,
         business_name: b.business_name || undefined,
-        email: b.email || undefined,
+        email: b.owner_email || b.email || undefined,
         owner_phone: b.owner_phone || undefined,
         status: b.status || undefined,
-        plan: b.plan || undefined,
+        plan: b.plan_type || b.plan || undefined,
         minutes_limit: b.minutes_limit || undefined,
         total_minutes_used: b.total_minutes_used || undefined,
         total_calls_processed: b.total_calls_processed || undefined,
