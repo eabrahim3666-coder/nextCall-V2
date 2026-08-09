@@ -1,7 +1,46 @@
 import { businessesCollection, callsCollection, conversationsCollection, notificationsCollection } from "@/lib/astra";
 import AdminDashboardClient from "./_components/AdminDashboardClient";
+import { clerkClient } from "@clerk/nextjs/server";
 
 export const dynamic = 'force-dynamic';
+
+let clerkEmailCache: { at: number; emails: Record<string, string> } | null = null;
+
+async function resolveMissingEmails(
+    businesses: { business_id: string; email?: string }[]
+): Promise<Record<string, string>> {
+    const missingIds = businesses.filter((b) => !b.email).map((b) => b.business_id);
+    if (missingIds.length === 0) return {};
+
+    if (clerkEmailCache && Date.now() - clerkEmailCache.at < 60_000) {
+        return clerkEmailCache.emails;
+    }
+
+    const emails: Record<string, string> = {};
+    try {
+        const clerk = await clerkClient();
+        const users = await clerk.users.getUserList({ limit: 500 });
+        for (const u of users.data) {
+            const email = u.emailAddresses?.[0]?.emailAddress;
+            if (email) emails[u.id] = email;
+        }
+        clerkEmailCache = { at: Date.now(), emails };
+    } catch (error) {
+        console.error("Failed to resolve Clerk emails:", error);
+    }
+
+    // Backfill so the emails stick in the DB (best-effort, non-blocking)
+    for (const b of businesses) {
+        const email = emails[b.business_id];
+        if (email && !b.email) {
+            businessesCollection
+                .updateOne({ business_id: b.business_id }, { $set: { owner_email: email } })
+                .catch(() => {});
+        }
+    }
+
+    return emails;
+}
 
 export default async function AdminDashboard() {
     // 1. Fetch Global Stats (Limit to 500 most recent to prevent Vercel OOM crashes)
@@ -29,11 +68,16 @@ export default async function AdminDashboard() {
     // 3. Flagged calls count
     const flaggedCount = await callsCollection.countDocuments({ is_flagged: true }, 1000000);
 
+    // Resolve emails from Clerk for any businesses missing owner_email in the DB
+    const clerkEmails = await resolveMissingEmails(
+        allBusinesses as unknown as { business_id: string; email?: string }[]
+    );
+
     // Serialize data for the client component (convert any AstraDB weird types to plain JSON)
     const serializedBusinesses = allBusinesses.map(b => ({
         business_id: b.business_id,
         business_name: b.business_name || undefined,
-        email: b.owner_email || b.email || undefined,
+        email: b.owner_email || b.email || clerkEmails[b.business_id] || undefined,
         owner_phone: b.owner_phone || undefined,
         status: b.status || undefined,
         plan: b.plan_type || b.plan || undefined,
