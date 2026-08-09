@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { conversationsCollection } from "@/lib/astra";
 import { requireAdmin } from "@/lib/admin-auth";
+import { notifyChat } from "@/lib/pusher";
 import type { ChatMessage } from "@/app/api/chat/send/route";
 
 export const dynamic = "force-dynamic";
@@ -42,6 +43,9 @@ export async function POST(request: Request) {
             },
             { upsert: true }
         );
+
+        // Push the reply live to the business owner's chat widget
+        await notifyChat(business_id, reply);
 
         return NextResponse.json({ ok: true, message: reply });
     } catch (error) {
