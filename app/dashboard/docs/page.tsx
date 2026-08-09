@@ -1,5 +1,19 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
+function Badge({ tier }: { tier: "trial" | "standard" | "premium" }) {
+    const styles = {
+        trial: "bg-neutral-500/10 text-neutral-400 border-neutral-500/20",
+        standard: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+        premium: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+    };
+    const labels = { trial: "Free Trial", standard: "Standard", premium: "Premium" };
+    return (
+        <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full border whitespace-nowrap ${styles[tier]}`}>
+            {labels[tier]}
+        </span>
+    );
+}
+
 export default function DocsPage() {
     return (
         <div className="max-w-4xl mx-auto space-y-8">
@@ -7,6 +21,76 @@ export default function DocsPage() {
             <div>
                 <h1 className="text-2xl font-semibold text-white tracking-tight">Documentation & Guidelines</h1>
                 <p className="mt-1 text-sm text-neutral-400">Everything you need to know about using nextCall effectively and safely.</p>
+            </div>
+
+            {/* Plans & Included Features */}
+            <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
+                <h2 className="text-lg font-semibold text-white mb-1">Plans & Included Features</h2>
+                <p className="text-xs text-neutral-500 mb-6">Every feature in nextCall, and which plan it comes with.</p>
+
+                <Accordion type="single" collapsible className="w-full space-y-3">
+                    <AccordionItem value="plan-trial" className="bg-white/[0.02] border border-white/[0.06] rounded-xl px-5">
+                        <AccordionTrigger className="text-sm font-medium text-white hover:text-indigo-400 py-4">
+                            <span className="flex items-center gap-3"><Badge tier="trial" /> Free Trial — $0 / 3 days, 50 minutes
+                            </span>
+                        </AccordionTrigger>
+                        <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
+                            <p>Perfect for testing your AI receptionist risk-free. All trial features:</p>
+                            <ul className="list-disc list-inside space-y-1.5 ml-1">
+                                <li><strong className="text-white">AI answers calls 24/7</strong> — full voice AI handling every incoming call.</li>
+                                <li><strong className="text-white">1 phone number</strong> — provisioned when you finish onboarding.</li>
+                                <li><strong className="text-white">Appointment booking + Google Calendar sync</strong> — the AI books appointments and creates calendar events.</li>
+                                <li><strong className="text-white">Basic call dashboard</strong> — live activity feed, Performance & Latest Analytics charts, and full Call Log.</li>
+                                <li><strong className="text-white">Appointment reminders (email only)</strong> — email 24 hours before each appointment.</li>
+                                <li><strong className="text-white">50 minutes included</strong> — call duration is deducted in 1-minute increments.</li>
+                            </ul>
+                            <p className="text-neutral-500 italic">Paid-only features (marked below) are locked during the trial. Upgrade any time from Settings → Billing.</p>
+                        </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="plan-standard" className="bg-white/[0.02] border border-white/[0.06] rounded-xl px-5">
+                        <AccordionTrigger className="text-sm font-medium text-white hover:text-indigo-400 py-4">
+                            <span className="flex items-center gap-3"><Badge tier="standard" /> Standard — $299 / month, 200 minutes
+                            </span>
+                        </AccordionTrigger>
+                        <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
+                            <p>Everything in the Free Trial, plus the full set of business tools:</p>
+                            <ul className="list-disc list-inside space-y-1.5 ml-1">
+                                <li><strong className="text-white">Follow-up emails after every call</strong> — branded summary email to every caller.</li>
+                                <li><strong className="text-white">Appointment booking + email reminders</strong> — email 24h before, SMS 1h before each appointment.</li>
+                                <li><strong className="text-white">Call dashboard & basic analytics</strong> — full Call Log with transcripts, summaries, sentiment, and lead scores.</li>
+                                <li><strong className="text-white">Knowledge base training</strong> — train the AI on your services, FAQ, pricing, and exclusions.</li>
+                                <li><strong className="text-white">Custom greeting</strong> — your AI has its own name, tone, and greeting.</li>
+                                <li><strong className="text-white">Emergency call routing</strong> — urgent callers get forwarded to your phone.</li>
+                                <li><strong className="text-white">Daily summary emails</strong> — every morning: calls, leads, appointments, and sentiment trends.</li>
+                                <li><strong className="text-white">Job-done tracking + review requests</strong> — mark jobs Done/No-show in the Call Log, send the customer a Google review SMS instantly, or let the automatic 24-hour follow-up do it for you.</li>
+                                <li><strong className="text-white">Buy extra minutes</strong> — purchase additional minutes anytime from Settings → Billing.</li>
+                                <li><strong className="text-white">Simulate New Review</strong> — preview how the AI responds to a customer review.</li>
+                                <li><strong className="text-white">Email support</strong> — 24/7 support from the nextCall team.</li>
+                            </ul>
+                            <p className="text-neutral-500 italic">200 minutes included per month. Overage: $0.50/min. Unused minutes do not roll over.</p>
+                        </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="plan-premium" className="bg-white/[0.02] border border-white/[0.06] rounded-xl px-5">
+                        <AccordionTrigger className="text-sm font-medium text-white hover:text-indigo-400 py-4">
+                            <span className="flex items-center gap-3"><Badge tier="premium" /> Premium — $399 / month, 500 minutes
+                            </span>
+                        </AccordionTrigger>
+                        <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
+                            <p>Everything in Standard, plus:</p>
+                            <ul className="list-disc list-inside space-y-1.5 ml-1">
+                                <li><strong className="text-white">3 phone numbers</strong> — and you can add extra numbers any time from the Dashboard.</li>
+                                <li><strong className="text-white">Advanced analytics dashboard</strong> — lead value & revenue tracking, call source breakdown, conversion funnel, peak hours heatmap, and AI performance score.</li>
+                                <li><strong className="text-white">Priority call routing rules</strong> — fine-grained control over how the AI routes calls.</li>
+                                <li><strong className="text-white">Zapier / Make / n8n webhooks</strong> — send call data to 5,000+ apps.</li>
+                                <li><strong className="text-white">Priority support chat</strong> — the in-app chat bubble, bridged to the nextCall team over Telegram, with photo support.</li>
+                                <li><strong className="text-white">Google reviews auto-reply</strong> — AI-written replies to new unreplied Google reviews, posted automatically.</li>
+                            </ul>
+                            <p className="text-neutral-500 italic">500 minutes included per month. Overage: $0.40/min.</p>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
             </div>
 
             {/* Setup Guide */}
@@ -28,6 +112,7 @@ export default function DocsPage() {
                                 <li><strong className="text-white">Services Offered</strong> — List everything you do so the AI can answer accurately.</li>
                                 <li><strong className="text-white">Exclusions</strong> — Critical: tell the AI what you DO NOT do to prevent misinformation.</li>
                                 <li><strong className="text-white">Pricing Rules</strong> — If you have standard pricing, enter it here. The AI will quote prices to callers.</li>
+                                <li><strong className="text-white">Average Job Value</strong> <Badge tier="premium" /> — Entered in Settings → Business Info; powers the lead value & revenue analytics on the Premium dashboard.</li>
                             </ul>
                             <p className="text-neutral-500 italic">Click Save Settings after every change. Your AI updates instantly.</p>
                         </AccordionContent>
@@ -57,13 +142,15 @@ export default function DocsPage() {
                         <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
                             <p>In <strong className="text-white">Settings → Call Routing</strong>, configure how the AI handles different scenarios.</p>
                             <ul className="list-disc list-inside space-y-1.5 ml-1">
-                                <li><strong className="text-white">Forward Emergency Calls</strong> — When enabled, the AI will call your phone if the caller uses emergency keywords.</li>
+                                <li><strong className="text-white">Forward Emergency Calls</strong> — When enabled, the AI will call your phone if the caller uses emergency keywords. <span className="text-neutral-500">(All plans)</span></li>
                                 <li><strong className="text-white">Notify Hot Leads</strong> — Get an instant notification when a high-intent caller is ready to buy.</li>
-                                <li><strong className="text-white">SMS Missed Call</strong> — Auto-texts callers who hang up within 10 seconds: &quot;Sorry we missed you!&quot;</li>
+                                <li><strong className="text-white">SMS Missed Call</strong> — Auto-texts callers who hang up quickly: &quot;Sorry we missed you!&quot;</li>
                                 <li><strong className="text-white">Email Follow-Up</strong> — Sends a branded summary email to every caller after the call ends.</li>
                                 <li><strong className="text-white">Daily Summary</strong> — Get a daily email with: calls answered, leads captured, appointments booked, and sentiment trends.</li>
-                                <li><strong className="text-white">Appointment Reminders</strong> — Auto-SMS 1 hour before and auto-email 24 hours before each appointment.</li>
+                                <li><strong className="text-white">Appointment Reminders</strong> — Auto-SMS 1 hour before and auto-email 24 hours before each appointment. <Badge tier="trial" /> trial: email only.</li>
+                                <li><strong className="text-white">Auto Review Follow-Up</strong> — If you forget to mark a job done, we automatically ask the customer for a Google review 24 hours after the appointment.</li>
                             </ul>
+                            <p className="text-neutral-500 italic">Hot-lead notifications, SMS missed call, email follow-up, and daily summary are included in paid plans (Standard & Premium).</p>
                         </AccordionContent>
                     </AccordionItem>
 
@@ -74,7 +161,7 @@ export default function DocsPage() {
                         <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
                             <p>You need a phone number for your AI to answer calls. Two options:</p>
                             <ul className="list-disc list-inside space-y-1.5 ml-1">
-                                <li><strong className="text-white">Get a New Number</strong> — Go to <strong className="text-white">Dashboard → Numbers</strong> and click &quot;Buy Number&quot;. We provision a local number in your area code instantly.</li>
+                                <li><strong className="text-white">Get a New Number</strong> — Go to <strong className="text-white">Dashboard → Numbers</strong> and click &quot;Buy Number&quot;. We provision a local number in your area code instantly. <span className="text-neutral-500">Trial & Standard: 1 number. Premium: 3 numbers, plus extra numbers available on the Premium plan.</span></li>
                                 <li><strong className="text-white">Port Your Existing Number</strong> — Contact support to initiate a port. Takes 5-10 business days.</li>
                             </ul>
                             <p className="text-neutral-500 italic">Warning: Do not cancel your old phone service until you confirm calls are flowing through nextCall.</p>
@@ -111,6 +198,22 @@ export default function DocsPage() {
                                 <li>Check your <strong className="text-white">Dashboard → Calls</strong> to see the transcript, summary, and sentiment.</li>
                             </ul>
                             <p className="text-neutral-500 italic">Make adjustments in Settings and re-test until everything sounds natural.</p>
+                        </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="step-7" className="bg-white/[0.02] border border-white/[0.06] rounded-xl px-5">
+                        <AccordionTrigger className="text-sm font-medium text-white hover:text-indigo-400 py-4">
+                            Step 7: Track Jobs & Collect Reviews
+                        </AccordionTrigger>
+                        <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
+                            <p>Review requests are only sent to customers who actually had a job done — never to random callers. <Badge tier="standard" /> Standard & Premium</p>
+                            <ul className="list-disc list-inside space-y-1.5 ml-1">
+                                <li><strong className="text-white">Mark Done</strong> — In <strong className="text-white">Dashboard → Calls</strong>, booked calls show &quot;Mark Done&quot; and &quot;No-show&quot; buttons. Tap &quot;Mark Done&quot; when the job is complete: the customer instantly receives a Google review SMS, and the completed job is recorded in your AI&apos;s context (so it knows if they call back).</li>
+                                <li><strong className="text-white">No-show</strong> — If the customer never showed up or cancelled, tap &quot;No-show&quot;. No review SMS is ever sent for that call.</li>
+                                <li><strong className="text-white">Automatic follow-up</strong> — Forgot to mark a job done? If an appointment passes and nothing is marked within 24 hours, nextCall automatically sends the review SMS and marks the job as auto-done. Turn this off anytime in Settings → Call Routing → &quot;Auto Review Follow-Up&quot;.</li>
+                                <li><strong className="text-white">Request Review</strong> — For done jobs, the review button can also trigger the AI to ask the customer for a review during their next call.</li>
+                            </ul>
+                            <p className="text-neutral-500 italic">The review link used in the SMS is the Google review link configured for your account.</p>
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
@@ -176,14 +279,26 @@ export default function DocsPage() {
                             How do Google Reviews work?
                         </AccordionTrigger>
                         <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
-                            <ol className="list-decimal list-inside space-y-1.5 ml-1">
-                                <li>Every few hours, nextCall checks your Google Business Profile for new unreplied reviews.</li>
-                                <li>For each unreplied review, the AI generates a personalized reply.</li>
-                                <li>The reply is automatically posted to Google Maps on your behalf.</li>
-                                <li>Positive reviews get a grateful reply with local SEO keywords.</li>
-                                <li>Negative reviews get an apology and an invitation to contact your office directly.</li>
-                            </ol>
-                            <p className="text-neutral-500 italic">Requires Google Account integration enabled in Settings → Integrations.</p>
+                            <p>Two separate review features work together:</p>
+                            <ul className="list-disc list-inside space-y-1.5 ml-1">
+                                <li><strong className="text-white">Review requests (SMS)</strong> <Badge tier="standard" /> — after a job is marked done (or auto-followed-up 24h after the appointment), the customer gets an SMS with your Google review link.</li>
+                                <li><strong className="text-white">Auto-replies to Google reviews</strong> <Badge tier="premium" /> — every few hours, nextCall checks your Google Business Profile for new unreplied reviews, generates a personalized reply, and posts it automatically. Positive reviews get a grateful reply with local SEO keywords; negative reviews get an apology and an invitation to contact your office.</li>
+                            </ul>
+                            <p className="text-neutral-500 italic">Auto-replies require Google Account integration enabled in Settings → Integrations.</p>
+                        </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="how-5" className="bg-white/[0.02] border border-white/[0.06] rounded-xl px-5">
+                        <AccordionTrigger className="text-sm font-medium text-white hover:text-indigo-400 py-4">
+                            How does the support chat work?
+                        </AccordionTrigger>
+                        <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
+                            <p>Premium plan includes <strong className="text-white">priority support chat</strong> — the chat bubble in the bottom-right corner of your dashboard.</p>
+                            <ul className="list-disc list-inside space-y-1.5 ml-1">
+                                <li>Send a message (text or photo) and it is delivered straight to the nextCall team over Telegram.</li>
+                                <li>The team&apos;s replies appear live in the chat bubble — no emails, no waiting.</li>
+                                <li>When the team replies, you&apos;ll see the response appear instantly, with a &quot;Reply delivered&quot; confirmation.</li>
+                            </ul>
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
@@ -200,7 +315,7 @@ export default function DocsPage() {
                             Google Calendar
                         </AccordionTrigger>
                         <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
-                            <p>When connected, the AI automatically creates calendar events for appointments booked over the phone.</p>
+                            <p>When connected, the AI automatically creates calendar events for appointments booked over the phone. <span className="text-neutral-500">Included on all plans.</span></p>
                             <ul className="list-disc list-inside space-y-1.5 ml-1">
                                 <li>Go to <strong className="text-white">Settings → Integrations</strong> → Click &quot;Connect Google Account&quot;.</li>
                                 <li>Authorize calendar.events and business.manage scopes.</li>
@@ -231,12 +346,27 @@ export default function DocsPage() {
                             Webhooks (Zapier / Make / n8n)
                         </AccordionTrigger>
                         <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
-                            <p>Available on the Premium plan. Send call data to 5,000+ apps via webhooks.</p>
+                            <p><Badge tier="premium" /> Available on the Premium plan. Send call data to 5,000+ apps via webhooks.</p>
                             <ul className="list-disc list-inside space-y-1.5 ml-1">
                                 <li>Go to <strong className="text-white">Settings → Integrations</strong> → Enter your webhook URL in the Webhooks field.</li>
                                 <li>When a call is processed, nextCall sends a POST request with full call data to your webhook URL.</li>
                                 <li>Use this to trigger workflows in Zapier, Make, n8n, or any custom endpoint.</li>
                                 <li>Data includes: call_id, customer name, phone, sentiment, lead quality, appointment status, and summary.</li>
+                            </ul>
+                        </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="int-4" className="bg-white/[0.02] border border-white/[0.06] rounded-xl px-5">
+                        <AccordionTrigger className="text-sm font-medium text-white hover:text-indigo-400 py-4">
+                            Google Business Profile (Reviews)
+                        </AccordionTrigger>
+                        <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
+                            <p>Connect your Google Business Profile so nextCall can reply to customer reviews automatically. <Badge tier="premium" /></p>
+                            <ul className="list-disc list-inside space-y-1.5 ml-1">
+                                <li>Go to <strong className="text-white">Settings → Integrations</strong> → Click &quot;Connect Google Account&quot; and authorize the business.manage permission.</li>
+                                <li>Once connected, nextCall checks daily for new unreplied reviews and posts an AI-written response.</li>
+                                <li>You can preview how the AI responds using <strong className="text-white">Simulate New Review</strong> in the dashboard navigation.</li>
+                                <li>Disconnect anytime from the same screen — this stops review replies and calendar events.</li>
                             </ul>
                         </AccordionContent>
                     </AccordionItem>
@@ -286,11 +416,13 @@ export default function DocsPage() {
                         </AccordionTrigger>
                         <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
                             <ul className="list-disc list-inside space-y-1.5 ml-1">
-                                <li>Your plan includes a set number of minutes per billing cycle.</li>
-                                <li>Minutes are calculated as total call duration across all calls.</li>
+                                <li>Your plan includes a set number of minutes per billing cycle: Trial 50, Standard 200, Premium 500.</li>
+                                <li>Minutes are calculated as total call duration across all calls, in 1-minute increments.</li>
                                 <li>When you reach 80%, 90%, and 100% usage, you&apos;ll receive in-app notifications and email alerts.</li>
                                 <li>If you exceed your limit, overage rates apply ($0.50/min Standard, $0.40/min Premium).</li>
-                                <li>You can upgrade your plan anytime from the Settings → Billing page.</li>
+                                <li><strong className="text-white">Buy extra minutes</strong> <Badge tier="standard" /> — need more time before your cycle resets? Purchase additional minutes from Settings → Billing.</li>
+                                <li><strong className="text-white">Referral bonus</strong> — share your referral code (Settings → Billing) with other businesses; you earn bonus minutes when they sign up.</li>
+                                <li>You can upgrade or downgrade your plan anytime from the Settings → Billing page.</li>
                                 <li>Unused minutes do not roll over to the next cycle.</li>
                             </ul>
                         </AccordionContent>
@@ -333,6 +465,11 @@ export default function DocsPage() {
                     <div className="p-5 rounded-xl bg-rose-500/[0.05] border border-rose-500/10">
                         <h3 className="text-sm font-medium text-white">Phone Number Changes Are Permanent</h3>
                         <p className="text-xs text-neutral-400 mt-1.5 leading-relaxed">If you delete a phone number from your nextCall dashboard, it is permanently removed from our system and cannot be recovered. Before deleting a number, make sure you have updated your Google Business Profile, website, and all marketing materials with the new number first.</p>
+                    </div>
+
+                    <div className="p-5 rounded-xl bg-rose-500/[0.05] border border-rose-500/10">
+                        <h3 className="text-sm font-medium text-white">Review SMS Sends Automatically</h3>
+                        <p className="text-xs text-neutral-400 mt-1.5 leading-relaxed">Once an appointment passes, nextCall sends a review request SMS to the customer after 24 hours unless you mark the job as &quot;Done&quot; or &quot;No-show&quot;. Turn off &quot;Auto Review Follow-Up&quot; in Settings → Call Routing if you prefer to control every message manually.</p>
                     </div>
 
                     <div className="p-5 rounded-xl bg-rose-500/[0.05] border border-rose-500/10">
