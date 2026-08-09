@@ -64,6 +64,8 @@ export async function POST(request: Request) {
                     last_activity: message.at,
                     // New business message = unread for the admin
                     read_by_admin_at: null,
+                    // The business is actively chatting right now
+                    read_by_business_at: new Date().toISOString(),
                 },
             },
             { upsert: true }

@@ -23,9 +23,18 @@ export async function GET() {
             })
         );
 
-        return NextResponse.json({ messages: withPhotos });
+        const readAt = typeof conv?.read_by_business_at === "string" ? conv.read_by_business_at : null;
+        const unreadCount = readAt
+            ? messages.filter((m) => {
+                  const role = (m as Record<string, unknown>).role;
+                  const at = (m as Record<string, unknown>).at;
+                  return role === "owner" && typeof at === "string" && at > readAt;
+              }).length
+            : messages.filter((m) => (m as Record<string, unknown>).role === "owner").length;
+
+        return NextResponse.json({ messages: withPhotos, unread_count: unreadCount });
     } catch (error) {
         console.error("Chat history error:", error);
-        return NextResponse.json({ messages: [] });
+        return NextResponse.json({ messages: [], unread_count: 0 });
     }
 }

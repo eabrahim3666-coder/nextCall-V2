@@ -37,14 +37,43 @@ export default function ChatWidget({ businessId }: { businessId: string }) {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState("");
     const [sending, setSending] = useState(false);
+    const [unread, setUnread] = useState(0);
+    const openRef = useRef(false);
     const fileRef = useRef<HTMLInputElement>(null);
     const listRef = useRef<HTMLDivElement>(null);
+
+    openRef.current = open;
+
+    const notifyNewMessage = () => {
+        try {
+            if ("Notification" in window && Notification.permission === "granted" && document.hidden) {
+                new Notification("💬 New reply from support", { body: "You have a new message in Support Chat." });
+            }
+        } catch {
+            /* notifications unavailable */
+        }
+        try {
+            const ctx = new AudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = 740;
+            gain.gain.setValueAtTime(0.08, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.3);
+        } catch {
+            /* audio unavailable */
+        }
+    };
 
     useEffect(() => {
         fetch("/api/chat/history")
             .then((r) => r.json())
             .then((data) => {
                 if (Array.isArray(data.messages)) setMessages(data.messages);
+                if (typeof data.unread_count === "number") setUnread(data.unread_count);
             })
             .catch(() => {});
     }, []);
@@ -54,7 +83,13 @@ export default function ChatWidget({ businessId }: { businessId: string }) {
         if (!pusher) return;
         const channel = pusher.subscribe(`private-business-${businessId}`);
         const handler = (msg: ChatMessage) => {
-            if (msg?.role === "owner") setMessages((prev) => [...prev, msg]);
+            if (msg?.role === "owner") {
+                setMessages((prev) => [...prev, msg]);
+                if (!openRef.current) {
+                    setUnread((u) => u + 1);
+                    notifyNewMessage();
+                }
+            }
         };
         channel.bind("chat:new", handler);
         return () => {
@@ -66,6 +101,15 @@ export default function ChatWidget({ businessId }: { businessId: string }) {
     useEffect(() => {
         if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
     }, [messages, open]);
+
+    const toggleOpen = () => {
+        const next = !open;
+        setOpen(next);
+        if (next) {
+            setUnread(0);
+            fetch("/api/chat/read", { method: "POST" }).catch(() => {});
+        }
+    };
 
     const appendError = (text: string) =>
         setMessages((prev) => [...prev, { id: `err_${Date.now()}`, role: "error", content: text, at: new Date().toISOString() }]);
@@ -177,11 +221,16 @@ export default function ChatWidget({ businessId }: { businessId: string }) {
             )}
 
             <button
-                onClick={() => setOpen(!open)}
-                className="flex items-center justify-center w-14 h-14 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-600/20 transition-all"
+                onClick={toggleOpen}
+                className="relative flex items-center justify-center w-14 h-14 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-600/20 transition-all"
                 aria-label="Support chat"
             >
                 <MessageCircle className="h-6 w-6" />
+                {unread > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 border-2 border-[#0a0a0a] text-white text-[10px] font-bold flex items-center justify-center">
+                        {unread > 9 ? "9+" : unread}
+                    </span>
+                )}
             </button>
         </div>
     );
