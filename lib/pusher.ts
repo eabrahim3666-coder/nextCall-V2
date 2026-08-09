@@ -74,3 +74,20 @@ export async function notifyChat(
     console.error(`[chat] Failed to push message to ${businessId}:`, error);
   }
 }
+
+/**
+ * Push a realtime event to the admin support-chat panel.
+ * Safe to call anywhere on the server — never throws.
+ */
+export async function notifyChatAdmins(payload: Record<string, unknown>): Promise<void> {
+  const pusher = getPusher();
+  if (!pusher) {
+    console.log("[chat] Pusher not configured, skipping admin push");
+    return;
+  }
+  try {
+    await pusher.trigger("private-admin-chat", "chat:new", payload);
+  } catch (error) {
+    console.error("[chat] Failed to push message to admin panel:", error);
+  }
+}

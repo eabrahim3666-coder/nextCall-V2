@@ -117,7 +117,7 @@ export default function ChatWidget({ businessId }: { businessId: string }) {
                             </div>
                             <div>
                                 <p className="text-sm font-semibold text-white">Support Chat</p>
-                                <p className="text-[10px] text-neutral-500">Replies go to your Telegram</p>
+                                <p className="text-[10px] text-neutral-500">Our team replies here</p>
                             </div>
                         </div>
                         <button onClick={() => setOpen(false)} className="text-neutral-500 hover:text-white transition-colors">
@@ -127,7 +127,7 @@ export default function ChatWidget({ businessId }: { businessId: string }) {
 
                     <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-3">
                         {messages.length === 0 && (
-                            <p className="text-center text-xs text-neutral-600 mt-10">No messages yet. Your messages will be forwarded to your Telegram where you can reply.</p>
+                            <p className="text-center text-xs text-neutral-600 mt-10">No messages yet. Ask us anything — we reply from the support team.</p>
                         )}
                         {messages.map((m) => (
                             <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>

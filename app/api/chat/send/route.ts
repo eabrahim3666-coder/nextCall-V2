@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { businessesCollection, conversationsCollection, saveChatPhoto } from "@/lib/astra";
-import { sendTelegramMessage, sendTelegramPhoto } from "@/lib/telegram";
-import { escapeHtml } from "@/lib/security";
+import { notifyAdminChat } from "@/lib/notify-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +12,7 @@ export type ChatMessage = {
     at: string;
     photo?: string;
     photoId?: string;
+    sender?: "business" | "admin";
     telegram_message_id?: number;
 };
 
@@ -38,6 +38,7 @@ export async function POST(request: Request) {
         const message: ChatMessage = {
             id: `m_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
             role: "user",
+            sender: "business",
             content: content || "📷 Photo",
             at: new Date().toISOString(),
         };
@@ -48,28 +49,6 @@ export async function POST(request: Request) {
             if (!saved) return NextResponse.json({ error: "Failed to store photo. Try again." }, { status: 500 });
         }
 
-        const senderName = String(business.owner_name || business.business_name || business.owner_email || "Dashboard user").trim();
-        const senderEmail = business.owner_email ? String(business.owner_email) : null;
-        const businessName = String(business.business_name || "Your business");
-
-        const header =
-            `📞 <b>New chat message</b>\n` +
-            `<b>From:</b> ${escapeHtml(senderName)}${senderEmail ? ` (${escapeHtml(senderEmail)})` : ""}\n` +
-            `<b>Business:</b> ${escapeHtml(businessName)}\n` +
-            `──────────`;
-        const caption = `${header}\n${escapeHtml(message.content)}\n<i>└ Reply to this message to respond</i>`;
-
-        let tg: { ok: boolean; message_id?: number; error?: string };
-        if (photo) {
-            const mime = photo.split(";")[0].split(":")[1] || "image/jpeg";
-            tg = await sendTelegramPhoto(caption, photo, mime);
-        } else {
-            tg = await sendTelegramMessage(caption);
-        }
-        if (tg.ok && tg.message_id) {
-            message.telegram_message_id = tg.message_id;
-        }
-
         const filter = { business_id: userId, kind: "support" };
         const conv = await conversationsCollection.findOne(filter);
         const existing = Array.isArray(conv?.messages) ? conv.messages : [];
@@ -77,11 +56,37 @@ export async function POST(request: Request) {
 
         await conversationsCollection.updateOne(
             filter,
-            { $set: { business_id: userId, kind: "support", messages, last_activity: message.at } },
+            {
+                $set: {
+                    business_id: userId,
+                    kind: "support",
+                    messages,
+                    last_activity: message.at,
+                    // New business message = unread for the admin
+                    read_by_admin_at: null,
+                },
+            },
             { upsert: true }
         );
 
-        return NextResponse.json({ ok: true, message: photoForReply ? { ...message, photo: photoForReply } : message, telegram_sent: tg.ok });
+        // Notify the admin (admin panel realtime + Telegram pinger, pluggable)
+        const senderName = String(business.owner_name || business.business_name || business.owner_email || "Dashboard user").trim();
+        const businessName = String(business.business_name || "Your business");
+        await notifyAdminChat({
+            businessName,
+            senderName,
+            content: content || "📷 Photo",
+            hasPhoto: Boolean(photo),
+        });
+        const { notifyChatAdmins } = await import("@/lib/pusher");
+        await notifyChatAdmins({
+            message: photoForReply ? { ...message, photo: photoForReply } : message,
+            business_name: businessName,
+            sender_name: senderName,
+            business_id: userId,
+        }).catch(() => {});
+
+        return NextResponse.json({ ok: true, message: photoForReply ? { ...message, photo: photoForReply } : message });
     } catch (error) {
         console.error("Chat send error:", error);
         return NextResponse.json({ error: `Failed to send: ${(error as Error)?.message || "unknown"}` }, { status: 500 });

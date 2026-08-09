@@ -33,6 +33,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 </div>
 
                 <div className="flex items-center gap-4">
+                    <Link href="/admin/chat" className="text-xs text-neutral-400 hover:text-white transition-colors">
+                        Support Chat →
+                    </Link>
                     <Link href="/dashboard" className="text-xs text-neutral-400 hover:text-white transition-colors">
                         Back to User Dashboard →
                     </Link>

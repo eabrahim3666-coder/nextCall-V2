@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import Pusher from "pusher";
 import { findBusinessByUserId } from "@/lib/business";
 
@@ -29,6 +29,18 @@ export async function POST(request: Request) {
 
   if (!socketId || !channelName) {
     return NextResponse.json({ error: "Missing socket_id or channel_name" }, { status: 400 });
+  }
+
+  if (channelName === "private-admin-chat") {
+    const user = await currentUser();
+    const isAdminByRole = user?.publicMetadata?.role === "admin" || user?.privateMetadata?.role === "admin";
+    const bossEmails = process.env.ADMIN_EMAILS?.split(",").map((e) => e.trim().toLowerCase()) || [];
+    const currentEmail = user?.emailAddresses?.[0]?.emailAddress?.toLowerCase();
+    if (!isAdminByRole && !bossEmails.includes(currentEmail || "")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    const adminAuth = pusher.authorizeChannel(socketId, channelName);
+    return NextResponse.json(adminAuth);
   }
 
   const expectedChannel = `private-business-${userId}`;
