@@ -135,7 +135,7 @@ function Contact({
                 <div>
                   <p className="text-ds-label text-ds-text-primary">Email</p>
                   <p className="text-ds-caption text-ds-text-muted">
-                    hello@nextcallchat.com
+                    Support replies from our team mailbox instantly
                   </p>
                 </div>
               </div>
