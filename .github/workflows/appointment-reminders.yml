@@ -1,0 +1,15 @@
+name: Hourly Appointment Reminders
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+jobs:
+  reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run appointment-reminders cron
+        run: curl -sS -f --max-time 90 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/appointment-reminders"
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
