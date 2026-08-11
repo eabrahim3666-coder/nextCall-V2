@@ -40,9 +40,9 @@ export async function GET(request: Request) {
             const business = await businessesCollection.findOne({ business_id: appt.business_id });
             
             if (!business || !business.routing_rules?.appointment_reminders) continue;
-            if (!business.twilio_number) continue; // Need a number to text from
-
-            // Trial gets email reminders only — no SMS
+            const smsNumber = Array.isArray(business.twilio_numbers) && business.twilio_numbers.length > 0
+                ? business.twilio_numbers[0]
+                : business.twilio_number;
             const isTrial = (business.plan_type || 'standard') === 'trial';
 
             try {
@@ -78,10 +78,10 @@ export async function GET(request: Request) {
                 }
 
                 // 4b. SMS fallback — if no email or email failed (paid plans only)
-                if (!sent && !isTrial && business.twilio_number && appt.customer_phone) {
+                if (!sent && !isTrial && smsNumber && appt.customer_phone) {
                     await twilioClient.messages.create({
                         body: `Reminder: You have an appointment with ${business.business_name || 'us'} at ${apptTime} today. Reply HELP to reschedule.`,
-                        from: business.twilio_number,
+                        from: smsNumber,
                         to: appt.customer_phone,
                     });
                     sent = true;
