@@ -54,7 +54,7 @@ export async function GET(request: Request) {
                 if (appt.customer_email && resend) {
                     try {
                         await resend.emails.send({
-                            from: `${business.business_name || 'nextCall'} <updates@${process.env.RESEND_FROM_DOMAIN || 'resend.dev'}>`,
+                            from: `${business.business_name || 'nextCall'} <updates@${process.env.RESEND_FROM_DOMAIN || 'getnextcall.com'}>`,
                             to: appt.customer_email,
                             subject: `Appointment Reminder — ${apptTime} today`,
                             html: `

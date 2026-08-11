@@ -69,7 +69,7 @@ export async function GET(req: Request) {
             const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://getnextcall.com';
             try {
                 await resend.emails.send({
-                    from: `nextCall <updates@${process.env.RESEND_FROM_DOMAIN || 'resend.dev'}>`,
+                    from: `nextCall <updates@${process.env.RESEND_FROM_DOMAIN || 'getnextcall.com'}>`,
                     to: ownerEmail,
                     subject: 'Your 3-day free trial has ended',
                     html: `

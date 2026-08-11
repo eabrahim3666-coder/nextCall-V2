@@ -252,7 +252,7 @@ Output ONLY valid JSON.`
 if (!resend) throw new Error("Email service is not configured");
         await activity({ type: "email_sending", title: "Sending confirmation email", message: `To ${customerEmail}`, icon: "lucide:mail", status: "pending", agent_state: "Sending Confirmation", href: "/dashboard/calls" });
         if (resend) await resend.emails.send({
-          from: "Next Call Chat <onboarding@resend.dev>",
+from: "Next Call Chat <support@getnextcall.com>",
           to: [customerEmail],
           subject: `Thanks for calling ${business.business_name || 'us'}!`,
           html: `
@@ -356,7 +356,7 @@ if (!resend) throw new Error("Email service is not configured");
 
     if (usagePercent >= 100 && business) {
       try {
-         if (resend) await resend.emails.send({ from: "Next Call Chat <onboarding@resend.dev>", to: [process.env.SUPPORT_EMAIL || "owner@business.com"], subject: `Minutes Exceeded — ${business.business_name}`, html: `<div style="background:#0a0a0a;padding:32px;border-radius:16px;font-family:Inter,sans-serif;color:#fff;max-width:500px;"><h2 style="margin:0 0 16px;font-size:18px;color:#f43f5e;">Minutes Limit Exceeded</h2><p style="margin:0 0 16px;color:#a3a3a3;font-size:14px;">${escapeHtml(business.business_name)} has used <strong style="color:#fff;">${newTotalMinutes} of ${minutesLimit} minutes</strong>. Overages at $${overageRate}/min.</p></div>` });
+         if (resend) await resend.emails.send({ from: "Next Call Chat <support@getnextcall.com>", to: [process.env.SUPPORT_EMAIL || "owner@business.com"], subject: `Minutes Exceeded — ${business.business_name}`, html: `<div style="background:#0a0a0a;padding:32px;border-radius:16px;font-family:Inter,sans-serif;color:#fff;max-width:500px;"><h2 style="margin:0 0 16px;font-size:18px;color:#f43f5e;">Minutes Limit Exceeded</h2><p style="margin:0 0 16px;color:#a3a3a3;font-size:14px;">${escapeHtml(business.business_name)} has used <strong style="color:#fff;">${newTotalMinutes} of ${minutesLimit} minutes</strong>. Overages at $${overageRate}/min.</p></div>` });
         await notificationsCollection.insertOne({ business_id: businessId, type: "minutes_100", title: "Minutes Exceeded", message: `You've used ${newTotalMinutes}/${minutesLimit} minutes. Overage rate: $${overageRate}/min.`, read: false, created_at: new Date().toISOString() });
       } catch (e) { console.error(e); }
       await activity({ type: "minutes_100", title: "Minutes limit exceeded", message: `You've used ${newTotalMinutes} of ${minutesLimit} minutes. Overage: $${overageRate}/min.`, icon: "lucide:gauge", status: "error" });

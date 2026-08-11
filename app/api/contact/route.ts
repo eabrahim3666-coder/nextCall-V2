@@ -3,7 +3,7 @@ import { Resend } from "resend";
 import { rateLimit } from "@/lib/rate-limit";
 
 // Change this to your actual support email when you have a custom domain
-const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || "onboarding@resend.dev";
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || "support@getnextcall.com";
 
 // Helper to escape HTML and prevent script injection in emails
 const escapeHtml = (unsafe: string) => String(unsafe || "")
