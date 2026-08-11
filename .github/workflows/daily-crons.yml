@@ -3,10 +3,7 @@ name: Daily Cron Jobs
 on:
   schedule:
     - cron: "0 0 * * *" # cleanup-cancelled
-    - cron: "0 2 * * *" # sync-reviews
     - cron: "0 3 * * *" # daily-summary
-    - cron: "0 4 * * *" # expire-trials
-    - cron: "0 5 * * *" # job-done-followup
   workflow_dispatch:
 
 env:
@@ -20,18 +17,6 @@ jobs:
         if: env.SCHEDULE == '0 0 * * *' || github.event_name == 'workflow_dispatch'
         run: curl -sS -f --max-time 90 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/cleanup-cancelled"
 
-      - name: Sync reviews
-        if: env.SCHEDULE == '0 2 * * *' || github.event_name == 'workflow_dispatch'
-        run: curl -sS -f --max-time 90 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/sync-reviews"
-
       - name: Daily summary
         if: env.SCHEDULE == '0 3 * * *' || github.event_name == 'workflow_dispatch'
         run: curl -sS -f --max-time 90 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/daily-summary"
-
-      - name: Expire trials
-        if: env.SCHEDULE == '0 4 * * *' || github.event_name == 'workflow_dispatch'
-        run: curl -sS -f --max-time 90 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/expire-trials"
-
-      - name: Job-done followup
-        if: env.SCHEDULE == '0 5 * * *' || github.event_name == 'workflow_dispatch'
-        run: curl -sS -f --max-time 90 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/job-done-followup"

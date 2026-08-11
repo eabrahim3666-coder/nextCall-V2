@@ -1,0 +1,22 @@
+name: Hourly Cron Jobs
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+jobs:
+  hourly:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Appointment reminders
+        run: curl -sS -f --max-time 90 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/appointment-reminders"
+
+      - name: Job-done followup
+        run: curl -sS -f --max-time 90 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/job-done-followup"
+
+      - name: Sync reviews
+        run: curl -sS -f --max-time 90 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/sync-reviews"
+
+      - name: Expire trials
+        run: curl -sS -f --max-time 90 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/expire-trials"
