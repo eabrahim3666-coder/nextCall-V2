@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { callsCollection, businessesCollection } from "@/lib/astra";
-import { sendReviewSms, recordCompletedJob, asCallLike } from "@/lib/review-sms";
+import { sendReviewRequest, recordCompletedJob, asCallLike } from "@/lib/review-sms";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         // Notify the AI agent's context — completed jobs are stored on the business
         await recordCompletedJob(asCallLike(call));
 
-        const smsSent = await sendReviewSms(asCallLike(call));
+        const smsSent = await sendReviewRequest(asCallLike(call));
         if (smsSent) {
             await callsCollection.updateOne(
                 { call_id, business_id: userId },

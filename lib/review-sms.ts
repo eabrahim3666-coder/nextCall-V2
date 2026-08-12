@@ -1,10 +1,13 @@
 import twilioClient from "@/lib/twilio";
 import { businessesCollection } from "@/lib/astra";
+import { Resend } from "resend";
+import { escapeHtml } from "@/lib/security";
 
 type CallLike = {
     business_id?: string;
     business_name?: string;
     customer_phone?: string;
+    customer_email?: string;
     customer_name?: string;
     call_id?: string;
 };
@@ -14,15 +17,44 @@ export function asCallLike(call: Record<string, any>): CallLike {
         business_id: typeof call.business_id === "string" ? call.business_id : undefined,
         business_name: typeof call.business_name === "string" ? call.business_name : undefined,
         customer_phone: typeof call.customer_phone === "string" ? call.customer_phone : undefined,
+        customer_email: typeof call.customer_email === "string" ? call.customer_email : undefined,
         customer_name: typeof call.customer_name === "string" ? call.customer_name : undefined,
         call_id: typeof call.call_id === "string" ? call.call_id : undefined,
     };
 }
 
-export async function sendReviewSms(call: CallLike): Promise<boolean> {
+export async function sendReviewRequest(call: CallLike): Promise<boolean> {
     try {
-        if (!call.customer_phone) return false;
         const business = await businessesCollection.findOne({ business_id: call.business_id });
+        const businessName = business?.business_name || call.business_name || "us";
+        const reviewLink = process.env.NEXT_PUBLIC_GOOGLE_REVIEW_LINK || "https://google.com";
+
+        // 1. Email first — if we captured the customer's email
+        if (call.customer_email) {
+            try {
+                const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+                if (!resend) throw new Error("Resend not configured");
+                await resend.emails.send({
+                    from: `${businessName} <updates@${process.env.RESEND_FROM_DOMAIN || "getnextcall.com"}>`,
+                    to: call.customer_email,
+                    subject: `We'd love your feedback, ${call.customer_name || "friend"}!`,
+                    html: `
+                        <div style="font-family: Inter, sans-serif; background: #050505; padding: 40px 32px; max-width: 480px; margin: 0 auto; border-radius: 16px;">
+                            <h2 style="font-size: 20px; font-weight: 600; color: #fff; margin: 0 0 8px;">We'd love your feedback!</h2>
+                            <p style="color: #737373; font-size: 14px; margin: 0 0 24px;">Hi${call.customer_name ? ` ${escapeHtml(call.customer_name)}` : ""}! Thanks for choosing ${escapeHtml(businessName)}. If you loved our service, would you mind leaving us a quick review? It helps us a lot! ⭐</p>
+                            <a href="${reviewLink}" style="display: inline-block; background: #6366f1; color: #fff; text-decoration: none; padding: 14px 24px; border-radius: 10px; font-size: 14px; font-weight: 600;">Leave a review</a>
+                            <p style="color: #525252; font-size: 12px; margin: 24px 0 0;">${escapeHtml(reviewLink)}</p>
+                        </div>
+                    `,
+                });
+                return true;
+            } catch (emailError) {
+                console.error(`[review-sms] email failed for call ${call.call_id}, falling back to SMS:`, emailError);
+            }
+        }
+
+        // 2. SMS fallback — if no email or email failed
+        if (!call.customer_phone) return false;
         const fromNumber =
             (Array.isArray(business?.twilio_numbers) && business.twilio_numbers[0]) ||
             business?.twilio_number ||
@@ -32,7 +64,7 @@ export async function sendReviewSms(call: CallLike): Promise<boolean> {
         await twilioClient.messages.create({
             from: fromNumber,
             to: call.customer_phone,
-            body: `Hi! Thanks for choosing ${call.business_name || "us"}. If you loved our service, would you mind leaving us a quick review? It helps us a lot! ⭐\n\n${process.env.NEXT_PUBLIC_GOOGLE_REVIEW_LINK || "https://google.com"}`,
+            body: `Hi! Thanks for choosing ${call.business_name || "us"}. If you loved our service, would you mind leaving us a quick review? It helps us a lot! ⭐\n\n${reviewLink}`,
         });
         return true;
     } catch (error) {

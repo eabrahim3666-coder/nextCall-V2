@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { callsCollection, businessesCollection } from "@/lib/astra";
 import { hasValidSecret } from "@/lib/security";
-import { sendReviewSms, recordCompletedJob, asCallLike } from "@/lib/review-sms";
+import { sendReviewRequest, recordCompletedJob, asCallLike } from "@/lib/review-sms";
 
 const FOLLOWUP_HOURS = 24;
 
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
                 if (business.routing_rules?.review_followup === false) continue;
                 if (call.review_sms_sent_at || call.review_status === "link_sent") continue;
 
-                const smsSent = await sendReviewSms(asCallLike(call));
+                const smsSent = await sendReviewRequest(asCallLike(call));
                 if (smsSent) {
                     await callsCollection.updateOne(
                         { call_id: call.call_id },

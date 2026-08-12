@@ -2,7 +2,6 @@ import { auth } from "@clerk/nextjs/server";
 import { callsCollection } from "@/lib/astra";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import RequestReviewButton from "../_components/RequestReviewButton";
 import JobStatusButtons from "../_components/JobStatusButtons";
 import { findBusinessByUserId } from "@/lib/business";
 
@@ -103,16 +102,7 @@ export default async function CallsPage() {
                                             </td>
                                             <td className="py-4 px-6 align-top">
                                                 {!isTrial && call.appointment_booked && (
-                                                    call.job_status === "done" || call.job_status === "auto_done" ? (
-                                                        <div className="flex flex-col items-start gap-1.5">
-                                                            <JobStatusButtons callId={call.call_id} jobStatus={call.job_status} />
-                                                            {call.review_status !== "link_sent" && call.review_status !== "awaiting_owner_reply" && (
-                                                                <RequestReviewButton callId={call.call_id} initialStatus={call.review_status} />
-                                                            )}
-                                                        </div>
-                                                    ) : (
-                                                        <JobStatusButtons callId={call.call_id} jobStatus={call.job_status} />
-                                                    )
+                                                    <JobStatusButtons callId={call.call_id} jobStatus={call.job_status} />
                                                 )}
                                             </td>
                                         </tr>
