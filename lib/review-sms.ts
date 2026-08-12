@@ -37,13 +37,13 @@ export async function sendReviewRequest(call: CallLike): Promise<boolean> {
                 await resend.emails.send({
                     from: `${businessName} <updates@${process.env.RESEND_FROM_DOMAIN || "getnextcall.com"}>`,
                     to: call.customer_email,
-                    subject: `We'd love your feedback, ${call.customer_name || "friend"}!`,
+                    subject: `Quick question about your visit to ${businessName}`,
                     html: `
-                        <div style="font-family: Inter, sans-serif; background: #050505; padding: 40px 32px; max-width: 480px; margin: 0 auto; border-radius: 16px;">
-                            <h2 style="font-size: 20px; font-weight: 600; color: #fff; margin: 0 0 8px;">We'd love your feedback!</h2>
-                            <p style="color: #737373; font-size: 14px; margin: 0 0 24px;">Hi${call.customer_name ? ` ${escapeHtml(call.customer_name)}` : ""}! Thanks for choosing ${escapeHtml(businessName)}. If you loved our service, would you mind leaving us a quick review? It helps us a lot! ⭐</p>
-                            <a href="${reviewLink}" style="display: inline-block; background: #6366f1; color: #fff; text-decoration: none; padding: 14px 24px; border-radius: 10px; font-size: 14px; font-weight: 600;">Leave a review</a>
-                            <p style="color: #525252; font-size: 12px; margin: 24px 0 0;">${escapeHtml(reviewLink)}</p>
+                        <div style="font-family: Arial, Helvetica, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+                            <p style="font-size: 15px; line-height: 1.6; color: #333333; margin: 0 0 16px;">Hi${call.customer_name ? ` ${escapeHtml(call.customer_name)}` : ""},</p>
+                            <p style="font-size: 15px; line-height: 1.6; color: #333333; margin: 0 0 16px;">Thank you for choosing ${escapeHtml(businessName)}. If you had a good experience, we'd appreciate it if you shared it on Google — it genuinely helps our small team.</p>
+                            <p style="margin: 0 0 24px;"><a href="${reviewLink}" style="background: #1a73e8; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 6px; font-size: 14px; display: inline-block;">Share your experience</a></p>
+                            <p style="font-size: 13px; line-height: 1.5; color: #777777; margin: 0;">Only if you feel it's deserved — no pressure either way. If anything wasn't right, reply here and we'll make it right.</p>
                         </div>
                     `,
                 });
