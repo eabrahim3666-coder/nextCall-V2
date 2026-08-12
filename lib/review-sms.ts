@@ -27,7 +27,7 @@ export async function sendReviewRequest(call: CallLike): Promise<boolean> {
     try {
         const business = await businessesCollection.findOne({ business_id: call.business_id });
         const businessName = business?.business_name || call.business_name || "us";
-        const reviewLink = process.env.NEXT_PUBLIC_GOOGLE_REVIEW_LINK || "https://google.com";
+        const reviewLink = business?.review_link || process.env.NEXT_PUBLIC_GOOGLE_REVIEW_LINK || "https://google.com";
 
         // 1. Email first — if we captured the customer's email
         if (call.customer_email) {

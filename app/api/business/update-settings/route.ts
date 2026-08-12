@@ -12,6 +12,9 @@ export async function POST(request: Request) {
         if (body.zapier_webhook_url && !isSafeWebhookUrl(body.zapier_webhook_url)) {
             return NextResponse.json({ error: "Webhook URL must be a public HTTPS URL" }, { status: 400 });
         }
+        if (body.review_link && !/^https:\/\/[^\s]+$/.test(body.review_link)) {
+            return NextResponse.json({ error: "Review link must be a valid https:// URL" }, { status: 400 });
+        }
 
         const existing = await businessesCollection.findOne({ business_id: userId });
         const plan = existing?.plan_type || existing?.plan || "standard";
@@ -56,6 +59,7 @@ export async function POST(request: Request) {
                     routing_rules: routingRules,
                      // Emergency logic & Integrations (P0 Bug Fix)
                     emergency_definition: body.emergency_definition || "",
+                    review_link: body.review_link || "",
                     zapier_webhook_url: plan === "premium" ? (body.zapier_webhook_url || null) : null,
                     
                     // Compiled knowledge base (what Retell reads)

@@ -49,6 +49,7 @@ export default async function SettingsPage() {
         google_refresh_token: business?.google_refresh_token ? "connected" : null,
         google_account_email: business?.google_account_email || null,
         zapier_webhook_url: business?.zapier_webhook_url || null,
+        review_link: business?.review_link || "",
         meta_page_access_token: business?.meta_page_access_token ? "connected" : null,
         meta_page_id: business?.meta_page_id ? String(business.meta_page_id) : null,
         meta_page_name: business?.meta_page_name || null,

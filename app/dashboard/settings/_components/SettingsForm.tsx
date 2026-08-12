@@ -48,6 +48,7 @@ type BusinessData = {
     google_refresh_token: string | null;
     google_account_email: string | null;
     zapier_webhook_url: string | null;
+    review_link: string;
     meta_page_access_token: string | null;
     meta_page_id: string | null;
     meta_page_name: string | null;
@@ -482,6 +483,20 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                     </button>
                                 </div>
                             ))}
+                        </div>
+
+                        <div className="mt-6 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                            <label className="block text-sm font-medium text-white mb-1">Google Review Link</label>
+                            <input
+                                type="url"
+                                value={data.review_link}
+                                onChange={(e) => setData({ ...data, review_link: e.target.value })}
+                                placeholder="https://g.page/r/xxxx/review"
+                                className="w-full bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500/50 transition-all"
+                            />
+                            <p className="text-[10px] text-neutral-500 mt-1.5 leading-relaxed">
+                                Your review-request emails & SMS use this link. Get it from Google Business Profile → Profile → "Share review form".
+                            </p>
                         </div>
                     </div>
                 </div>
