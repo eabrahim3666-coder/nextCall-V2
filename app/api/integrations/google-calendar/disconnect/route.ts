@@ -13,6 +13,7 @@ export async function POST() {
                 google_refresh_token: null,
                 google_account_email: null,
                 google_business_connected: false,
+                review_link: "",
                 updated_at: new Date().toISOString()
             }
         }
