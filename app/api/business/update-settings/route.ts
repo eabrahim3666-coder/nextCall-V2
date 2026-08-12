@@ -29,9 +29,11 @@ export async function POST(request: Request) {
             appointment_reminders: true,
             review_followup: true,
         };
-        if (plan === "trial") {
+        if (plan !== "premium") {
             routingRules.notify_hot_lead = false;
             routingRules.sms_missed_call = false;
+        }
+        if (plan === "trial") {
             routingRules.email_followup = false;
             routingRules.daily_summary = false;
         }

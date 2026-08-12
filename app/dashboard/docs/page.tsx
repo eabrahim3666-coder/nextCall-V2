@@ -82,7 +82,7 @@ export default function DocsPage() {
                             <ul className="list-disc list-inside space-y-1.5 ml-1">
                                 <li><strong className="text-white">3 phone numbers</strong> — and you can add extra numbers any time from the Dashboard.</li>
                                 <li><strong className="text-white">Advanced analytics dashboard</strong> — lead value & revenue tracking, call source breakdown, conversion funnel, peak hours heatmap, and AI performance score.</li>
-                                <li><strong className="text-white">Priority call routing rules</strong> — fine-grained control over how the AI routes calls.</li>
+                                <li><strong className="text-white">Priority call routing</strong> — hot-lead alerts and missed-call auto-SMS, driven by AI call analysis.</li>
                                 <li><strong className="text-white">Zapier / Make / n8n webhooks</strong> — send call data to 5,000+ apps.</li>
                                 <li><strong className="text-white">Priority support chat</strong> — the in-app chat bubble, bridged to the nextCall team over Telegram, with photo support.</li>
                             </ul>
@@ -142,14 +142,14 @@ export default function DocsPage() {
                             <p>In <strong className="text-white">Settings → Call Routing</strong>, configure how the AI handles different scenarios.</p>
                             <ul className="list-disc list-inside space-y-1.5 ml-1">
                                 <li><strong className="text-white">Forward Emergency Calls</strong> — When enabled, the AI will call your phone if the caller uses emergency keywords. <span className="text-neutral-500">(All plans)</span></li>
-                                <li><strong className="text-white">Notify Hot Leads</strong> — Get an instant notification when a high-intent caller is ready to buy.</li>
-                                <li><strong className="text-white">SMS Missed Call</strong> — Auto-texts callers who hang up quickly: &quot;Sorry we missed you!&quot;</li>
-                                <li><strong className="text-white">Email Follow-Up</strong> — Sends a branded summary email to every caller after the call ends.</li>
-                                <li><strong className="text-white">Daily Summary</strong> — Get a daily email with: calls answered, leads captured, appointments booked, and sentiment trends.</li>
+                                <li><strong className="text-white">Notify Hot Leads</strong> — Get an instant notification when a high-intent caller is ready to buy. <Badge tier="premium" /></li>
+                                <li><strong className="text-white">SMS Missed Call</strong> — Auto-texts callers who hang up quickly: &quot;Sorry we missed you!&quot; <Badge tier="premium" /></li>
+                                <li><strong className="text-white">Email Follow-Up</strong> — Sends a branded summary email to every caller after the call ends. <Badge tier="standard" /></li>
+                                <li><strong className="text-white">Daily Summary</strong> — Get a daily email with: calls answered, leads captured, appointments booked, and sentiment trends. <Badge tier="standard" /></li>
                                 <li><strong className="text-white">Appointment Reminders</strong> — Auto-SMS 1 hour before and auto-email 24 hours before each appointment. <Badge tier="trial" /> trial: email only.</li>
-                                <li><strong className="text-white">Auto Review Follow-Up</strong> — If you forget to mark a job done, we automatically ask the customer for a Google review 24 hours after the appointment.</li>
+                                <li><strong className="text-white">Auto Review Follow-Up</strong> — If you forget to mark a job done, we automatically ask the customer for a Google review 24 hours after the appointment. <Badge tier="trial" /></li>
                             </ul>
-                            <p className="text-neutral-500 italic">Hot-lead notifications, SMS missed call, email follow-up, and daily summary are included in paid plans (Standard & Premium).</p>
+                            <p className="text-neutral-500 italic">Hot-lead notifications and missed-call SMS are Premium-only. Email follow-up, daily summary, appointment reminders, and auto review follow-up are included in Standard & Premium.</p>
                         </AccordionContent>
                     </AccordionItem>
 

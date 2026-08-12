@@ -277,7 +277,7 @@ from: "Next Call Chat <support@getnextcall.com>",
     }
 
     // 8. IN-APP NOTIFICATIONS (Hot lead, Emergency, Appointment, Missed call)
-    if (routingRules.notify_hot_lead && leadQuality === "hot" && business && plan !== 'trial') {
+    if (routingRules.notify_hot_lead && leadQuality === "hot" && business && plan === 'premium') {
       try { await notificationsCollection.insertOne({ business_id: businessId, type: "hot_lead", title: "Hot Lead Detected", message: `${customerName || 'A caller'} (${body.phone_number}) is ready to buy. Call back ASAP! Summary: ${summary}`, read: false, created_at: new Date().toISOString() }); } catch (e) { console.error(e); }
       await activity({ type: "hot_lead", title: "High-value lead identified", message: `${person(customerName, 'A caller')} (${caller}) is ready to buy. ${summary.length > 90 ? summary.slice(0, 90) + '…' : summary}`, icon: "lucide:flame", status: "success", agent_state: "Following Up", href: "/dashboard/calls" });
       
@@ -316,7 +316,7 @@ from: "Next Call Chat <support@getnextcall.com>",
     if (appointmentBooked && business) {
       try { await notificationsCollection.insertOne({ business_id: businessId, type: "appointment", title: "New Appointment", message: `Appointment booked for ${customerName || 'a customer'}. ${summary}`, read: false, created_at: new Date().toISOString() }); } catch (e) { console.error(e); }
     }
-     if (callDuration < 10 && routingRules.sms_missed_call && business && plan !== 'trial') {
+     if (callDuration < 10 && routingRules.sms_missed_call && business && plan === 'premium') {
       try {
         // 1. Create in-app notification for the business owner
         await notificationsCollection.insertOne({ 
