@@ -85,7 +85,6 @@ export default function DocsPage() {
                                 <li><strong className="text-white">Priority call routing rules</strong> — fine-grained control over how the AI routes calls.</li>
                                 <li><strong className="text-white">Zapier / Make / n8n webhooks</strong> — send call data to 5,000+ apps.</li>
                                 <li><strong className="text-white">Priority support chat</strong> — the in-app chat bubble, bridged to the nextCall team over Telegram, with photo support.</li>
-                                <li><strong className="text-white">Google reviews auto-reply</strong> — AI-written replies to new unreplied Google reviews, posted automatically.</li>
                             </ul>
                             <p className="text-neutral-500 italic">500 minutes included per month. Overage: $0.40/min.</p>
                         </AccordionContent>
@@ -260,36 +259,6 @@ export default function DocsPage() {
 
                     <AccordionItem value="how-3" className="bg-white/[0.02] border border-white/[0.06] rounded-xl px-5">
                         <AccordionTrigger className="text-sm font-medium text-white hover:text-indigo-400 py-4">
-                            How do Facebook & Instagram auto-replies work?
-                        </AccordionTrigger>
-                        <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
-                            <ol className="list-decimal list-inside space-y-1.5 ml-1">
-                                <li>Customer sends a DM to your Facebook Page or Instagram account.</li>
-                                <li>Meta sends the message to nextCall via webhook.</li>
-                                <li>The AI analyzes the message using your Knowledge Base and conversation history.</li>
-                                <li>AI generates a reply and sends it back to the customer on the same platform.</li>
-                                <li>The conversation history is saved so the AI remembers context.</li>
-                            </ol>
-                            <p className="text-neutral-500 italic">Requires Facebook & Instagram connection in Settings → Integrations.</p>
-                        </AccordionContent>
-                    </AccordionItem>
-
-                    <AccordionItem value="how-4" className="bg-white/[0.02] border border-white/[0.06] rounded-xl px-5">
-                        <AccordionTrigger className="text-sm font-medium text-white hover:text-indigo-400 py-4">
-                            How do Google Reviews work?
-                        </AccordionTrigger>
-                        <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
-                            <p>Two separate review features work together:</p>
-                            <ul className="list-disc list-inside space-y-1.5 ml-1">
-                                <li><strong className="text-white">Review requests (SMS)</strong> <Badge tier="standard" /> — after a job is marked done (or auto-followed-up 24h after the appointment), the customer gets an SMS with your Google review link.</li>
-                                <li><strong className="text-white">Auto-replies to Google reviews</strong> <Badge tier="premium" /> — every few hours, nextCall checks your Google Business Profile for new unreplied reviews, generates a personalized reply, and posts it automatically. Positive reviews get a grateful reply with local SEO keywords; negative reviews get an apology and an invitation to contact your office.</li>
-                            </ul>
-                            <p className="text-neutral-500 italic">Auto-replies require Google Account integration enabled in Settings → Integrations.</p>
-                        </AccordionContent>
-                    </AccordionItem>
-
-                    <AccordionItem value="how-5" className="bg-white/[0.02] border border-white/[0.06] rounded-xl px-5">
-                        <AccordionTrigger className="text-sm font-medium text-white hover:text-indigo-400 py-4">
                             How does the support chat work?
                         </AccordionTrigger>
                         <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
@@ -327,22 +296,6 @@ export default function DocsPage() {
 
                     <AccordionItem value="int-2" className="bg-white/[0.02] border border-white/[0.06] rounded-xl px-5">
                         <AccordionTrigger className="text-sm font-medium text-white hover:text-indigo-400 py-4">
-                            Facebook & Instagram
-                        </AccordionTrigger>
-                        <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
-                            <p>Auto-reply to DMs from your Facebook Page and Instagram Business account.</p>
-                            <ul className="list-disc list-inside space-y-1.5 ml-1">
-                                <li>Go to <strong className="text-white">Settings → Integrations</strong> → Click &quot;Connect&quot; under Facebook & Instagram.</li>
-                                <li>Authorize the required permissions (pages_messaging, pages_show_list, etc.).</li>
-                                <li>Select the Facebook Page you want to connect.</li>
-                                <li>Once connected, any incoming DM will be answered by the AI using your Knowledge Base.</li>
-                                <li>You can disconnect at any time from the same screen.</li>
-                            </ul>
-                        </AccordionContent>
-                    </AccordionItem>
-
-                    <AccordionItem value="int-3" className="bg-white/[0.02] border border-white/[0.06] rounded-xl px-5">
-                        <AccordionTrigger className="text-sm font-medium text-white hover:text-indigo-400 py-4">
                             Webhooks (Zapier / Make / n8n)
                         </AccordionTrigger>
                         <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
@@ -352,21 +305,6 @@ export default function DocsPage() {
                                 <li>When a call is processed, nextCall sends a POST request with full call data to your webhook URL.</li>
                                 <li>Use this to trigger workflows in Zapier, Make, n8n, or any custom endpoint.</li>
                                 <li>Data includes: call_id, customer name, phone, sentiment, lead quality, appointment status, and summary.</li>
-                            </ul>
-                        </AccordionContent>
-                    </AccordionItem>
-
-                    <AccordionItem value="int-4" className="bg-white/[0.02] border border-white/[0.06] rounded-xl px-5">
-                        <AccordionTrigger className="text-sm font-medium text-white hover:text-indigo-400 py-4">
-                            Google Business Profile (Reviews)
-                        </AccordionTrigger>
-                        <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
-                            <p>Connect your Google Business Profile so nextCall can reply to customer reviews automatically. <Badge tier="premium" /></p>
-                            <ul className="list-disc list-inside space-y-1.5 ml-1">
-                                <li>Go to <strong className="text-white">Settings → Integrations</strong> → Click &quot;Connect Google Account&quot; and authorize the business.manage permission.</li>
-                                <li>Once connected, nextCall checks daily for new unreplied reviews and posts an AI-written response.</li>
-                                <li>You can preview how the AI responds using <strong className="text-white">Simulate New Review</strong> in the dashboard navigation.</li>
-                                <li>Disconnect anytime from the same screen — this stops review replies and calendar events.</li>
                             </ul>
                         </AccordionContent>
                     </AccordionItem>
