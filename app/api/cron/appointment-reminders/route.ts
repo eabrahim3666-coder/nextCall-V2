@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { callsCollection, businessesCollection } from '@/lib/astra';
-import twilioClient from '@/lib/twilio';
+import { sendBusinessSms, isSmsApproved } from '@/lib/sms-compliance';
 import { Resend } from 'resend';
 import { hasValidSecret, escapeHtml } from '@/lib/security';
 
@@ -40,9 +40,6 @@ export async function GET(request: Request) {
             const business = await businessesCollection.findOne({ business_id: appt.business_id });
             
             if (!business || !business.routing_rules?.appointment_reminders) continue;
-            const smsNumber = Array.isArray(business.twilio_numbers) && business.twilio_numbers.length > 0
-                ? business.twilio_numbers[0]
-                : business.twilio_number;
             const isTrial = (business.plan_type || 'standard') === 'trial';
 
             try {
@@ -77,15 +74,19 @@ export async function GET(request: Request) {
                     }
                 }
 
-                // 4b. SMS fallback — if no email or email failed (paid plans only)
-                if (!sent && !isTrial && smsNumber && appt.customer_phone) {
-                    await twilioClient.messages.create({
-                        body: `Reminder: You have an appointment with ${business.business_name || 'us'} at ${apptTime} today. Reply 1 to confirm, 2 to reschedule, or 3 to cancel.`,
-                        from: smsNumber,
+                // 4b. SMS fallback — if no email or email failed (paid plans only,
+                // and only once the business's toll-free number is TFV-approved)
+                if (!sent && !isTrial && appt.customer_phone && await isSmsApproved(business)) {
+                    const smsResult = await sendBusinessSms(business, {
                         to: appt.customer_phone,
+                        body: `Reminder: You have an appointment with ${business.business_name || 'us'} at ${apptTime} today. Reply 1 to confirm, 2 to reschedule, or 3 to cancel.`,
                     });
-                    sent = true;
-                    console.log(`Sent SMS reminder to ${appt.customer_phone} for ${business.business_name}`);
+                    sent = smsResult.ok;
+                    if (smsResult.ok) {
+                        console.log(`Sent SMS reminder to ${appt.customer_phone} for ${business.business_name}`);
+                    } else if (smsResult.reason === "not_approved") {
+                        console.log(`SMS reminder skipped for ${business.business_name} — business SMS not yet verified`);
+                    }
                 }
 
                 // 5. Mark as sent so we don't send again

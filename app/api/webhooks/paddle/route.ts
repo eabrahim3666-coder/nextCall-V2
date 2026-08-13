@@ -55,13 +55,14 @@ async function activateBusinessFromPaddleData(data: PaddleEventData) {
   const existingBusiness = await businessesCollection.findOne({ business_id: clerkId });
   const planType = customData.plan || existingBusiness?.plan_type || 'standard';
 
-  // ============ AUTOMATIC TWILIO PROVISIONING (paid plans only) ============
-  // Whenever a business successfully pays, create their dedicated Twilio
-  // subaccount + buy their number automatically. Trials share the demo line.
+  // ============ AUTOMATIC TWILIO PROVISIONING (all plans) ============
+  // Every business — including trials — gets their own dedicated Twilio
+  // subaccount + toll-free number automatically. Toll-free numbers are what
+  // enable Toll-Free SMS Verification (outbound business SMS) later.
   let twilioSubAccountSid = existingBusiness?.twilio_subaccount_sid || "";
   let twilioPhoneNumber = existingBusiness?.twilio_number || "";
 
-  if (planType !== 'trial' && !isProvisioned({ twilio_subaccount_sid: twilioSubAccountSid, twilio_number: twilioPhoneNumber })) {
+  if (!isProvisioned({ twilio_subaccount_sid: twilioSubAccountSid, twilio_number: twilioPhoneNumber })) {
     console.log(`Auto-provisioning Twilio for ${businessName} (${planType})...`);
     try {
       const provisioned = await provisionTwilioNumber({ business_id: clerkId, business_name: businessName, plan_type: planType });

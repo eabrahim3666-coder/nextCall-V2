@@ -40,6 +40,10 @@ export const conversationsCollection = db.collection('conversations');
 export const notificationsCollection = db.collection("notifications");
 const _webhookEventsCollection = db.collection("webhook_events");
 
+// Toll-Free SMS compliance records (one per business). Kept separate from the
+// core business doc so compliance data never pollutes the main record.
+export const smsComplianceCollection = db.collection("sms_compliance");
+
 // Photos live in their own unindexed collection — indexed strings are capped
 // at 8,000 bytes in Astra, so big base64 blobs must stay out of the `messages` array.
 const chatPhotosCollection = db.collection("chat_photos");

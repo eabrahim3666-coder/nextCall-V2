@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import twilioClient from '@/lib/twilio';
+import { businessesCollection } from '@/lib/astra';
 import { verifyHmacSignature } from '@/lib/security';
 import { notifyActivity } from '@/lib/pusher';
+import { sendBusinessSms, isSmsApproved } from '@/lib/sms-compliance';
 
 export async function POST(request: Request) {
   try {
@@ -25,15 +27,27 @@ export async function POST(request: Request) {
       throw new Error("Missing target_number in function arguments");
     }
 
-    // 2. Send the Urgent SMS via Twilio (Heads up to the owner before the call connects)
+    // 2. Send the Urgent SMS via Twilio (Heads up to the owner before the call connects).
+    // Gated + subaccount-scoped — the transfer happens regardless.
     if (fromNumber) {
       try {
-        await twilioClient.messages.create({
-          body: `EMERGENCY CALL: ${customerName} is on the line regarding ${emergencyType}. Warm transfer in progress!`,
-          from: fromNumber,
-          to: ownerPhone,
-        });
-        console.log(`Emergency SMS sent to ${ownerPhone}`);
+        const business = body.metadata?.business_id
+          ? await businessesCollection.findOne({ business_id: body.metadata.business_id })
+          : null;
+        const approved = business ? await isSmsApproved(business) : false;
+        const smsResult = business && approved
+          ? await sendBusinessSms(business, {
+              to: ownerPhone,
+              body: `EMERGENCY CALL: ${customerName} is on the line regarding ${emergencyType}. Warm transfer in progress!`,
+            })
+          : null;
+        if (smsResult?.ok) {
+          console.log(`Emergency SMS sent to ${ownerPhone}`);
+        } else if (!business || !approved) {
+          console.log("Emergency SMS skipped — business SMS not yet verified");
+        } else {
+          console.log("Failed to send emergency SMS, but continuing transfer:");
+        }
       } catch (smsError) {
         console.error("Failed to send emergency SMS, but continuing transfer:", smsError);
       }

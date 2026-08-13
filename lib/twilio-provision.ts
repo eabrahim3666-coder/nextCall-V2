@@ -14,12 +14,14 @@ export async function provisionTwilioNumber(business: ProvisionBusiness) {
     friendlyName: `${business.business_name} - nextCall`,
   });
 
-  // 2. Find an available US number supporting Voice + SMS
-  const availableNumbers = await twilioClient.availablePhoneNumbers('US').local.list({
+  // 2. Find an available US TOLL-FREE number supporting Voice + SMS.
+  //    Toll-free numbers are required for Toll-Free SMS Verification (TFV),
+  //    which unlocks outbound business SMS without A2P 10DLC registration.
+  const availableNumbers = await twilioClient.availablePhoneNumbers('US').tollFree.list({
     limit: 1,
   });
   if (availableNumbers.length === 0) {
-    throw new Error("No available phone numbers to provision");
+    throw new Error("No available toll-free phone numbers to provision");
   }
 
   // 3. Buy it under the subaccount with our webhooks wired up
@@ -35,6 +37,7 @@ export async function provisionTwilioNumber(business: ProvisionBusiness) {
   return {
     subaccountSid: subaccount.sid,
     phoneNumber: purchasedNumber.phoneNumber,
+    phoneNumberSid: purchasedNumber.sid,
   };
 }
 

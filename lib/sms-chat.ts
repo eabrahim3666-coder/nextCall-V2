@@ -1,6 +1,6 @@
 import openai from "@/lib/openai";
 import { callsCollection, conversationsCollection } from "@/lib/astra";
-import twilioClient from "@/lib/twilio";
+import { sendBusinessSms } from "@/lib/sms-compliance";
 
 const MODEL = "gpt-4o-mini";
 
@@ -245,11 +245,18 @@ export async function handleSmsMessage(options: HandleSmsOptions): Promise<{ rep
 
 export async function sendSmsReply(options: { from: string; to: string; reply: string; channel: "SMS" | "WhatsApp"; business: Record<string, any> }): Promise<void> {
     const { from, to, reply, channel, business } = options;
-    await twilioClient.messages.create({
-        from,
-        to: channel === "WhatsApp" ? `whatsapp:${to}` : to,
-        body: reply,
-    });
+
+    // Outbound business SMS is gated until the business's toll-free number is
+    // approved by Twilio (Toll-Free Verification). The send also runs through
+    // the business's own subaccount (master-scope sends fail with error 21660).
+    const result = await sendBusinessSms(business, { to, body: reply, channel });
+    if (!result.ok) {
+        if (result.reason === "not_approved") {
+            console.log(`[sms-chat] reply not sent to ${to} — business SMS not yet verified`);
+        }
+        return;
+    }
+
     await conversationsCollection.insertOne({
         business_id: business.business_id,
         customer_phone: to,

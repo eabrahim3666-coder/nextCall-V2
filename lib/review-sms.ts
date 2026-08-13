@@ -1,5 +1,5 @@
-import twilioClient from "@/lib/twilio";
 import { businessesCollection } from "@/lib/astra";
+import { sendBusinessSms } from "@/lib/sms-compliance";
 import { Resend } from "resend";
 import { escapeHtml } from "@/lib/security";
 
@@ -53,20 +53,15 @@ export async function sendReviewRequest(call: CallLike): Promise<boolean> {
             }
         }
 
-        // 2. SMS fallback — if no email or email failed
+        // 2. SMS fallback — if no email or email failed (only when the
+        // business's toll-free number has passed Toll-Free Verification)
         if (!call.customer_phone) return false;
-        const fromNumber =
-            (Array.isArray(business?.twilio_numbers) && business.twilio_numbers[0]) ||
-            business?.twilio_number ||
-            process.env.TWILIO_PHONE_NUMBER;
-        if (!fromNumber) return false;
 
-        await twilioClient.messages.create({
-            from: fromNumber,
+        const smsResult = await sendBusinessSms(business || { business_id: call.business_id }, {
             to: call.customer_phone,
             body: `Hi! Thanks for choosing ${call.business_name || "us"}. If you loved our service, would you mind leaving us a quick review? It helps us a lot! ⭐\n\n${reviewLink}`,
         });
-        return true;
+        return smsResult.ok;
     } catch (error) {
         console.error(`[review-sms] send failed for call ${call.call_id}:`, error);
         return false;

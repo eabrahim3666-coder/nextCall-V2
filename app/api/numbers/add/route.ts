@@ -44,8 +44,8 @@ export async function POST() {
       return NextResponse.json({ error: "Maximum limit of 3 numbers reached" }, { status: 400 });
     }
 
-    // 2. Find an available number that supports Voice and SMS
-    const availableNumbers = await twilioClient.availablePhoneNumbers('US').local.list({ 
+// 2. Find an available TOLL-FREE number that supports Voice and SMS
+    const availableNumbers = await twilioClient.availablePhoneNumbers('US').tollFree.list({ 
       limit: 1, 
     // Twilio's current SDK typings do not expose capability filtering here.
     });

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { callsCollection, businessesCollection, notificationsCollection, webhookEventsCollection } from '@/lib/astra';
 import openai from '@/lib/openai';
-import twilioClient from '@/lib/twilio';
+import { sendBusinessSms, isSmsApproved } from '@/lib/sms-compliance';
 import { Resend } from 'resend';
 import { google } from 'googleapis';
 import { escapeHtml, isSafeWebhookUrl, verifyHmacSignature } from '@/lib/security';
@@ -336,21 +336,22 @@ from: "Next Call Chat <support@getnextcall.com>",
           created_at: new Date().toISOString() 
         });
 
-        // 2. Send automatic SMS back to the customer
+        // 2. Send automatic SMS back to the customer — only if the business's
+        // toll-free number has passed Twilio Toll-Free Verification
         const customerPhone = body.phone_number;
-        const businessTwilioNumber = Array.isArray(business.twilio_numbers) && business.twilio_numbers.length > 0 
-          ? business.twilio_numbers[0] 
-          : business.twilio_number;
 
-        if (customerPhone && customerPhone !== 'unknown' && businessTwilioNumber && businessTwilioNumber !== "PROVISIONING_FAILED") {
+        if (customerPhone && customerPhone !== 'unknown' && await isSmsApproved(business)) {
           await activity({ type: "sms_sending", title: "Sending SMS reminder", message: `"Sorry we missed you" - ${customerPhone}`, icon: "lucide:message-square", status: "pending", agent_state: "Sending SMS", href: "/dashboard/calls" });
-          await twilioClient.messages.create({
-            body: `Hi! Sorry we missed your call. We're here to help—reply to this text or call us back at ${businessTwilioNumber}. - ${business.business_name}`,
-            from: businessTwilioNumber,
-            to: customerPhone
+          const smsResult = await sendBusinessSms(business, {
+            to: customerPhone,
+            body: `Hi! Sorry we missed your call. We're here to help—reply to this text or call us back at ${business.twilio_number || business.twilio_numbers?.[0] || ""}. - ${business.business_name}`,
           });
-          await activity({ type: "sms_sent", title: "SMS reminder sent", message: `Auto-follow-up sent to ${customerPhone}`, icon: "lucide:check-circle", status: "success" });
-          console.log(`Missed call auto-SMS sent to ${customerPhone}`);
+          if (smsResult.ok) {
+            await activity({ type: "sms_sent", title: "SMS reminder sent", message: `Auto-follow-up sent to ${customerPhone}`, icon: "lucide:check-circle", status: "success" });
+            console.log(`Missed call auto-SMS sent to ${customerPhone}`);
+          } else {
+            await activity({ type: "missed_call", title: "Brief call missed", message: `From ${caller} (${callDuration}s) — hung up early`, icon: "lucide:phone-missed", status: "error", href: "/dashboard/calls" });
+          }
         } else {
           await activity({ type: "missed_call", title: "Brief call missed", message: `From ${caller} (${callDuration}s) — hung up early`, icon: "lucide:phone-missed", status: "error", href: "/dashboard/calls" });
         }

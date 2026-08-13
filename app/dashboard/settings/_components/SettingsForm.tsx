@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CreditCard, ExternalLink } from "lucide-react";
+import SmsComplianceTab from "./SmsComplianceTab";
 
 type RoutingRules = {
     forward_emergency: boolean;
@@ -63,6 +64,7 @@ const TABS = [
     { id: "greeting", label: "Greeting & Tone" },
     { id: "routing", label: "Call Routing" },
     { id: "billing", label: "Billing & Plan" },
+    { id: "sms", label: "Business SMS" },
     { id: "referrals", label: "Referrals" },
     { id: "integrations", label: "Integrations" },
 ];
@@ -353,7 +355,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
     const minutesPercent = Math.min(100, Math.round((minutesUsed / minutesLimit) * 100));
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-6">
             {metaErrorBanner}
             {metaSuccessBanner}
             {googleConnectedBanner}
@@ -379,6 +381,11 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                     </button>
                 ))}
             </div>
+
+            {currentTab === "sms" ? (
+                <SmsComplianceTab />
+            ) : (
+            <form onSubmit={handleSubmit} className="space-y-6">
 
             {/* TAB 1: Business Info */}
             {currentTab === "business" && (
@@ -871,5 +878,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                 </button>
             </div>
         </form>
+            )}
+        </div>
     );
 }

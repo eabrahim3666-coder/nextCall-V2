@@ -6,6 +6,7 @@ import Link from "next/link";
 import DashboardCards from "./_components/DashboardCards";
 import DashboardCharts from "./_components/DashboardCharts";
 import { findBusinessByUserId } from "@/lib/business";
+import { getComplianceRecord } from "@/lib/sms-compliance";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,9 @@ export default async function DashboardHome() {
     }));
 
     const businessName = business?.business_name || "Owner";
+
+    const smsCompliance = business ? await getComplianceRecord(userId).catch(() => null) : null;
+    const smsStatus = smsCompliance?.status || null;
 
     const activeNumbers = (Array.isArray(business?.twilio_numbers) ? business.twilio_numbers : [business?.twilio_number])
         .filter((num: string) => num && num !== "PROVISIONING_FAILED")
@@ -147,6 +151,36 @@ export default async function DashboardHome() {
                         <p className="mt-2 text-xs text-red-400 font-medium">⚠ You&apos;re running low on minutes. Consider upgrading your plan.</p>
                     )}
                 </div>
+            )}
+
+            {isAIActive && smsStatus && smsStatus !== "approved" && (
+                <Link
+                    href="/dashboard/settings?focus=sms"
+                    className={`flex items-center justify-between gap-4 p-5 rounded-2xl border transition-all group ${
+                        smsStatus === "rejected"
+                            ? "bg-rose-500/[0.06] border-rose-500/20 hover:border-rose-500/40"
+                            : smsStatus === "pending"
+                                ? "bg-indigo-500/[0.06] border-indigo-500/20 hover:border-indigo-500/40"
+                                : "bg-white/[0.03] border-white/[0.06] hover:border-indigo-500/30"
+                    }`}
+                >
+                    <div className="flex items-center gap-3">
+                        <div className={`flex items-center justify-center w-10 h-10 rounded-xl border ${
+                            smsStatus === "rejected" ? "bg-rose-500/10 border-rose-500/20" : "bg-indigo-500/10 border-indigo-500/20"
+                        }`}>
+                            <svg className={`w-5 h-5 ${smsStatus === "rejected" ? "text-rose-400" : "text-indigo-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold text-white">
+                                {smsStatus === "rejected" ? "Business SMS needs your attention" : smsStatus === "pending" ? "Business SMS verification in progress" : "Enable Business SMS"}
+                            </p>
+                            <p className="text-xs text-neutral-500 mt-0.5">
+                                {smsStatus === "rejected" ? "Twilio couldn't approve texting on your number — fix it in one minute." : smsStatus === "pending" ? "Approval usually takes 2–3 business days. Your number stays active for calls." : "Unlock appointment reminders, missed-call follow-ups and AI text replies."}
+                            </p>
+                        </div>
+                    </div>
+                    <span className="text-xs font-medium text-indigo-300 group-hover:text-indigo-200 flex-shrink-0">{smsStatus === "pending" ? "View status →" : "Get started →"}</span>
+                </Link>
             )}
 
             <DashboardCards
