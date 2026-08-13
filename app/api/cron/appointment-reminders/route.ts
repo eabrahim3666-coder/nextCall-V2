@@ -80,7 +80,7 @@ export async function GET(request: Request) {
                 // 4b. SMS fallback — if no email or email failed (paid plans only)
                 if (!sent && !isTrial && smsNumber && appt.customer_phone) {
                     await twilioClient.messages.create({
-                        body: `Reminder: You have an appointment with ${business.business_name || 'us'} at ${apptTime} today. Reply HELP to reschedule.`,
+                        body: `Reminder: You have an appointment with ${business.business_name || 'us'} at ${apptTime} today. Reply 1 to confirm, 2 to reschedule, or 3 to cancel.`,
                         from: smsNumber,
                         to: appt.customer_phone,
                     });

@@ -100,6 +100,8 @@ export async function POST(request: Request) {
     let isEmergency = false;
     let appointmentDateTimeStr = null;
     let appointmentDuration = 60;
+    let quote_given = false;
+    let quote_amount: string | null = null;
 
     try {
       const completion = await openai.chat.completions.create({
@@ -117,6 +119,8 @@ export async function POST(request: Request) {
 7. Is emergency: true if the caller mentioned emergency keywords, false otherwise
 8. Appointment date and time in ISO 8601 format (e.g., 2024-12-25T14:00:00) if mentioned, otherwise null. TODAY IS ${new Date().toISOString().split('T')[0]}. Interpret relative dates like "tomorrow", "next week", "this Friday" based on TODAY. NEVER use dates in the past or from training data.
 9. Appointment duration in minutes if mentioned, or 60 by default.
+10. Quote given: true if a price, estimate, or price range was discussed with the customer (e.g., "$89 diagnostic", "$150-300 depending on the part"), false otherwise
+11. Quote details: if a quote was given, a short string of the exact price or range discussed (e.g., "$150-300"), otherwise null
 Output ONLY valid JSON.`
           },
           { role: "user", content: transcript }
@@ -134,6 +138,8 @@ Output ONLY valid JSON.`
       isEmergency = aiResult.is_emergency || false;
       appointmentDateTimeStr = aiResult.appointment_date_time || null;
       appointmentDuration = aiResult.appointment_duration_minutes || 60;
+      quote_given = aiResult.quote_given || false;
+      quote_amount = aiResult.quote_details || null;
     } catch (openAiError) {
       console.error("OpenAI analysis failed for call, using fallback values:", openAiError);
     }
@@ -157,6 +163,8 @@ Output ONLY valid JSON.`
       call_source: metadata.call_source || "unknown",
       recording_url: body.recording_url,
       business_name: metadata.business_name,
+      quote_given: quote_given,
+      quote_amount: quote_amount,
       created_at: new Date(endTime).toISOString()
     };
 

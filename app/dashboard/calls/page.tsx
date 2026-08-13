@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { callsCollection } from "@/lib/astra";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import JobStatusButtons from "../_components/JobStatusButtons";
+import CallRow from "../_components/CallRow";
 import { findBusinessByUserId } from "@/lib/business";
 
 export const dynamic = 'force-dynamic';
@@ -58,56 +58,9 @@ export default async function CallsPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {calls.map((call) => {
-                                    const callDate = new Date(call.created_at);
-                                    const isValidDate = !isNaN(callDate.getTime());
-                                    const durationMin = call.call_duration_minutes || Math.ceil((call.call_duration || 0) / 60);
-
-                                    return (
-                                        <tr key={call.call_id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
-                                            <td className="py-4 px-6 align-top">
-                                                <p className="text-sm font-medium text-white">{call.customer_name || "Unknown"}</p>
-                                                <p className="text-xs text-neutral-500">{call.customer_phone || "No number"}</p>
-                                            </td>
-                                            <td className="py-4 px-6 align-top max-w-md">
-                                                <p className="text-sm text-neutral-300">{call.summary || "No summary available"}</p>
-                                                <div className="flex gap-2 mt-2">
-                                                    {call.lead_quality === "hot" && <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">🔥 Hot Lead</span>}
-                                                    {call.appointment_booked && <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">📅 Booked</span>}
-                                                    {call.is_emergency && <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">🚨 Emergency</span>}
-                                                </div>
-                                            </td>
-                                            <td className="py-4 px-6 align-top">
-                                                <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${call.sentiment === "Positive" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
-                                                    call.sentiment === "Negative" ? "bg-rose-500/10 text-rose-400 border-rose-500/20" :
-                                                        "bg-neutral-500/10 text-neutral-400 border-neutral-500/20"
-                                                    }`}>
-                                                    <span className={`h-1.5 w-1.5 rounded-full ${call.sentiment === "Positive" ? "bg-emerald-400" :
-                                                        call.sentiment === "Negative" ? "bg-rose-400" :
-                                                            "bg-neutral-500"
-                                                        }`} />
-                                                    {call.sentiment || "Neutral"}
-                                                </span>
-                                            </td>
-                                            <td className="py-4 px-6 align-top">
-                                                <p className="text-sm text-neutral-300">{durationMin} min</p>
-                                            </td>
-                                            <td className="py-4 px-6 align-top">
-                                                <p className="text-sm text-neutral-300 whitespace-nowrap">
-                                                    {isValidDate ? callDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : "--"}
-                                                </p>
-                                                <p className="text-xs text-neutral-500 whitespace-nowrap">
-                                                    {isValidDate ? callDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : "--:--"}
-                                                </p>
-                                            </td>
-                                            <td className="py-4 px-6 align-top">
-                                                {!isTrial && call.appointment_booked && (
-                                                    <JobStatusButtons callId={call.call_id} jobStatus={call.job_status} />
-                                                )}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
+                                {calls.map((call) => (
+                                    <CallRow key={call.call_id} call={call} isTrial={isTrial} />
+                                ))}
                             </tbody>
                         </table>
                     </div>
