@@ -8,6 +8,7 @@ type HandleSmsOptions = {
     from: string;
     to: string;
     body: string;
+    channel: "SMS" | "WhatsApp";
     business: Record<string, any>;
 };
 
@@ -106,12 +107,12 @@ function tools() {
 }
 
 export async function handleSmsMessage(options: HandleSmsOptions): Promise<{ reply: string }> {
-    const { from, to, body, business } = options;
+    const { from, to, body, channel, business } = options;
     const businessId = business.business_id;
 
-    // 1. Load recent SMS thread for context
+    // 1. Load recent thread for context
     const historyDocs = await conversationsCollection
-        .find({ business_id: businessId, customer_phone: from, channel: "SMS" })
+        .find({ business_id: businessId, customer_phone: from, channel })
         .sort({ created_at: -1 })
         .limit(12)
         .toArray();
@@ -233,7 +234,7 @@ export async function handleSmsMessage(options: HandleSmsOptions): Promise<{ rep
     await conversationsCollection.insertOne({
         business_id: businessId,
         customer_phone: from,
-        channel: "SMS",
+        channel,
         message: body,
         direction: "inbound",
         created_at: new Date().toISOString(),
@@ -242,13 +243,17 @@ export async function handleSmsMessage(options: HandleSmsOptions): Promise<{ rep
     return { reply };
 }
 
-export async function sendSmsReply(options: { from: string; to: string; reply: string; business: Record<string, any> }): Promise<void> {
-    const { from, to, reply, business } = options;
-    await twilioClient.messages.create({ from, to, body: reply });
+export async function sendSmsReply(options: { from: string; to: string; reply: string; channel: "SMS" | "WhatsApp"; business: Record<string, any> }): Promise<void> {
+    const { from, to, reply, channel, business } = options;
+    await twilioClient.messages.create({
+        from,
+        to: channel === "WhatsApp" ? `whatsapp:${to}` : to,
+        body: reply,
+    });
     await conversationsCollection.insertOne({
         business_id: business.business_id,
         customer_phone: to,
-        channel: "SMS",
+        channel,
         message: reply,
         direction: "outbound",
         created_at: new Date().toISOString(),

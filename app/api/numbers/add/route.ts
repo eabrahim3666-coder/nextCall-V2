@@ -28,12 +28,13 @@ export async function POST() {
     if (availableNumbers.length === 0) return NextResponse.json({ error: "No numbers available" }, { status: 400 });
 
     // 3. Buy it UNDER the business's Sub-Account and link webhooks
+    const webhookBase = process.env.TWILIO_WEBHOOK_BASE_URL || "https://www.getnextcall.com";
     const purchasedNumber = await twilioClient.api.accounts(business.twilio_subaccount_sid).incomingPhoneNumbers.create({
       phoneNumber: availableNumbers[0].phoneNumber,
       friendlyName: `${business.business_name} - nextCall Line ${currentNumbers.length + 1}`,
-      voiceUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/twilio/inbound`, 
+      voiceUrl: `${webhookBase}/api/webhooks/twilio/inbound`, 
       voiceMethod: 'POST',
-      smsUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/twilio/whatsapp-inbound`,
+      smsUrl: `${webhookBase}/api/webhooks/twilio/sms-inbound`,
       smsMethod: 'POST'
     });
 
