@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { businessesCollection, webhookEventsCollection } from '@/lib/astra';
 import { hasValidSecret } from '@/lib/security';
 import { TRIAL_DURATION_MS } from '@/lib/business';
+import { provisionTwilioNumber, isProvisioned } from '@/lib/twilio-provision';
 
 type PaddleEventData = {
   id?: string;
@@ -52,12 +53,37 @@ async function activateBusinessFromPaddleData(data: PaddleEventData) {
   }
 
   const existingBusiness = await businessesCollection.findOne({ business_id: clerkId });
-  const twilioSubAccountSid = existingBusiness?.twilio_subaccount_sid || "PROVISIONING_FAILED";
-  const twilioPhoneNumber = existingBusiness?.twilio_number || "PROVISIONING_FAILED";
-  const currentNumbers = Array.isArray(existingBusiness?.twilio_numbers) && existingBusiness.twilio_numbers.length > 0
-    ? existingBusiness.twilio_numbers
-    : [twilioPhoneNumber];
   const planType = customData.plan || existingBusiness?.plan_type || 'standard';
+
+  // ============ AUTOMATIC TWILIO PROVISIONING (paid plans only) ============
+  // Whenever a business successfully pays, create their dedicated Twilio
+  // subaccount + buy their number automatically. Trials share the demo line.
+  let twilioSubAccountSid = existingBusiness?.twilio_subaccount_sid || "";
+  let twilioPhoneNumber = existingBusiness?.twilio_number || "";
+
+  if (planType !== 'trial' && !isProvisioned({ twilio_subaccount_sid: twilioSubAccountSid, twilio_number: twilioPhoneNumber })) {
+    console.log(`Auto-provisioning Twilio for ${businessName} (${planType})...`);
+    try {
+      const provisioned = await provisionTwilioNumber({ business_id: clerkId, business_name: businessName, plan_type: planType });
+      twilioSubAccountSid = provisioned.subaccountSid;
+      twilioPhoneNumber = provisioned.phoneNumber;
+      console.log(`Provisioned subaccount ${twilioSubAccountSid} with number ${twilioPhoneNumber}`);
+    } catch (provisionError) {
+      console.error(`Twilio provisioning failed for ${businessName}:`, provisionError);
+      twilioSubAccountSid = twilioSubAccountSid || "PROVISIONING_FAILED";
+      twilioPhoneNumber = twilioPhoneNumber || "PROVISIONING_FAILED";
+    }
+  } else if (!twilioSubAccountSid) {
+    twilioSubAccountSid = "PROVISIONING_FAILED";
+    twilioPhoneNumber = "PROVISIONING_FAILED";
+  }
+
+  const currentNumbers = Array.isArray(existingBusiness?.twilio_numbers) && existingBusiness.twilio_numbers.length > 0
+    ? (existingBusiness.twilio_numbers.includes("PROVISIONING_FAILED") && twilioPhoneNumber && twilioPhoneNumber !== "PROVISIONING_FAILED"
+      ? [twilioPhoneNumber]
+      : existingBusiness.twilio_numbers)
+    : (twilioPhoneNumber && twilioPhoneNumber !== "PROVISIONING_FAILED" ? [twilioPhoneNumber] : []);
+
   const { minutesLimit, overageRate } = getPlanLimits(planType);
 
   const trialStart = planType === 'trial'

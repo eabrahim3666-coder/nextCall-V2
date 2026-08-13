@@ -46,9 +46,9 @@ export default async function DashboardHome() {
 
     const businessName = business?.business_name || "Owner";
 
-    const activeNumbers = Array.isArray(business?.twilio_numbers)
-        ? business.twilio_numbers.map((num: string) => ({ number: num, label: "Main Line" }))
-        : (business?.twilio_number ? [{ number: business.twilio_number, label: "Main Line" }] : []);
+    const activeNumbers = (Array.isArray(business?.twilio_numbers) ? business.twilio_numbers : [business?.twilio_number])
+        .filter((num: string) => num && num !== "PROVISIONING_FAILED")
+        .map((num: string) => ({ number: num, label: "Main Line" }));
 
     const recentCalls = formattedCalls.slice(0, 5);
 
