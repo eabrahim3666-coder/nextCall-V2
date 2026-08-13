@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     console.log("Received transfer_call function request:", JSON.stringify(body, null, 2));
     
     // 1. Get the target number dynamically from the AI's function arguments
-    // (The AI passes {{metadata.owner_phone}} into this argument)
+    // (The AI passes {{owner_phone}} into this argument)
     const ownerPhone = body.metadata?.owner_phone;
     const emergencyType = body.args?.emergency_type || 'an urgent issue';
     const customerName = body.args?.customer_name || 'A caller';
@@ -52,10 +52,27 @@ export async function POST(request: Request) {
       }).catch(() => {});
     }
 
-    // 3. CRITICAL: Return the exact format Retell requires to bridge the call live
-    return NextResponse.json({
-      forward_phone_number: ownerPhone
-    }, { status: 200 });
+    // 4. CRITICAL: Bridge the live call to the owner.
+    // With the dial-to-SIP method Retell cannot transfer calls natively
+    // (no forward_phone_number bridge), so we update the in-progress Twilio
+    // call's TwiML to dial the owner's phone directly.
+    const twilioCallSid = body.args?.twilio_call_sid || body.metadata?.twilio_call_sid;
+    if (!twilioCallSid) {
+      console.error("Missing twilio_call_sid - cannot bridge the live call");
+      return NextResponse.json({ error: "Missing twilio_call_sid" }, { status: 400 });
+    }
+
+    try {
+      await twilioClient.calls(twilioCallSid).update({
+        twiml: `<Response><Dial callerId="${fromNumber}">${ownerPhone}</Dial></Response>`,
+      });
+      console.log(`Bridged live call ${twilioCallSid} to owner ${ownerPhone}`);
+    } catch (bridgeError) {
+      console.error("Failed to bridge the live call:", bridgeError);
+      return NextResponse.json({ error: "Failed to bridge call" }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true }, { status: 200 });
 
   } catch (error) {
     console.error("Error processing emergency handler:", error);

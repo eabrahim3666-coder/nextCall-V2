@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { businessesCollection } from '@/lib/astra';
 import { verifyTwilioRequest } from '@/lib/security';
 import { isTrialExpired } from '@/lib/business';
+import retellClient from '@/lib/retell';
+
+export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
   try {
@@ -11,7 +14,8 @@ export async function POST(request: Request) {
       return new NextResponse('<Response><Say>Unauthorized request.</Say></Response>', { status: 401, headers: { 'Content-Type': 'text/xml' } });
     }
     const callerNumber = formData.get('From') as string;
-    const twilioNumber = formData.get('To') as string; 
+    const twilioNumber = formData.get('To') as string;
+    const twilioCallSid = formData.get('CallSid') as string;
 
     // Search for the dialed number in the new 'twilio_numbers' array OR the old 'twilio_number' string
     const business = await businessesCollection.findOne({
@@ -77,41 +81,46 @@ export async function POST(request: Request) {
       return new NextResponse(limitTwiml, { headers: { 'Content-Type': 'text/xml' } });
     }
 
-
-    // Helper to safely escape XML so business names with '&' or '<' don't break the TwiML
-    const escapeXml = (unsafe: string) => String(unsafe || "").replace(/[<>&'"]/g, (c) => {
-      switch (c) {
-        case '<': return '&lt;';
-        case '>': return '&gt;';
-        case '&': return '&amp;';
-        case '\'': return '&apos;';
-        case '"': return '&quot;';
-        default: return c;
-      }
+    // ============ RETELL REGISTER CALL (dial-to-SIP method) ============
+    // Register the call with Retell to get a call_id, then dial it into Retell's
+    // SIP server. Dynamic variables are injected into the Retell LLM prompt.
+    const phoneCallResponse = await retellClient.call.registerPhoneCall({
+      agent_id: process.env.RETELL_AGENT_ID as string,
+      from_number: callerNumber,
+      to_number: twilioNumber,
+      direction: 'inbound',
+      metadata: {
+        business_id: business.business_id,
+        business_name: business.business_name,
+        call_source: twilioNumber,
+        owner_phone: business.owner_phone || "",
+        twilio_call_sid: twilioCallSid,
+      },
+      retell_llm_dynamic_variables: {
+        business_name: business.business_name || "",
+        business_type: business.business_type || "",
+        service_area: business.service_area || "",
+        owner_phone: business.owner_phone || "",
+        business_id: business.business_id || "",
+        customer_phone: callerNumber,
+        knowledge_base: business.knowledge_base_text || "",
+        greeting: business.greeting_text || "",
+        greeting_tone: business.greeting_tone || "friendly",
+        routing_rules: JSON.stringify(business.routing_rules || {}),
+        call_source: twilioNumber,
+        emergency_definition: business.emergency_definition || "a life-threatening situation or severe property damage",
+        twilio_call_sid: twilioCallSid,
+      },
     });
 
-    // Inject dynamic metadata natively via TwiML <Parameter> tags!
-    // This is the Retell V2 way to pass variables for inbound Twilio calls without needing createPhoneCall()
     const twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
       <Response>
-        <Connect>
-          <Application>${process.env.TWILIO_VOICE_APP_SID}</Application>
-          <Parameter name="business_name"><Value>${escapeXml(business.business_name)}</Value></Parameter>
-          <Parameter name="business_type"><Value>${escapeXml(business.business_type)}</Value></Parameter>
-          <Parameter name="service_area"><Value>${escapeXml(business.service_area)}</Value></Parameter>
-          <Parameter name="owner_phone"><Value>${escapeXml(business.owner_phone)}</Value></Parameter>
-          <Parameter name="business_id"><Value>${escapeXml(business.business_id)}</Value></Parameter>
-          <Parameter name="customer_phone"><Value>${escapeXml(callerNumber)}</Value></Parameter>
-          <Parameter name="knowledge_base"><Value>${escapeXml(business.knowledge_base_text || "")}</Value></Parameter>
-          <Parameter name="greeting"><Value>${escapeXml(business.greeting_text || "")}</Value></Parameter>
-          <Parameter name="greeting_tone"><Value>${escapeXml(business.greeting_tone || "friendly")}</Value></Parameter>
-          <Parameter name="routing_rules"><Value>${escapeXml(JSON.stringify(business.routing_rules || {}))}</Value></Parameter>
-          <Parameter name="call_source"><Value>${escapeXml(twilioNumber)}</Value></Parameter>
-          <Parameter name="emergency_definition"><Value>${escapeXml(business.emergency_definition || "a life-threatening situation or severe property damage")}</Value></Parameter>
-        </Connect>
+        <Dial>
+          <Sip>sip:${phoneCallResponse.call_id}@sip.retellai.com</Sip>
+        </Dial>
       </Response>`;
 
-    console.log(`Inbound call connecting for ${business.business_name} via TwiML Parameters`);
+    console.log(`Inbound call registered for ${business.business_name} (retell call ${phoneCallResponse.call_id}, twilio sid ${twilioCallSid})`);
 
     return new NextResponse(twimlResponse, {
       headers: { 'Content-Type': 'text/xml' },
