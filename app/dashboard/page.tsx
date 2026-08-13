@@ -124,6 +124,41 @@ export default async function DashboardHome() {
                 )}
             </div>
 
+            {smsStatus && smsStatus !== "approved" && (
+                <div className="p-5 rounded-2xl bg-amber-500/[0.07] border border-amber-500/20 flex items-start gap-4">
+                    <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex-shrink-0">
+                        <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    </span>
+                    <div className="flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <h3 className="text-sm font-semibold text-amber-300">No messages will be sent until your Business SMS registration is approved</h3>
+                            <span className={`inline-block text-[10px] px-2.5 py-1 rounded-full border whitespace-nowrap text-center ${
+                                smsStatus === "rejected"
+                                    ? "bg-rose-500/10 text-rose-300 border-rose-500/20"
+                                    : smsStatus === "pending"
+                                        ? "bg-indigo-500/10 text-indigo-300 border-indigo-500/20"
+                                        : "bg-amber-500/10 text-amber-300 border-amber-500/20"
+                            }`}>
+                                {smsStatus === "rejected" ? "Needs your attention" : smsStatus === "pending" ? "In review" : "Not registered"}
+                            </span>
+                        </div>
+                        <p className="text-xs text-amber-200/60 mt-1.5 leading-relaxed">
+                            Until your Toll-Free Verification application is approved, US carriers block all outbound texts — appointment
+                            reminders, missed-call follow-ups, review requests and AI text replies will not go out. Calls, inbound texts
+                            and your AI phone line keep working normally.
+                        </p>
+                        <div className="mt-3">
+                            <Link
+                                href="/dashboard/settings?focus=sms"
+                                className="inline-flex items-center gap-2 bg-amber-400 text-black text-xs font-semibold px-5 py-2.5 rounded-full hover:bg-amber-300 transition-colors"
+                            >
+                                {smsStatus === "rejected" ? "Fix it now" : smsStatus === "pending" ? "View status" : "Apply now — takes 5 minutes"}
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {isAIActive && (
                 <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 backdrop-blur-xl">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
@@ -151,36 +186,6 @@ export default async function DashboardHome() {
                         <p className="mt-2 text-xs text-red-400 font-medium">⚠ You&apos;re running low on minutes. Consider upgrading your plan.</p>
                     )}
                 </div>
-            )}
-
-            {isAIActive && smsStatus && smsStatus !== "approved" && (
-                <Link
-                    href="/dashboard/settings?focus=sms"
-                    className={`flex items-center justify-between gap-4 p-5 rounded-2xl border transition-all group ${
-                        smsStatus === "rejected"
-                            ? "bg-rose-500/[0.06] border-rose-500/20 hover:border-rose-500/40"
-                            : smsStatus === "pending"
-                                ? "bg-indigo-500/[0.06] border-indigo-500/20 hover:border-indigo-500/40"
-                                : "bg-white/[0.03] border-white/[0.06] hover:border-indigo-500/30"
-                    }`}
-                >
-                    <div className="flex items-center gap-3">
-                        <div className={`flex items-center justify-center w-10 h-10 rounded-xl border ${
-                            smsStatus === "rejected" ? "bg-rose-500/10 border-rose-500/20" : "bg-indigo-500/10 border-indigo-500/20"
-                        }`}>
-                            <svg className={`w-5 h-5 ${smsStatus === "rejected" ? "text-rose-400" : "text-indigo-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
-                        </div>
-                        <div>
-                            <p className="text-sm font-semibold text-white">
-                                {smsStatus === "rejected" ? "Business SMS needs your attention" : smsStatus === "pending" ? "Business SMS verification in progress" : "Enable Business SMS"}
-                            </p>
-                            <p className="text-xs text-neutral-500 mt-0.5">
-                                {smsStatus === "rejected" ? "Twilio couldn't approve texting on your number — fix it in one minute." : smsStatus === "pending" ? "Approval usually takes 2–3 business days. Your number stays active for calls." : "Unlock appointment reminders, missed-call follow-ups and AI text replies."}
-                            </p>
-                        </div>
-                    </div>
-                    <span className="text-xs font-medium text-indigo-300 group-hover:text-indigo-200 flex-shrink-0">{smsStatus === "pending" ? "View status →" : "Get started →"}</span>
-                </Link>
             )}
 
             <DashboardCards
