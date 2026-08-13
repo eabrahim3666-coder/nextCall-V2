@@ -23,6 +23,23 @@ export default function DocsPage() {
                 <p className="mt-1 text-sm text-neutral-400">Everything you need to know about using nextCall effectively and safely.</p>
             </div>
 
+            {/* SMS Registration Warning */}
+            <div className="p-5 rounded-2xl bg-amber-500/[0.07] border border-amber-500/20 flex items-start gap-4">
+                <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex-shrink-0">
+                    <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                </span>
+                <div>
+                    <h3 className="text-sm font-semibold text-amber-300">Business SMS: registration required before any text can be sent</h3>
+                    <p className="text-xs text-amber-200/60 mt-1.5 leading-relaxed">
+                        US carriers block texts from unregistered numbers. Until you complete the
+                        <strong className="text-amber-200"> Business SMS</strong> registration (Toll-Free Verification) and it is approved,
+                        <strong className="text-amber-200"> no text messages will be sent</strong> — this includes appointment reminder SMS,
+                        missed-call follow-ups, review requests, and AI text replies. Your phone service keeps working normally, and one-time
+                        security codes are unaffected. Apply in <a href="/dashboard/settings?focus=sms" className="text-amber-300 underline underline-offset-2 hover:text-amber-200">Settings → Business SMS</a> — approval typically takes 2–3 business days.
+                    </p>
+                </div>
+            </div>
+
             {/* Plans & Included Features */}
             <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
                 <h2 className="text-lg font-semibold text-white mb-1">Plans & Included Features</h2>
@@ -305,6 +322,62 @@ export default function DocsPage() {
                                 <li>When a call is processed, nextCall sends a POST request with full call data to your webhook URL.</li>
                                 <li>Use this to trigger workflows in Zapier, Make, n8n, or any custom endpoint.</li>
                                 <li>Data includes: call_id, customer name, phone, sentiment, lead quality, appointment status, and summary.</li>
+                            </ul>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+            </div>
+
+            {/* Business SMS Guide */}
+            <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
+                <h2 className="text-lg font-semibold text-white mb-1">Business SMS (Toll-Free Verification)</h2>
+                <p className="text-xs text-neutral-500 mb-6">How to register for texting — and why it&apos;s required.</p>
+
+                <Accordion type="single" collapsible className="w-full space-y-3">
+                    <AccordionItem value="sms-1" className="bg-white/[0.02] border border-white/[0.06] rounded-xl px-5">
+                        <AccordionTrigger className="text-sm font-medium text-white hover:text-indigo-400 py-4">
+                            Why do I need to register to send texts?
+                        </AccordionTrigger>
+                        <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
+                            <p>US carriers require businesses to verify their identity before texting customers from a toll-free number. This is called <strong className="text-white">Toll-Free Verification (TFV)</strong> and is enforced by law (TCPA / CTIA guidelines).</p>
+                            <ul className="list-disc list-inside space-y-1.5 ml-1">
+                                <li>Without an approved verification, carriers block outbound texts — they simply never arrive.</li>
+                                <li>nextCall handles the entire submission with Twilio — you never touch Twilio&apos;s console or see technical forms.</li>
+                                <li>Inbound texts, calls and the AI phone line are <strong className="text-white">not affected</strong> — only sending texts requires approval.</li>
+                            </ul>
+                        </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="sms-2" className="bg-white/[0.02] border border-white/[0.06] rounded-xl px-5">
+                        <AccordionTrigger className="text-sm font-medium text-white hover:text-indigo-400 py-4">
+                            How do I submit the application?
+                        </AccordionTrigger>
+                        <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
+                            <ol className="list-decimal list-inside space-y-1.5 ml-1">
+                                <li>Go to <strong className="text-white">Settings → Business SMS</strong> and click <strong className="text-white">&quot;Get started&quot;</strong>.</li>
+                                <li>Fill in the form — most fields are pre-filled from your business profile. You&apos;ll need:</li>
+                            </ol>
+                            <ul className="list-disc list-inside space-y-1.5 ml-6">
+                                <li><strong className="text-white">Business details</strong> — legal name, website, business type, and registration number (EIN) unless you&apos;re a sole proprietor.</li>
+                                <li><strong className="text-white">Contact info</strong> — who Twilio should reach with the result.</li>
+                                <li><strong className="text-white">How you text</strong> — pick the ways you text customers, paste a sample message (we pre-fill a realistic one), and tell us how customers agree to receive texts.</li>
+                                <li><strong className="text-white">Opt-in proof</strong> — a public link (e.g. a Google Drive screenshot) showing how a customer agrees to receive texts.</li>
+                                <li><strong className="text-white">Privacy Policy and Terms &amp; Conditions URLs</strong> — required by carriers. Paste the page URLs from your website or booking platform.</li>
+                            </ul>
+                            <p className="text-neutral-500 italic">Only send-for-business: you will never be asked for your Twilio credentials or account details.</p>
+                        </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="sms-3" className="bg-white/[0.02] border border-white/[0.06] rounded-xl px-5">
+                        <AccordionTrigger className="text-sm font-medium text-white hover:text-indigo-400 py-4">
+                            What happens after I submit?
+                        </AccordionTrigger>
+                        <AccordionContent className="text-xs text-neutral-400 space-y-3 pb-4">
+                            <ul className="list-disc list-inside space-y-1.5 ml-1">
+                                <li>We submit instantly to Twilio and your dashboard shows <strong className="text-white">&quot;Verification in progress&quot;</strong>.</li>
+                                <li>Approval typically takes <strong className="text-white">2–3 business days</strong>. You&apos;ll also receive an email to your notification address.</li>
+                                <li>Once approved, all SMS features unlock automatically — appointment reminder texts, missed-call follow-ups, review request texts, and AI text replies.</li>
+                                <li>If Twilio requests changes, your dashboard shows the exact reason and a <strong className="text-white">&quot;Fix &amp; resubmit&quot;</strong> button with your answers pre-filled — no need to retype anything.</li>
                             </ul>
                         </AccordionContent>
                     </AccordionItem>

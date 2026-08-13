@@ -235,6 +235,20 @@ export default function SmsComplianceTab() {
 
     const status = compliance?.status || "none";
 
+    const warning = (
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/[0.07] border border-amber-500/20">
+            <svg className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            <div>
+                <p className="text-xs font-semibold text-amber-300">No messages will be sent until your registration is approved</p>
+                <p className="text-[11px] text-amber-200/60 mt-1 leading-relaxed">
+                    Until your Toll-Free Verification application is approved, US carriers block all outbound texts — appointment
+                    reminders, missed-call follow-ups, review requests and AI text replies will not go out. Calls, inbound texts and
+                    your AI phone line keep working normally. Approval typically takes 2–3 business days.
+                </p>
+            </div>
+        </div>
+    );
+
     // ------------- Status views -------------
     if (status === "approved") {
         return (
@@ -263,6 +277,8 @@ export default function SmsComplianceTab() {
 
     if (status === "pending") {
         return (
+            <div className="space-y-5">
+                {warning}
             <div className={`${cardClass} space-y-4`}>
                 <div className="flex items-start gap-4">
                     <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex-shrink-0">
@@ -281,6 +297,7 @@ export default function SmsComplianceTab() {
                     <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} /> Refresh status
                 </button>
             </div>
+            </div>
         );
     }
 
@@ -290,6 +307,7 @@ export default function SmsComplianceTab() {
         const expired = compliance?.edit_expiration && new Date(compliance.edit_expiration).getTime() < Date.now();
         return (
             <div className="space-y-5">
+                {warning}
                 <div className="p-6 rounded-2xl bg-rose-500/[0.06] border border-rose-500/20">
                     <div className="flex items-start gap-4">
                         <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 flex-shrink-0">
@@ -329,7 +347,9 @@ export default function SmsComplianceTab() {
 
     if (status === "error") {
         return (
-            <div className={`${cardClass} space-y-4`}>
+            <div className="space-y-5">
+                {warning}
+                <div className={`${cardClass} space-y-4`}>
                 <div className="flex items-start gap-4">
                     <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex-shrink-0">
                         <ShieldCheck className="w-6 h-6 text-amber-400" />
@@ -346,13 +366,16 @@ export default function SmsComplianceTab() {
                 </div>
                 {showForm && <ComplianceForm form={form} update={update} toggleCategory={toggleCategory} submitting={submitting} onSubmit={submit} error={error} fieldErrors={fieldErrors} />}
             </div>
+            </div>
         );
     }
 
     // ------------- Default: not started -------------
     if (!showForm) {
         return (
-            <div className={`${cardClass} space-y-5`}>
+            <div className="space-y-5">
+                {warning}
+                <div className={`${cardClass} space-y-5`}>
                 <div className="flex items-start gap-4">
                     <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex-shrink-0">
                         <MessageSquareText className="w-6 h-6 text-indigo-300" />
@@ -384,10 +407,16 @@ export default function SmsComplianceTab() {
                     </button>
                 </div>
             </div>
+            </div>
         );
     }
 
-    return <ComplianceForm form={form} update={update} toggleCategory={toggleCategory} submitting={submitting} onSubmit={submit} error={error} fieldErrors={fieldErrors} />;
+    return (
+        <div className="space-y-5">
+            {warning}
+            <ComplianceForm form={form} update={update} toggleCategory={toggleCategory} submitting={submitting} onSubmit={submit} error={error} fieldErrors={fieldErrors} />
+        </div>
+    );
 }
 
 function ComplianceForm({ form, update, toggleCategory, submitting, onSubmit, error, fieldErrors, editing }: {
