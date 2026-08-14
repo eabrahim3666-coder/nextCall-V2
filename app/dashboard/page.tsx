@@ -124,7 +124,7 @@ export default async function DashboardHome() {
                 )}
             </div>
 
-            {smsStatus && smsStatus !== "approved" && (
+            {(!smsStatus || smsStatus !== "approved") && (
                 <div className="p-5 rounded-2xl bg-amber-500/[0.07] border border-amber-500/20 flex items-start gap-4">
                     <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex-shrink-0">
                         <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
@@ -152,7 +152,7 @@ export default async function DashboardHome() {
                                 href="/dashboard/settings?focus=sms"
                                 className="inline-flex items-center gap-2 bg-amber-400 text-black text-xs font-semibold px-5 py-2.5 rounded-full hover:bg-amber-300 transition-colors"
                             >
-                                {smsStatus === "rejected" ? "Fix it now" : smsStatus === "pending" ? "View status" : "Apply now — takes 5 minutes"}
+                                {smsStatus === "rejected" ? "Fix it now" : smsStatus === "pending" ? "View status" : "Register now — enable your messaging"}
                             </Link>
                         </div>
                     </div>
