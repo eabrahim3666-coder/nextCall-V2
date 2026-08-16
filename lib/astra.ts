@@ -44,6 +44,15 @@ const _webhookEventsCollection = db.collection("webhook_events");
 // core business doc so compliance data never pollutes the main record.
 export const smsComplianceCollection = db.collection("sms_compliance");
 
+// Incident records from the error recovery engine (lib/recovery). Created
+// lazily by the incidents store; declared here so collection references stay
+// centralized with all other Astra collections.
+export const incidentsCollection = db.collection("incidents");
+
+// AI diagnosis budget/cache + circuit breaker state (lib/recovery/ai-guard,
+// lib/recovery/circuit-breaker). Created lazily; docs discriminated by `kind`.
+export const recoveryGuardCollection = db.collection("recovery_ai_guard");
+
 // Photos live in their own unindexed collection — indexed strings are capped
 // at 8,000 bytes in Astra, so big base64 blobs must stay out of the `messages` array.
 const chatPhotosCollection = db.collection("chat_photos");

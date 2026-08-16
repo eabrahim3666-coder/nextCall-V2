@@ -1,7 +1,9 @@
 import Twilio from "twilio";
 import twilioClient from "@/lib/twilio";
-import { smsComplianceCollection } from "@/lib/astra";
+import { smsComplianceCollection, businessesCollection } from "@/lib/astra";
 import { TollfreeVerificationStatus } from "twilio/lib/rest/messaging/v1/tollfreeVerification";
+import { executeWithRecovery } from "@/lib/recovery/engine";
+import { registerOperationExecutor, registerRecoveryActionExecutor } from "@/lib/recovery/registry";
 
 export type SmsComplianceStatus = "none" | "pending" | "approved" | "rejected" | "error";
 
@@ -103,6 +105,118 @@ export function getBusinessClient(business: Record<string, any>) {
   }
   return twilioClient;
 }
+
+// ---------------------------------------------------------------------------
+// Recovery integration (lib/recovery)
+// ---------------------------------------------------------------------------
+
+// Registered recovery action: when a parent-scoped TFV call fails with an
+// auth/authorization error, re-run the operation scoped to the business's own
+// subaccount (master credentials + accountSid — no new secrets stored).
+// The actual switch happens inside the execute() closure via `shared`.
+registerRecoveryActionExecutor("TWILIO_USE_SUBACCOUNT_AUTH", async (ctx) => {
+  ctx.shared.useSubaccountAuth = true;
+  return {
+    ok: true,
+    detail: "Switched to subaccount-scoped Twilio client for retry.",
+  };
+});
+
+async function runTfvOperation<T>(
+  business: Record<string, any>,
+  op: "create_tollfree_verification" | "update_tollfree_verification",
+  tollfreeNumber: string,
+  run: (client: typeof twilioClient) => Promise<T>
+): Promise<T> {
+  return executeWithRecovery({
+    provider: "twilio",
+    operation: op,
+    businessId: String(business.business_id),
+    userId: String(business.business_id),
+    // TFV is idempotent in practice: Twilio rejects a second verification for
+    // the same number with a duplicate error, and we reconcile via
+    // externalReferenceId. Safe to retry.
+    idempotent: true,
+    // Duplicate verifications are handled gracefully by the existing
+    // reconciliation below — no need to raise an incident for them.
+    suppressCategories: ["DUPLICATE"],
+    context: {
+      businessName: business.business_name || "",
+      tollfreeNumber,
+    },
+    execute: async (shared) => {
+      const client = shared.useSubaccountAuth ? getBusinessClient(business) : twilioClient;
+      return run(client);
+    },
+  });
+}
+
+// Admin-manual-retry path for TFV submissions. It reconciles first (the
+// verification may actually exist), and only re-submits when none exists —
+// with the same subaccount-scope fallback the automatic recovery uses.
+registerOperationExecutor("twilio", "create_tollfree_verification", async (ctx) => {
+  const businessId = ctx.businessId;
+  if (!businessId) return { ok: false, detail: "missing business_id" };
+  try {
+    const business = await businessesCollection.findOne({ business_id: businessId });
+    if (!business) return { ok: false, detail: "business not found" };
+
+    const record = await getComplianceRecord(businessId);
+    if (record?.status === "approved") {
+      return { ok: true, detail: "Verification already approved." };
+    }
+
+    const reconcile = await twilioClient.messaging.v1.tollfreeVerifications.list({
+      externalReferenceId: businessId,
+      includeSubAccounts: true,
+      limit: 1,
+    });
+    if (reconcile.length > 0) {
+      const status = String(reconcile[0].status);
+      if (status === "TWILIO_APPROVED") {
+        await upsertComplianceRecord(businessId, { status: "approved", twilio_status: status, verification_sid: reconcile[0].sid });
+        return { ok: true, detail: `Verification ${reconcile[0].sid} is approved.` };
+      }
+      return { ok: false, detail: `Verification ${reconcile[0].sid} exists with status ${status} — no re-submission needed.` };
+    }
+
+    const form = (ctx.context?.form as TfvForm | undefined) || (record?.last_submitted as unknown as TfvForm | undefined);
+    if (!form) return { ok: false, detail: "No stored TFV form available for re-submission." };
+
+    const { number, sid } = await ensureTollfreeNumber(business, record);
+    const parms = buildCreateParams(business, form, number, sid);
+
+    const attemptWith = async (client: typeof twilioClient) => {
+      const created = await client.messaging.v1.tollfreeVerifications.create(parms);
+      await upsertComplianceRecord(businessId, {
+        status: INTERNAL_STATUS[created.status] || "pending",
+        twilio_status: created.status,
+        verification_sid: created.sid,
+        submitted_at: new Date().toISOString(),
+        last_error: "",
+      });
+      return { ok: true as const, detail: `Re-submitted TFV ${created.sid} — status ${created.status}.` };
+    };
+
+    try {
+      return await attemptWith(twilioClient);
+    } catch (err: unknown) {
+      const e = err as { code?: unknown; status?: unknown };
+      const code = String(e?.code ?? "");
+      const status = Number(e?.status ?? 0);
+      if (code === "20003" || code === "20103" || status === 401 || status === 403) {
+        try {
+          return await attemptWith(getBusinessClient(business));
+        } catch (subErr) {
+          return { ok: false, detail: `Subaccount-scoped retry failed: ${(subErr as Error)?.message?.slice(0, 300)}` };
+        }
+      }
+      return { ok: false, detail: (err as Error)?.message?.slice(0, 300) || "verification failed" };
+    }
+  } catch (err) {
+    return { ok: false, detail: (err as Error)?.message?.slice(0, 300) || "unexpected failure" };
+  }
+});
 
 // ---------------------------------------------------------------------------
 // Gating + sending
@@ -313,17 +427,22 @@ export async function submitTollfreeVerification(
   const parms = buildCreateParams(business, form, number, sid);
 
   try {
-    const client = twilioClient;
     const canEdit =
       currentStatus === "rejected" &&
       record?.edit_allowed !== false &&
       (!record?.edit_expiration || new Date(record.edit_expiration).getTime() > Date.now());
 
     if (canEdit && record?.verification_sid) {
-      const updated = await client.messaging.v1.tollfreeVerifications(record.verification_sid).update({
-        ...parms,
-        editReason: form.editReason || "Information corrected — please re-review",
-      });
+      const updated = await runTfvOperation(
+        business,
+        "update_tollfree_verification",
+        number,
+        (client) =>
+          client.messaging.v1.tollfreeVerifications(record.verification_sid!).update({
+            ...parms,
+            editReason: form.editReason || "Information corrected — please re-review",
+          })
+      );
       await upsertComplianceRecord(businessId, {
         status: INTERNAL_STATUS[updated.status] || "pending",
         twilio_status: updated.status,
@@ -337,7 +456,12 @@ export async function submitTollfreeVerification(
       return { status: "pending", verificationSid: updated.sid };
     }
 
-    const created = await client.messaging.v1.tollfreeVerifications.create(parms);
+    const created = await runTfvOperation(
+      business,
+      "create_tollfree_verification",
+      number,
+      (client) => client.messaging.v1.tollfreeVerifications.create(parms)
+    );
     await upsertComplianceRecord(businessId, {
       status: INTERNAL_STATUS[created.status] || "pending",
       twilio_status: created.status,

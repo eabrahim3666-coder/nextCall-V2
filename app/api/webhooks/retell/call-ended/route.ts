@@ -6,6 +6,46 @@ import { Resend } from 'resend';
 import { google } from 'googleapis';
 import { escapeHtml, isSafeWebhookUrl, verifyHmacSignature } from '@/lib/security';
 import { notifyActivity, type Activity } from '@/lib/pusher';
+import { executeWithRecovery } from '@/lib/recovery/engine';
+import { registerOperationExecutor, registerRecoveryActionExecutor } from '@/lib/recovery/registry';
+
+// Recovery integration: a 401/403 from the Calendar API refreshes the OAuth
+// token explicitly (the business's refresh token is stored on the business doc)
+// and the insert is retried exactly once by the recovery engine.
+registerRecoveryActionExecutor("GOOGLE_REFRESH_OAUTH_TOKEN", async (ctx) => {
+  ctx.shared.forceRefreshOAuth = true;
+  return { ok: true, detail: "Forcing Google OAuth token refresh before retry." };
+});
+
+// Admin-manual-retry path for calendar event creation. Replays the stored
+// event payload with freshly refreshed credentials. No arbitrary operations.
+registerOperationExecutor("google", "calendar_insert_event", async (ctx) => {
+  const businessId = ctx.businessId;
+  const stored = ctx.context?.eventPayload as
+    | { event?: Record<string, unknown>; calendarId?: string }
+    | undefined;
+  if (!stored?.event) return { ok: false, detail: "No stored event payload for retry." };
+  try {
+    const business = await businessesCollection.findOne({ business_id: businessId });
+    if (!business?.google_refresh_token) {
+      return { ok: false, detail: "Business has no connected Google account." };
+    }
+    const oauth = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET
+    );
+    oauth.setCredentials({ refresh_token: business.google_refresh_token });
+    await oauth.getAccessToken();
+    const gcal = google.calendar({ version: "v3", auth: oauth });
+    const response = await gcal.events.insert({
+      calendarId: (stored.calendarId as string) || "primary",
+      requestBody: stored.event,
+    });
+    return { ok: true, detail: `Event created: ${response.data.htmlLink || response.data.id || "ok"}` };
+  } catch (err) {
+    return { ok: false, detail: (err as Error)?.message?.slice(0, 400) || "calendar insert failed" };
+  }
+});
 
 export async function POST(request: Request) {
   try {
@@ -186,17 +226,11 @@ Output ONLY valid JSON.`
 
     // ============ AUTOMATIONS ============
 
-    // 5. GOOGLE CALENDAR INTEGRATION (all plans — needed for AI appointment booking)
+// 5. GOOGLE CALENDAR INTEGRATION (all plans — needed for AI appointment booking)
     if (appointmentBooked && business?.google_refresh_token) {
       try {
         await activity({ type: "appointment_confirmed", title: "Appointment confirmed", message: `${person(customerName, 'A customer')} • ${formatSlot(appointmentDateTimeStr)}`, icon: "lucide:calendar-check", status: "success", agent_state: "Scheduling Appointment", href: "/dashboard/calls" });
         await activity({ type: "creating_event", title: "Creating Google Calendar event...", message: `${person(customerName, 'A customer')} • ${formatSlot(appointmentDateTimeStr)}`, icon: "lucide:calendar-plus", status: "pending", agent_state: "Updating Calendar" });
-        const oAuth2Client = new google.auth.OAuth2(
-          process.env.GOOGLE_CLIENT_ID,
-          process.env.GOOGLE_CLIENT_SECRET
-        );
-        oAuth2Client.setCredentials({ refresh_token: business.google_refresh_token });
-        const calendar = google.calendar({ version: 'v3', auth: oAuth2Client });
 
         let startDateTime;
         try {
@@ -218,7 +252,34 @@ Output ONLY valid JSON.`
           end: { dateTime: endDateTime.toISOString(), timeZone: 'America/New_York' },
         };
 
-        await calendar.events.insert({ calendarId: 'primary', requestBody: event });
+        // Wrapped in the recovery engine: 401/403 → refresh token + single retry
+        // (via GOOGLE_REFRESH_OAUTH_TOKEN action). Idempotent=false so a 5xx or
+        // timeout is never blindly retried (the event may already exist), but
+        // 429s and the registered OAuth recovery are still handled safely.
+        await executeWithRecovery({
+          provider: "google",
+          operation: "calendar_insert_event",
+          businessId: String(business.business_id),
+          userId: String(business.business_id),
+          idempotent: false,
+          context: {
+            businessName: business.business_name || "",
+            calendarId: "primary",
+            eventPayload: { event, calendarId: "primary" },
+          },
+          execute: async (shared) => {
+            const oAuth2Client = new google.auth.OAuth2(
+              process.env.GOOGLE_CLIENT_ID,
+              process.env.GOOGLE_CLIENT_SECRET
+            );
+            oAuth2Client.setCredentials({ refresh_token: business.google_refresh_token });
+            if (shared.forceRefreshOAuth) {
+              await oAuth2Client.getAccessToken();
+            }
+            const gcal = google.calendar({ version: 'v3', auth: oAuth2Client });
+            await gcal.events.insert({ calendarId: 'primary', requestBody: event });
+          },
+        });
         await activity({ type: "event_created", title: "Google Calendar updated", message: `${person(customerName, 'A customer')} • ${formatSlot(appointmentDateTimeStr)}`, icon: "lucide:calendar-check", status: "success", agent_state: "Updating Calendar", href: "/dashboard/calls" });
         console.log(`Google Calendar event created for ${business.business_name}`);
       } catch (calError) {

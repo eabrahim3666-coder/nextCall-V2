@@ -1,7 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Phone, Clock, AlertTriangle, Download, Eye, X, Database, CheckCircle, XCircle } from "lucide-react";
+import { Users, Phone, Clock, AlertTriangle, Download, Eye, X, Database, CheckCircle, XCircle, DollarSign } from "lucide-react";
+
+type UsageCost = {
+    voiceMinutes: number;
+    smsMessages: number;
+    whatsappMessages: number;
+    phoneNumbers: number;
+    voiceCost: number;
+    smsCost: number;
+    whatsappCost: number;
+    phoneCost: number;
+    totalCost: number;
+    revenue: number;
+    net: number;
+    marginPct: number;
+};
 
 type Business = {
     business_id: string;
@@ -25,6 +40,7 @@ type Business = {
     referral_code?: string;
     bonus_minutes?: number;
     twilio_number?: string;
+    cost?: UsageCost & { smsCount?: number; whatsappCount?: number; phoneCount?: number };
 };
 
 type Props = {
@@ -41,9 +57,25 @@ type Props = {
         dbLimitMB: number;
         storagePercent: number;
     };
+    costSummary: {
+        platformCost: number;
+        platformRevenue: number;
+        platformNet: number;
+        viewableRevenue: number;
+        viewableCost: number;
+        viewableNet: number;
+        viewableMarginPct: number;
+        voiceRate: number;
+        smsRate: number;
+        whatsappRate: number;
+        phoneRate: number;
+    };
 };
 
-export default function AdminDashboardClient({ allBusinesses, totalCallsProcessed, totalMinutesConsumed, flaggedCount, dbStats }: Props) {
+const money = (n: number): string =>
+    "$" + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+export default function AdminDashboardClient({ allBusinesses, totalCallsProcessed, totalMinutesConsumed, flaggedCount, dbStats, costSummary }: Props) {
     const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -157,6 +189,39 @@ export default function AdminDashboardClient({ allBusinesses, totalCallsProcesse
                 </div>
             </div>
 
+            {/* Cost Summary */}
+            <div className="bg-white/[0.03] border border-emerald-500/20 rounded-2xl p-6 backdrop-blur-xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
+                    <div className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-emerald-400" />
+                        <h2 className="text-base font-bold text-white">Monthly Cost & Margin (Estimated COGS)</h2>
+                    </div>
+                    <p className="text-[10px] text-neutral-500">Rates: voice ${costSummary.voiceRate.toFixed(3)}/min · SMS ${costSummary.smsRate.toFixed(3)}/msg · WhatsApp ${costSummary.whatsappRate.toFixed(3)}/msg · phone ${money(costSummary.phoneRate)}/mo. Override via NEXTCALL_COGS_* env.</p>
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg">
+                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider">Viewable Revenue</p>
+                        <p className="text-2xl font-bold text-white mt-1">{money(costSummary.viewableRevenue)}</p>
+                        <p className="text-xs text-neutral-500 mt-1">From {allBusinesses.length} loaded businesses</p>
+                    </div>
+                    <div className="bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg">
+                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider">Estimated COGS</p>
+                        <p className="text-2xl font-bold text-white mt-1">{money(costSummary.viewableCost)}</p>
+                        <p className="text-xs text-amber-400 mt-1">Voice + SMS + WhatsApp + phone</p>
+                    </div>
+                    <div className="bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg">
+                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider">Net/Mo</p>
+                        <p className={`text-2xl font-bold mt-1 ${costSummary.viewableNet >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{money(costSummary.viewableNet)}</p>
+                        <p className="text-xs text-neutral-500 mt-1">Revenue − COGS</p>
+                    </div>
+                    <div className="bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg">
+                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider">Blended Margin</p>
+                        <p className="text-2xl font-bold text-white mt-1">{costSummary.viewableMarginPct.toFixed(1)}%</p>
+                        <p className="text-xs text-emerald-400 mt-1">Healthy &gt; 70%</p>
+                    </div>
+                </div>
+            </div>
+
             {/* DB Stats */}
             <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 backdrop-blur-xl">
                 <div className="flex items-center gap-2 mb-4">
@@ -237,17 +302,19 @@ export default function AdminDashboardClient({ allBusinesses, totalCallsProcesse
                                 <th className="pb-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Plan</th>
                                 <th className="pb-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Status</th>
                                 <th className="pb-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Minutes</th>
+                                <th className="pb-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Cost/Mo (est)</th>
                                 <th className="pb-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/[0.04]">
                             {filteredBusinesses.length === 0 ? (
-                                <tr><td colSpan={5} className="py-6 text-center text-sm text-neutral-500">No businesses found.</td></tr>
+                                <tr><td colSpan={6} className="py-6 text-center text-sm text-neutral-500">No businesses found.</td></tr>
                             ) : (
                                 filteredBusinesses.map((user) => {
                                     const used = user.total_minutes_used || 0;
                                     const limit = user.minutes_limit || 200;
                                     const percent = Math.round((used / limit) * 100);
+                                    const c = user.cost;
                                     return (
                                         <tr key={user.business_id} className="hover:bg-white/[0.02] transition-colors">
                                             <td className="py-3 pr-4">
@@ -271,6 +338,20 @@ export default function AdminDashboardClient({ allBusinesses, totalCallsProcesse
                                                     </div>
                                                     <span className="text-xs text-neutral-400">{used}/{limit}</span>
                                                 </div>
+                                            </td>
+                                            <td className="py-3 pr-4">
+                                                {c ? (
+                                                    <>
+                                                        <p className={`text-sm font-semibold ${(c.net ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                                                            {money(c.totalCost)}
+                                                        </p>
+                                                        <p className="text-[10px] text-neutral-500">
+                                                            rev {money(c.revenue)} · {c.marginPct.toFixed(0)}% margin
+                                                        </p>
+                                                    </>
+                                                ) : (
+                                                    <span className="text-xs text-neutral-600">—</span>
+                                                )}
                                             </td>
                                             <td className="py-3 text-right">
                                                 <div className="flex items-center justify-end gap-2">
@@ -308,6 +389,41 @@ export default function AdminDashboardClient({ allBusinesses, totalCallsProcesse
                                 <div className="bg-white/[0.03] p-3 rounded-lg"><p className="text-[10px] text-neutral-500 uppercase">Owner Phone</p><p className="text-sm text-white font-medium">{selectedBusiness.owner_phone || 'N/A'}</p></div>
                                 <div className="bg-white/[0.03] p-3 rounded-lg"><p className="text-[10px] text-neutral-500 uppercase">Twilio Number</p><p className="text-sm text-white font-medium">{selectedBusiness.twilio_number || 'N/A'}</p></div>
                                 <div className="bg-white/[0.03] p-3 rounded-lg"><p className="text-[10px] text-neutral-500 uppercase">Referral Code</p><p className="text-sm text-white font-medium">{selectedBusiness.referral_code || 'N/A'}</p></div>
+                            </div>
+
+                            <div className="bg-white/[0.03] p-4 rounded-lg">
+                                <h3 className="text-xs font-bold text-neutral-400 mb-2 uppercase">Estimated Monthly Cost</h3>
+                                {selectedBusiness.cost ? (
+                                    <>
+                                        <div className="grid grid-cols-2 gap-3 mb-3">
+                                            <div className="bg-white/[0.02] border border-white/[0.04] p-3 rounded-lg">
+                                                <p className="text-[10px] text-neutral-500 uppercase">Revenue</p>
+                                                <p className="text-lg font-bold text-white">{money(selectedBusiness.cost.revenue)}</p>
+                                            </div>
+                                            <div className="bg-white/[0.02] border border-white/[0.04] p-3 rounded-lg">
+                                                <p className="text-[10px] text-neutral-500 uppercase">Total COGS</p>
+                                                <p className="text-lg font-bold text-white">{money(selectedBusiness.cost.totalCost)}</p>
+                                            </div>
+                                            <div className="bg-white/[0.02] border border-white/[0.04] p-3 rounded-lg">
+                                                <p className="text-[10px] text-neutral-500 uppercase">Net</p>
+                                                <p className={`text-lg font-bold ${(selectedBusiness.cost.net ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{money(selectedBusiness.cost.net)}</p>
+                                            </div>
+                                            <div className="bg-white/[0.02] border border-white/[0.04] p-3 rounded-lg">
+                                                <p className="text-[10px] text-neutral-500 uppercase">Margin</p>
+                                                <p className="text-lg font-bold text-white">{selectedBusiness.cost.marginPct.toFixed(1)}%</p>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1.5 text-xs">
+                                            <div className="flex justify-between"><span className="text-neutral-500">Voice ({selectedBusiness.cost.voiceMinutes} min)</span><span className="text-white font-medium">{money(selectedBusiness.cost.voiceCost)}</span></div>
+                                            <div className="flex justify-between"><span className="text-neutral-500">SMS ({selectedBusiness.cost.smsCount ?? 0} msgs)</span><span className="text-white font-medium">{money(selectedBusiness.cost.smsCost)}</span></div>
+                                            <div className="flex justify-between"><span className="text-neutral-500">WhatsApp ({selectedBusiness.cost.whatsappCount ?? 0} msgs)</span><span className="text-white font-medium">{money(selectedBusiness.cost.whatsappCost)}</span></div>
+                                            <div className="flex justify-between"><span className="text-neutral-500">Phone ({selectedBusiness.cost.phoneCount ?? 0})</span><span className="text-white font-medium">{money(selectedBusiness.cost.phoneCost)}</span></div>
+                                        </div>
+                                        <p className="text-[10px] text-neutral-600 mt-2">Voice @ {costSummary.voiceRate.toFixed(3)}/min · SMS @ {costSummary.smsRate.toFixed(3)}/msg · WhatsApp @ {costSummary.whatsappRate.toFixed(3)}/msg · phone @ {money(costSummary.phoneRate)}/mo</p>
+                                    </>
+                                ) : (
+                                    <p className="text-xs text-neutral-500">No usage data available.</p>
+                                )}
                             </div>
 
                             <div className="bg-white/[0.03] p-4 rounded-lg">
