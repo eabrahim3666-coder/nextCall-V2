@@ -53,7 +53,7 @@ const PLANS = [
   },
   {
     name: "Premium",
-    subtitle: "For growing businesses that want to win every call",
+    subtitle: "For growing businesses\nthat want to win every call",
     price: "$399",
     period: "/month",
     minutes: "500 minutes included · $0.40/min overage",
@@ -86,7 +86,7 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
   return (
     <section
       id="pricing"
-      className="relative bg-ds-bg-primary py-24 md:py-32 overflow-hidden"
+      className="relative bg-ds-bg-primary py-20 md:py-24 overflow-hidden"
     >
       <div className="pointer-events-none absolute top-[-15%] left-[10%] h-[500px] w-[500px] rounded-full bg-ds-accent-primary/[0.03] blur-[100px]" />
       <div className="pointer-events-none absolute bottom-[-10%] right-[5%] h-[400px] w-[400px] rounded-full bg-ds-accent-secondary/[0.02] blur-[80px]" />
@@ -136,7 +136,7 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
           variants={{
             animate: { transition: { staggerChildren: 0.12, delayChildren: 0.15 } },
           }}
-          className="mt-16 grid gap-6 lg:grid-cols-3 max-w-6xl mx-auto items-stretch"
+          className="mt-10 grid gap-4 lg:grid-cols-3 max-w-6xl mx-auto items-stretch"
         >
           {PLANS.map((plan) => (
             <motion.div
@@ -144,7 +144,7 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
               variants={fadeUp}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               className={cn(
-                "relative flex flex-col rounded-[2rem] border p-7 overflow-hidden",
+                "relative flex flex-col rounded-[1.5rem] border p-5 overflow-hidden",
                 "transition-all duration-300",
                 plan.free
                   ? "border-dashed border-ds-border-primary bg-ds-bg-card/60 hover:border-ds-border-hover"
@@ -158,7 +158,7 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
                     <h3 className="text-ds-large-heading text-ds-text-primary">
                       {plan.name}
                     </h3>
-                    <p className="mt-1.5 text-ds-small-body text-ds-text-secondary leading-relaxed">
+                    <p className="mt-1 whitespace-pre-line text-ds-small-body text-ds-text-secondary leading-snug">
                       {plan.subtitle}
                     </p>
                   </div>
@@ -177,27 +177,27 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
                 </div>
 
                 {/* Price */}
-                <div className="mt-4">
+                <div className="mt-2.5">
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-6xl font-semibold tracking-tight text-ds-text-primary">
+                    <span className="text-5xl font-semibold tracking-tight text-ds-text-primary">
                       {plan.price}
                     </span>
                     <span className="text-ds-small-body text-ds-text-secondary">
                       {plan.period}
                     </span>
                   </div>
-                  <p className="mt-1.5 text-ds-caption text-ds-text-muted">
+                  <p className="mt-0.5 text-ds-caption text-ds-text-muted">
                     {plan.minutes}
                   </p>
                 </div>
 
                 {/* Divider */}
-                <div className="my-5 h-px w-full bg-linear-to-r from-transparent via-ds-border-primary to-transparent" />
+                <div className="my-3 h-px w-full bg-linear-to-r from-transparent via-ds-border-primary to-transparent" />
 
                 {/* Features */}
-                <ul className="flex-1 space-y-2.5">
+                <ul className="flex-1 space-y-1.5">
                   {plan.label && (
-                    <li className="flex items-start gap-3 pb-2">
+                    <li className="flex items-start gap-3 pb-1.5">
                       <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-ds-accent-primary/10 text-ds-accent-secondary">
                         <Icon icon="lucide:check" width={11} />
                       </span>
@@ -229,7 +229,7 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
                 <a
                   href={`/dashboard${refCode ? `?ref=${refCode}` : ""}`}
                   className={cn(
-                    "mt-5 flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-ds-button font-semibold transition-all duration-300",
+                    "mt-3.5 flex w-full items-center justify-center gap-2 rounded-full px-6 py-2.5 text-ds-button font-semibold transition-all duration-300",
                     plan.cta === "primary"
                       ? "bg-ds-text-primary text-ds-bg-primary shadow-ds-md hover:opacity-90"
                       : plan.free
