@@ -100,3 +100,26 @@ export function computeUsageCost(input: {
 
 export const money = (n: number): string =>
   "$" + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+/** "YYYY-MM" key for an ISO date string or Date ("" if unparseable). */
+export function ymKey(iso: string | Date | undefined | null): string {
+  if (!iso) return "";
+  const d = iso instanceof Date ? iso : new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+/** Human label for a "YYYY-MM" key, e.g. "Aug 2026". */
+export function ymLabel(ym: string): string {
+  const [y, m] = ym.split("-").map(Number);
+  if (!y || !m) return ym;
+  return new Date(y, m - 1, 1).toLocaleDateString("en-US", {
+    month: "short",
+    year: "numeric",
+  });
+}
+
+/** Current calendar month as a "YYYY-MM" key. */
+export function currentYm(): string {
+  return ymKey(new Date());
+}

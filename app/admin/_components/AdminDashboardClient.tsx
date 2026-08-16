@@ -18,6 +18,10 @@ type UsageCost = {
     marginPct: number;
 };
 
+type CostMeta = { smsCount?: number; whatsappCount?: number; phoneCount?: number };
+
+type MonthlyEntry = UsageCost & { ym: string; label: string };
+
 type Business = {
     business_id: string;
     business_name?: string;
@@ -40,7 +44,9 @@ type Business = {
     referral_code?: string;
     bonus_minutes?: number;
     twilio_number?: string;
-    cost?: UsageCost & { smsCount?: number; whatsappCount?: number; phoneCount?: number };
+    cost?: UsageCost & CostMeta;
+    monthCost?: UsageCost & CostMeta;
+    monthly?: MonthlyEntry[];
 };
 
 type Props = {
@@ -65,6 +71,10 @@ type Props = {
         viewableCost: number;
         viewableNet: number;
         viewableMarginPct: number;
+        monthRevenue: number;
+        monthCost: number;
+        monthNet: number;
+        monthMarginPct: number;
         voiceRate: number;
         smsRate: number;
         whatsappRate: number;
@@ -78,6 +88,14 @@ const money = (n: number): string =>
 export default function AdminDashboardClient({ allBusinesses, totalCallsProcessed, totalMinutesConsumed, flaggedCount, dbStats, costSummary }: Props) {
     const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
+    const [costPeriod, setCostPeriod] = useState<"month" | "all">("month");
+
+    const rateHint = `Rates: voice ${costSummary.voiceRate.toFixed(3)}/min · SMS ${costSummary.smsRate.toFixed(3)}/msg · WhatsApp ${costSummary.whatsappRate.toFixed(3)}/msg · phone ${money(costSummary.phoneRate)}/mo. Override via NEXTCALL_COGS_* env.`;
+
+    const summaryRev = costPeriod === "month" ? costSummary.monthRevenue : costSummary.viewableRevenue;
+    const summaryCost = costPeriod === "month" ? costSummary.monthCost : costSummary.viewableCost;
+    const summaryNet = costPeriod === "month" ? costSummary.monthNet : costSummary.viewableNet;
+    const summaryMargin = costPeriod === "month" ? costSummary.monthMarginPct : costSummary.viewableMarginPct;
 
     const activeUsers = allBusinesses.filter(b => b.status === "active").length;
 
@@ -191,35 +209,49 @@ export default function AdminDashboardClient({ allBusinesses, totalCallsProcesse
 
             {/* Cost Summary */}
             <div className="bg-white/[0.03] border border-emerald-500/20 rounded-2xl p-6 backdrop-blur-xl">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
                     <div className="flex items-center gap-2">
                         <DollarSign className="h-4 w-4 text-emerald-400" />
-                        <h2 className="text-base font-bold text-white">Monthly Cost & Margin (Estimated COGS)</h2>
+                        <h2 className="text-base font-bold text-white">Cost & Margin (Estimated COGS)</h2>
                     </div>
-                    <p className="text-[10px] text-neutral-500">Rates: voice ${costSummary.voiceRate.toFixed(3)}/min · SMS ${costSummary.smsRate.toFixed(3)}/msg · WhatsApp ${costSummary.whatsappRate.toFixed(3)}/msg · phone ${money(costSummary.phoneRate)}/mo. Override via NEXTCALL_COGS_* env.</p>
+                    <div className="flex items-center gap-1 bg-white/[0.04] border border-white/[0.08] rounded-full p-1">
+                        <button
+                            onClick={() => setCostPeriod("month")}
+                            className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-colors ${costPeriod === "month" ? "bg-emerald-500/20 text-emerald-300" : "text-neutral-400 hover:text-white"}`}
+                        >
+                            This Month
+                        </button>
+                        <button
+                            onClick={() => setCostPeriod("all")}
+                            className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-colors ${costPeriod === "all" ? "bg-emerald-500/20 text-emerald-300" : "text-neutral-400 hover:text-white"}`}
+                        >
+                            All-time (Overall)
+                        </button>
+                    </div>
                 </div>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg">
-                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider">Viewable Revenue</p>
-                        <p className="text-2xl font-bold text-white mt-1">{money(costSummary.viewableRevenue)}</p>
+                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider">{costPeriod === "month" ? "Revenue This Month" : "All-time Revenue"}</p>
+                        <p className="text-2xl font-bold text-white mt-1">{money(summaryRev)}</p>
                         <p className="text-xs text-neutral-500 mt-1">From {allBusinesses.length} loaded businesses</p>
                     </div>
                     <div className="bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg">
-                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider">Estimated COGS</p>
-                        <p className="text-2xl font-bold text-white mt-1">{money(costSummary.viewableCost)}</p>
+                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider">{costPeriod === "month" ? "COGS This Month" : "All-time COGS"}</p>
+                        <p className="text-2xl font-bold text-white mt-1">{money(summaryCost)}</p>
                         <p className="text-xs text-amber-400 mt-1">Voice + SMS + WhatsApp + phone</p>
                     </div>
                     <div className="bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg">
-                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider">Net/Mo</p>
-                        <p className={`text-2xl font-bold mt-1 ${costSummary.viewableNet >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{money(costSummary.viewableNet)}</p>
+                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider">{costPeriod === "month" ? "Net This Month" : "Net All-time"}</p>
+                        <p className={`text-2xl font-bold mt-1 ${summaryNet >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{money(summaryNet)}</p>
                         <p className="text-xs text-neutral-500 mt-1">Revenue − COGS</p>
                     </div>
                     <div className="bg-white/[0.02] border border-white/[0.04] p-4 rounded-lg">
-                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider">Blended Margin</p>
-                        <p className="text-2xl font-bold text-white mt-1">{costSummary.viewableMarginPct.toFixed(1)}%</p>
+                        <p className="text-[10px] text-neutral-500 uppercase tracking-wider">{costPeriod === "month" ? "Margin This Month" : "Blended Margin"}</p>
+                        <p className="text-2xl font-bold text-white mt-1">{summaryMargin.toFixed(1)}%</p>
                         <p className="text-xs text-emerald-400 mt-1">Healthy &gt; 70%</p>
                     </div>
                 </div>
+                <p className="text-[10px] text-neutral-500 mt-4">{rateHint}</p>
             </div>
 
             {/* DB Stats */}
@@ -302,19 +334,21 @@ export default function AdminDashboardClient({ allBusinesses, totalCallsProcesse
                                 <th className="pb-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Plan</th>
                                 <th className="pb-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Status</th>
                                 <th className="pb-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Minutes</th>
-                                <th className="pb-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Cost/Mo (est)</th>
+                                <th className="pb-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Cost This Mo</th>
+                                <th className="pb-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Cost All-time</th>
                                 <th className="pb-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/[0.04]">
                             {filteredBusinesses.length === 0 ? (
-                                <tr><td colSpan={6} className="py-6 text-center text-sm text-neutral-500">No businesses found.</td></tr>
+                                <tr><td colSpan={7} className="py-6 text-center text-sm text-neutral-500">No businesses found.</td></tr>
                             ) : (
                                 filteredBusinesses.map((user) => {
                                     const used = user.total_minutes_used || 0;
                                     const limit = user.minutes_limit || 200;
                                     const percent = Math.round((used / limit) * 100);
                                     const c = user.cost;
+                                    const mc = user.monthCost;
                                     return (
                                         <tr key={user.business_id} className="hover:bg-white/[0.02] transition-colors">
                                             <td className="py-3 pr-4">
@@ -340,13 +374,27 @@ export default function AdminDashboardClient({ allBusinesses, totalCallsProcesse
                                                 </div>
                                             </td>
                                             <td className="py-3 pr-4">
+                                                {mc ? (
+                                                    <>
+                                                        <p className={`text-sm font-semibold ${(mc.net ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                                                            {money(mc.totalCost)}
+                                                        </p>
+                                                        <p className="text-[10px] text-neutral-500">
+                                                            rev {money(mc.revenue)} · {mc.marginPct.toFixed(0)}% margin
+                                                        </p>
+                                                    </>
+                                                ) : (
+                                                    <span className="text-xs text-neutral-600">—</span>
+                                                )}
+                                            </td>
+                                            <td className="py-3 pr-4">
                                                 {c ? (
                                                     <>
                                                         <p className={`text-sm font-semibold ${(c.net ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                                                             {money(c.totalCost)}
                                                         </p>
                                                         <p className="text-[10px] text-neutral-500">
-                                                            rev {money(c.revenue)} · {c.marginPct.toFixed(0)}% margin
+                                                            all-time · {money(c.revenue)} rev
                                                         </p>
                                                     </>
                                                 ) : (
@@ -392,37 +440,82 @@ export default function AdminDashboardClient({ allBusinesses, totalCallsProcesse
                             </div>
 
                             <div className="bg-white/[0.03] p-4 rounded-lg">
-                                <h3 className="text-xs font-bold text-neutral-400 mb-2 uppercase">Estimated Monthly Cost</h3>
-                                {selectedBusiness.cost ? (
-                                    <>
-                                        <div className="grid grid-cols-2 gap-3 mb-3">
-                                            <div className="bg-white/[0.02] border border-white/[0.04] p-3 rounded-lg">
-                                                <p className="text-[10px] text-neutral-500 uppercase">Revenue</p>
-                                                <p className="text-lg font-bold text-white">{money(selectedBusiness.cost.revenue)}</p>
-                                            </div>
-                                            <div className="bg-white/[0.02] border border-white/[0.04] p-3 rounded-lg">
-                                                <p className="text-[10px] text-neutral-500 uppercase">Total COGS</p>
-                                                <p className="text-lg font-bold text-white">{money(selectedBusiness.cost.totalCost)}</p>
-                                            </div>
-                                            <div className="bg-white/[0.02] border border-white/[0.04] p-3 rounded-lg">
-                                                <p className="text-[10px] text-neutral-500 uppercase">Net</p>
-                                                <p className={`text-lg font-bold ${(selectedBusiness.cost.net ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{money(selectedBusiness.cost.net)}</p>
-                                            </div>
-                                            <div className="bg-white/[0.02] border border-white/[0.04] p-3 rounded-lg">
-                                                <p className="text-[10px] text-neutral-500 uppercase">Margin</p>
-                                                <p className="text-lg font-bold text-white">{selectedBusiness.cost.marginPct.toFixed(1)}%</p>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1.5 text-xs">
-                                            <div className="flex justify-between"><span className="text-neutral-500">Voice ({selectedBusiness.cost.voiceMinutes} min)</span><span className="text-white font-medium">{money(selectedBusiness.cost.voiceCost)}</span></div>
-                                            <div className="flex justify-between"><span className="text-neutral-500">SMS ({selectedBusiness.cost.smsCount ?? 0} msgs)</span><span className="text-white font-medium">{money(selectedBusiness.cost.smsCost)}</span></div>
-                                            <div className="flex justify-between"><span className="text-neutral-500">WhatsApp ({selectedBusiness.cost.whatsappCount ?? 0} msgs)</span><span className="text-white font-medium">{money(selectedBusiness.cost.whatsappCost)}</span></div>
-                                            <div className="flex justify-between"><span className="text-neutral-500">Phone ({selectedBusiness.cost.phoneCount ?? 0})</span><span className="text-white font-medium">{money(selectedBusiness.cost.phoneCost)}</span></div>
-                                        </div>
-                                        <p className="text-[10px] text-neutral-600 mt-2">Voice @ {costSummary.voiceRate.toFixed(3)}/min · SMS @ {costSummary.smsRate.toFixed(3)}/msg · WhatsApp @ {costSummary.whatsappRate.toFixed(3)}/msg · phone @ {money(costSummary.phoneRate)}/mo</p>
-                                    </>
+                                <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                                    <h3 className="text-xs font-bold text-neutral-400 uppercase">Cost Breakdown</h3>
+                                    <div className="flex items-center gap-1 bg-white/[0.04] border border-white/[0.08] rounded-full p-0.5">
+                                        <button onClick={() => setCostPeriod("month")} className={`px-2.5 py-1 text-[10px] font-semibold rounded-full transition-colors ${costPeriod === "month" ? "bg-emerald-500/20 text-emerald-300" : "text-neutral-500 hover:text-white"}`}>This Month</button>
+                                        <button onClick={() => setCostPeriod("all")} className={`px-2.5 py-1 text-[10px] font-semibold rounded-full transition-colors ${costPeriod === "all" ? "bg-emerald-500/20 text-emerald-300" : "text-neutral-500 hover:text-white"}`}>All-time</button>
+                                    </div>
+                                </div>
+                                {(costPeriod === "month" ? selectedBusiness.monthCost : selectedBusiness.cost) ? (
+                                    (() => {
+                                        const c = costPeriod === "month" ? selectedBusiness.monthCost! : selectedBusiness.cost!;
+                                        return (
+                                            <>
+                                                <div className="grid grid-cols-2 gap-3 mb-3">
+                                                    <div className="bg-white/[0.02] border border-white/[0.04] p-3 rounded-lg">
+                                                        <p className="text-[10px] text-neutral-500 uppercase">Revenue</p>
+                                                        <p className="text-lg font-bold text-white">{money(c.revenue)}</p>
+                                                    </div>
+                                                    <div className="bg-white/[0.02] border border-white/[0.04] p-3 rounded-lg">
+                                                        <p className="text-[10px] text-neutral-500 uppercase">Total COGS</p>
+                                                        <p className="text-lg font-bold text-white">{money(c.totalCost)}</p>
+                                                    </div>
+                                                    <div className="bg-white/[0.02] border border-white/[0.04] p-3 rounded-lg">
+                                                        <p className="text-[10px] text-neutral-500 uppercase">Net</p>
+                                                        <p className={`text-lg font-bold ${(c.net ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{money(c.net)}</p>
+                                                    </div>
+                                                    <div className="bg-white/[0.02] border border-white/[0.04] p-3 rounded-lg">
+                                                        <p className="text-[10px] text-neutral-500 uppercase">Margin</p>
+                                                        <p className="text-lg font-bold text-white">{c.marginPct.toFixed(1)}%</p>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1.5 text-xs">
+                                                    <div className="flex justify-between"><span className="text-neutral-500">Voice ({c.voiceMinutes} min)</span><span className="text-white font-medium">{money(c.voiceCost)}</span></div>
+                                                    <div className="flex justify-between"><span className="text-neutral-500">SMS ({c.smsCount ?? 0} msgs)</span><span className="text-white font-medium">{money(c.smsCost)}</span></div>
+                                                    <div className="flex justify-between"><span className="text-neutral-500">WhatsApp ({c.whatsappCount ?? 0} msgs)</span><span className="text-white font-medium">{money(c.whatsappCost)}</span></div>
+                                                    <div className="flex justify-between"><span className="text-neutral-500">Phone ({c.phoneCount ?? 0})</span><span className="text-white font-medium">{money(c.phoneCost)}</span></div>
+                                                </div>
+                                            </>
+                                        );
+                                    })()
                                 ) : (
                                     <p className="text-xs text-neutral-500">No usage data available.</p>
+                                )}
+                                <p className="text-[10px] text-neutral-600 mt-3">This month = current calendar month (from call &amp; message records). All-time voice = total minutes used. {rateHint}</p>
+                            </div>
+
+                            <div className="bg-white/[0.03] p-4 rounded-lg">
+                                <h3 className="text-xs font-bold text-neutral-400 mb-3 uppercase">Monthly Breakdown</h3>
+                                {(selectedBusiness.monthly && selectedBusiness.monthly.length > 0) ? (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left">
+                                            <thead className="border-b border-white/[0.06]">
+                                                <tr>
+                                                    <th className="pb-2 text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Month</th>
+                                                    <th className="pb-2 text-[10px] font-semibold text-neutral-500 uppercase tracking-wider text-right">Voice</th>
+                                                    <th className="pb-2 text-[10px] font-semibold text-neutral-500 uppercase tracking-wider text-right">SMS</th>
+                                                    <th className="pb-2 text-[10px] font-semibold text-neutral-500 uppercase tracking-wider text-right">WA</th>
+                                                    <th className="pb-2 text-[10px] font-semibold text-neutral-500 uppercase tracking-wider text-right">COGS</th>
+                                                    <th className="pb-2 text-[10px] font-semibold text-neutral-500 uppercase tracking-wider text-right">Net</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/[0.04]">
+                                                {selectedBusiness.monthly.map((m) => (
+                                                    <tr key={m.ym}>
+                                                        <td className="py-2 text-xs text-white font-medium">{m.label}</td>
+                                                        <td className="py-2 text-xs text-neutral-400 text-right">{m.voiceMinutes} min</td>
+                                                        <td className="py-2 text-xs text-neutral-400 text-right">{m.smsMessages}</td>
+                                                        <td className="py-2 text-xs text-neutral-400 text-right">{m.whatsappMessages}</td>
+                                                        <td className="py-2 text-xs text-white font-semibold text-right">{money(m.totalCost)}</td>
+                                                        <td className={`py-2 text-xs text-right font-medium ${m.net >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{money(m.net)}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-neutral-500">No monthly usage recorded yet.</p>
                                 )}
                             </div>
 

@@ -6,35 +6,71 @@ import {
 } from "@/lib/astra";
 import AdminDashboardClient from "./_components/AdminDashboardClient";
 import { clerkClient } from "@clerk/nextjs/server";
-import { computeUsageCost, costRates } from "@/lib/costing";
+import { computeUsageCost, costRates, currentYm, ymKey, ymLabel, type UsageCost } from "@/lib/costing";
 
 export const dynamic = 'force-dynamic';
 
-// Per-business SMS/WhatsApp message counts for the trailing 30 days
-// (mirrors monthly cost). Single find + client-side tally — no N+1 queries.
-async function aggregateMessageCounts(): Promise<Map<string, { sms: number; whatsapp: number }>> {
-    const counts = new Map<string, { sms: number; whatsapp: number }>();
+type MonthCounts = { voice: number; sms: number; whatsapp: number };
+
+type UsageBuckets = {
+    /** business_id -> month key ("YYYY-MM") -> voice/sms/whatsapp counts */
+    monthly: Map<string, Map<string, MonthCounts>>;
+    /** business_id -> all-time SMS/WhatsApp message counts */
+    allTimeMsgs: Map<string, { sms: number; whatsapp: number }>;
+};
+
+// Per-business usage bucketed by calendar month, computed from the call and
+// conversation records (single find + client-side tally each — no N+1, no
+// aggregation pipeline). Bounded to the loaded businesses via $in.
+async function aggregateUsage(businessIds: string[]): Promise<UsageBuckets> {
+    const monthly = new Map<string, Map<string, MonthCounts>>();
+    const allTimeMsgs = new Map<string, { sms: number; whatsapp: number }>();
+    if (businessIds.length === 0) return { monthly, allTimeMsgs };
     try {
-        const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-        const rows = await conversationsCollection
-            .find({
-                channel: { $in: ["SMS", "WhatsApp"] },
-                created_at: { $gte: since },
-            })
-            .project({ business_id: 1, channel: 1 })
+        const bizFilter = { business_id: { $in: businessIds } };
+
+        const calls = await callsCollection
+            .find(bizFilter)
+            .project({ business_id: 1, call_duration_minutes: 1, created_at: 1 })
             .toArray();
-        for (const row of rows) {
-            const biz = String((row as { business_id?: unknown }).business_id || "unknown_business");
-            const channel = String((row as { channel?: unknown }).channel || "");
-            const entry = counts.get(biz) || { sms: 0, whatsapp: 0 };
-            if (channel === "WhatsApp") entry.whatsapp += 1;
-            else entry.sms += 1;
-            counts.set(biz, entry);
+        for (const row of calls as Array<{ business_id?: unknown; call_duration_minutes?: unknown; created_at?: unknown }>) {
+            const biz = String(row.business_id || "");
+            const mins = Math.round(Number(row.call_duration_minutes || 0));
+            const ym = ymKey(row.created_at as string | undefined);
+            if (!biz || !mins || !ym) continue;
+            const bm = monthly.get(biz) || new Map<string, MonthCounts>();
+            const m = bm.get(ym) || { voice: 0, sms: 0, whatsapp: 0 };
+            m.voice += mins;
+            bm.set(ym, m);
+            monthly.set(biz, bm);
+        }
+
+        const convos = await conversationsCollection
+            .find({ ...bizFilter, channel: { $in: ["SMS", "WhatsApp"] } })
+            .project({ business_id: 1, channel: 1, created_at: 1 })
+            .toArray();
+        for (const row of convos as Array<{ business_id?: unknown; channel?: unknown; created_at?: unknown }>) {
+            const biz = String(row.business_id || "");
+            const channel = String(row.channel || "");
+            if (!biz) continue;
+            const at = allTimeMsgs.get(biz) || { sms: 0, whatsapp: 0 };
+            if (channel === "WhatsApp") at.whatsapp += 1;
+            else at.sms += 1;
+            allTimeMsgs.set(biz, at);
+
+            const ym = ymKey(row.created_at as string | undefined);
+            if (!ym) continue;
+            const bm = monthly.get(biz) || new Map<string, MonthCounts>();
+            const m = bm.get(ym) || { voice: 0, sms: 0, whatsapp: 0 };
+            if (channel === "WhatsApp") m.whatsapp += 1;
+            else m.sms += 1;
+            bm.set(ym, m);
+            monthly.set(biz, bm);
         }
     } catch (error) {
-        console.error("Failed to tally message counts:", error);
+        console.error("Failed to aggregate usage:", error);
     }
-    return counts;
+    return { monthly, allTimeMsgs };
 }
 
 let clerkEmailCache: { at: number; emails: Record<string, string> } | null = null;
@@ -106,25 +142,63 @@ export default async function AdminDashboard() {
         allBusinesses as unknown as { business_id: string; email?: string }[]
     );
 
-    // Per-user COGS: voice (total minutes) + SMS/WhatsApp messages + phone numbers.
-    const messageCounts = await aggregateMessageCounts();
+    // Per-user COGS: voice (all-time minutes) + SMS/WhatsApp messages (all-time
+    // and monthly buckets) + phone numbers.
     const rates = costRates();
+    const { monthly, allTimeMsgs } = await aggregateUsage(
+        allBusinesses.map((b) => b.business_id)
+    );
+    const currYm = currentYm();
 
     // Serialize data for the client component (convert any AstraDB weird types to plain JSON)
-    const { serializedBusinesses, totals } = (() => {
+    const { serializedBusinesses, totals, monthTotals } = (() => {
         const serialized = allBusinesses.map(b => {
             const plan = b.plan_type || b.plan || undefined;
             const minutes = b.total_minutes_used || 0;
-            const msgs = messageCounts.get(b.business_id) || { sms: 0, whatsapp: 0 };
             const phoneCount = b.twilio_number ? 1 : 0;
-            const cost = computeUsageCost({
+            const allTime = allTimeMsgs.get(b.business_id) || { sms: 0, whatsapp: 0 };
+
+            const cost = computeUsageCost({ // OVERALL / all-time
                 voiceMinutes: minutes,
-                smsMessages: msgs.sms,
-                whatsappMessages: msgs.whatsapp,
+                smsMessages: allTime.sms,
+                whatsappMessages: allTime.whatsapp,
                 phoneNumbers: phoneCount,
                 plan,
                 rates,
             });
+
+            const bm = monthly.get(b.business_id) || new Map<string, MonthCounts>();
+            const curM = bm.get(currYm) || { voice: 0, sms: 0, whatsapp: 0 };
+
+            const monthCost = computeUsageCost({ // THIS calendar month
+                voiceMinutes: curM.voice,
+                smsMessages: curM.sms,
+                whatsappMessages: curM.whatsapp,
+                phoneNumbers: phoneCount,
+                plan,
+                rates,
+            });
+
+            const monthlyEntries: (UsageCost & { ym: string; label: string })[] = [...bm.entries()]
+                .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+                .slice(0, 6)
+                .map(([ym, m]) => ({
+                    ym,
+                    label: ymLabel(ym),
+                    ...computeUsageCost({
+                        voiceMinutes: m.voice,
+                        smsMessages: m.sms,
+                        whatsappMessages: m.whatsapp,
+                        phoneNumbers: phoneCount,
+                        plan,
+                        rates,
+                    }),
+                }));
+
+            // Ensure the current month is always listed once
+            if (!monthlyEntries.some((e) => e.ym === currYm)) {
+                monthlyEntries.unshift({ ym: currYm, label: ymLabel(currYm), ...monthCost });
+            }
 
             return {
                 business_id: b.business_id,
@@ -147,16 +221,21 @@ export default async function AdminDashboard() {
                 referral_code: b.referral_code || undefined,
                 bonus_minutes: b.bonus_minutes || undefined,
                 twilio_number: b.twilio_number || undefined,
-                cost: { ...cost, rates, smsCount: msgs.sms, whatsappCount: msgs.whatsapp, phoneCount },
+                cost: { ...cost, rates, smsCount: allTime.sms, whatsappCount: allTime.whatsapp, phoneCount },
+                monthCost: { ...monthCost, smsCount: curM.sms, whatsappCount: curM.whatsapp },
+                monthly: monthlyEntries,
             };
         });
 
         const sum = (key: "totalCost" | "revenue" | "net") =>
             serialized.reduce((s, b) => s + (b.cost?.[key] || 0), 0);
+        const monthSum = (key: "totalCost" | "revenue" | "net") =>
+            serialized.reduce((s, b) => s + (b.monthCost?.[key] || 0), 0);
 
         return {
             serializedBusinesses: serialized,
             totals: { totalCost: sum("totalCost"), revenue: sum("revenue"), net: sum("net") },
+            monthTotals: { totalCost: monthSum("totalCost"), revenue: monthSum("revenue"), net: monthSum("net") },
         };
     })();
 
@@ -178,6 +257,10 @@ export default async function AdminDashboard() {
         viewableCost: totals.totalCost,
         viewableNet: totals.net,
         viewableMarginPct: totals.revenue > 0 ? (totals.net / totals.revenue) * 100 : 0,
+        monthRevenue: monthTotals.revenue,
+        monthCost: monthTotals.totalCost,
+        monthNet: monthTotals.net,
+        monthMarginPct: monthTotals.revenue > 0 ? (monthTotals.net / monthTotals.revenue) * 100 : 0,
         voiceRate: rates.voicePerMinute,
         smsRate: rates.smsPerMessage,
         whatsappRate: rates.whatsappPerMessage,
