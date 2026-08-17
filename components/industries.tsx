@@ -119,13 +119,14 @@ function Industries() {
                 variants={fadeUp}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 className={cn(
-                  "group flex flex-col gap-3 rounded-[1.5rem] border p-5",
-                  "border-ds-border-primary bg-ds-bg-card shadow-ds-sm",
+                  "group flex flex-col gap-3 rounded-[2rem] border p-5",
+                  "border-white/[0.08] bg-white/[0.04] backdrop-blur-xl",
+                  "shadow-ds-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]",
                   "transition-all duration-300",
-                  "hover:shadow-ds-md hover:border-ds-border-hover hover:-translate-y-0.5"
+                  "hover:shadow-ds-md hover:border-white/[0.14] hover:bg-white/[0.06] hover:-translate-y-0.5"
                 )}
               >
-                <div className="flex size-10 items-center justify-center rounded-lg bg-ds-accent-primary/10 border border-ds-accent-primary/20 transition-transform duration-300 group-hover:scale-105">
+                <div className="flex size-10 items-center justify-center rounded-[1.25rem] bg-white/[0.06] border border-white/[0.1] transition-transform duration-300 group-hover:scale-105">
                   <Icon
                     icon={item.icon}
                     width={20}
@@ -199,7 +200,7 @@ function Industries() {
                 key={stat.title}
                 variants={fadeUp}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="flex flex-col items-center gap-1 rounded-[1.5rem] border border-ds-border-primary bg-ds-bg-card p-6 text-center shadow-ds-sm"
+                className="flex flex-col items-center gap-1 rounded-[2rem] border border-white/[0.08] bg-white/[0.04] backdrop-blur-xl p-6 text-center shadow-ds-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
               >
                 <span className="text-ds-label font-semibold text-ds-accent-primary">
                   {stat.title}
@@ -226,7 +227,7 @@ function Industries() {
                 key={t.name}
                 variants={fadeUp}
                 transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="flex flex-col rounded-[1.5rem] border border-ds-border-primary bg-ds-bg-card p-6 shadow-ds-sm"
+                className="flex flex-col rounded-[2rem] border border-white/[0.08] bg-white/[0.04] backdrop-blur-xl p-6 shadow-ds-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
               >
                 {/* Stars */}
                 <div className="flex gap-1">
