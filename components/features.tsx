@@ -128,17 +128,16 @@ function Features() {
               variants={fadeUp}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               className={cn(
-                "group relative rounded-[2rem] border p-6 md:p-8",
-                "border-white/[0.08] bg-white/[0.04] backdrop-blur-xl",
-                "shadow-ds-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]",
+                "group relative rounded-[2rem] border bg-ds-bg-card p-6 md:p-8",
+                "border-ds-border-primary shadow-ds-sm",
                 "transition-all duration-300",
-                "hover:shadow-ds-md hover:border-white/[0.14] hover:bg-white/[0.06] hover:-translate-y-0.5"
+                "hover:shadow-ds-md hover:border-ds-border-hover hover:-translate-y-0.5"
               )}
             >
               <div
                 className={cn(
-                  "flex size-12 items-center justify-center rounded-[1.25rem]",
-                  "bg-white/[0.06] border border-white/[0.1]",
+                  "flex size-12 items-center justify-center rounded-xl",
+                  "bg-ds-accent-primary/10 border border-ds-accent-primary/20",
                   "transition-transform duration-300 group-hover:scale-105"
                 )}
               >
