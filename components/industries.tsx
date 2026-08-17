@@ -119,7 +119,7 @@ function Industries() {
                 variants={fadeUp}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 className={cn(
-                  "group flex flex-col gap-3 rounded-xl border p-5",
+                  "group flex flex-col gap-3 rounded-[1.5rem] border p-5",
                   "border-ds-border-primary bg-ds-bg-card shadow-ds-sm",
                   "transition-all duration-300",
                   "hover:shadow-ds-md hover:border-ds-border-hover hover:-translate-y-0.5"
@@ -199,7 +199,7 @@ function Industries() {
                 key={stat.title}
                 variants={fadeUp}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="flex flex-col items-center gap-1 rounded-xl border border-ds-border-primary bg-ds-bg-card p-6 text-center shadow-ds-sm"
+                className="flex flex-col items-center gap-1 rounded-[1.5rem] border border-ds-border-primary bg-ds-bg-card p-6 text-center shadow-ds-sm"
               >
                 <span className="text-ds-label font-semibold text-ds-accent-primary">
                   {stat.title}
@@ -226,7 +226,7 @@ function Industries() {
                 key={t.name}
                 variants={fadeUp}
                 transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="flex flex-col rounded-xl border border-ds-border-primary bg-ds-bg-card p-6 shadow-ds-sm"
+                className="flex flex-col rounded-[1.5rem] border border-ds-border-primary bg-ds-bg-card p-6 shadow-ds-sm"
               >
                 {/* Stars */}
                 <div className="flex gap-1">

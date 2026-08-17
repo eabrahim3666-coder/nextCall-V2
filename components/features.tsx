@@ -122,13 +122,13 @@ function Features() {
           }}
           className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3"
         >
-          {FEATURES.map((feature, i) => (
+          {FEATURES.map((feature) => (
             <motion.div
               key={feature.title}
               variants={fadeUp}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               className={cn(
-                "group relative rounded-xl border bg-ds-bg-card p-6 md:p-8",
+                "group relative rounded-[1.5rem] border bg-ds-bg-card p-6 md:p-8",
                 "border-ds-border-primary shadow-ds-sm",
                 "transition-all duration-300",
                 "hover:shadow-ds-md hover:border-ds-border-hover hover:-translate-y-0.5"
