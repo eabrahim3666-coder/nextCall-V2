@@ -1,80 +1,65 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { Icon } from "@iconify/react"
-import Link from "next/link"
+import Link from "next/link";
+import { ArrowRight, Sparkles } from "lucide-react";
 
-const fadeUp = {
-  initial: { opacity: 0, y: 24 },
-  animate: { opacity: 1, y: 0 },
-}
+import { Reveal } from "@/components/Reveal";
 
 function FinalCta() {
   return (
-    <section className="relative bg-ds-bg-primary py-24 md:py-40 overflow-hidden">
-      <div className="pointer-events-none absolute top-[-20%] left-[50%] h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-ds-accent-primary/[0.015] blur-[120px]" />
-      <div className="pointer-events-none absolute bottom-[-10%] right-[-5%] h-[400px] w-[400px] rounded-full bg-ds-accent-highlight/[0.01] blur-[100px]" />
+    <section className="section-full relative overflow-hidden py-24 sm:py-40 flex flex-col justify-center items-center">
+      {/* Ambient background — STATIC */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[-15%] right-[-5%] w-[700px] h-[700px] rounded-full bg-[radial-gradient(circle,rgba(190,195,205,0.16)_0%,transparent_70%)] blur-[100px] opacity-60" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(140,145,155,0.12)_0%,transparent_70%)] blur-[120px] opacity-60" />
+      </div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-6">
-        <motion.div
-          initial="initial"
-          whileInView="animate"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={{ animate: { transition: { staggerChildren: 0.12 } } }}
-          className="mx-auto max-w-3xl"
-        >
-          <div className="relative rounded-2xl border border-ds-border-primary bg-ds-bg-card p-12 shadow-ds-xl md:p-16 lg:p-20">
-            <div className="pointer-events-none absolute inset-0 rounded-2xl bg-linear-to-br from-ds-accent-primary/[0.03] via-ds-accent-secondary/[0.02] to-transparent" />
+      {/* Grid lines backdrop — STATIC */}
+      <div
+        className="absolute inset-0 opacity-[0.07] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+          maskImage:
+            "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+        }}
+      />
+      <div className="grain" />
 
-            <div className="relative z-10 text-center">
-              <motion.span
-                variants={fadeUp}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="inline-flex items-center gap-2 rounded-full border border-ds-accent-primary/20 bg-ds-accent-primary/10 px-4 py-1.5 text-ds-caption font-medium text-ds-accent-primary"
-              >
-                <Icon icon="lucide:sparkles" width={14} />
-                Start today — no credit card required
-              </motion.span>
+      <div className="relative z-10 mx-auto max-w-4xl px-5 sm:px-8 w-full text-center">
+        <Reveal>
+          <span className="inline-flex items-center gap-2 rounded-full glass-card px-4 py-1.5 text-xs text-[#C3C9D6]">
+            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+            Start today — no credit card required
+          </span>
+        </Reveal>
 
-              <motion.h2
-                variants={fadeUp}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="mt-6 text-balance text-center text-[clamp(2rem,4vw,3.5rem)] font-bold leading-[1.15] tracking-[-0.02em] text-ds-text-primary"
-              >
-                Ready to never{" "}
-                <span className="bg-linear-to-r from-ds-accent-primary via-ds-accent-secondary to-ds-accent-highlight bg-clip-text text-transparent">
-                  miss a lead?
-                </span>
-              </motion.h2>
+        <Reveal delay={0.05}>
+          <h2 className="mt-6 text-[clamp(2.4rem,5vw,4.5rem)] font-semibold tracking-tight leading-[1.1] text-transparent bg-clip-text bg-[linear-gradient(90deg,#0C0C0C_0%,#0C0C0C_35%,#4E5562_50%,#0C0C0C_65%,#0C0C0C_100%)] bg-[length:200%_100%] animate-[text-shine_7s_linear_infinite]">
+            Ready to never miss a lead?
+          </h2>
+        </Reveal>
 
-              <motion.p
-                variants={fadeUp}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="mx-auto mt-4 max-w-lg text-ds-body text-ds-text-secondary leading-relaxed"
-              >
-                Start your free trial today. No credit card required. Set up in
-                under 5 minutes.
-              </motion.p>
+        <Reveal delay={0.1}>
+          <p className="mx-auto mt-5 max-w-lg text-base sm:text-lg text-[#C3C9D6] leading-relaxed">
+            Start your free trial today. No credit card required. Set up in
+            under 5 minutes.
+          </p>
+        </Reveal>
 
-              <motion.div
-                variants={fadeUp}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
-              >
-                <Link
-                  href="/dashboard"
-                  className="inline-flex items-center gap-2 rounded-full bg-ds-text-primary px-8 py-4 text-ds-button font-medium text-ds-bg-primary transition-all duration-300 hover:opacity-90 hover:shadow-ds-lg"
-                >
-                  Get Started Free
-                  <Icon icon="lucide:arrow-right" width={16} />
-                </Link>
-              </motion.div>
-            </div>
-          </div>
-        </motion.div>
+        <Reveal delay={0.15} className="mt-10">
+          <Link
+            href="/dashboard"
+            className="btn-silver inline-flex items-center gap-2 rounded-full px-8 py-4 text-sm sm:text-base font-medium"
+          >
+            Get Started Free
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </Reveal>
       </div>
     </section>
-  )
+  );
 }
 
-export { FinalCta }
+export { FinalCta };

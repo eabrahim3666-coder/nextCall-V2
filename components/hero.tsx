@@ -1,127 +1,144 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { Icon } from "@iconify/react"
+import { ArrowDown, Phone, Calendar, Star, MessageSquare } from "lucide-react";
 
-import { HeroScene } from "@/components/HeroScene"
-
-/* ------------------------------------------------------------------ */
-/*  Variants                                                          */
-/* ------------------------------------------------------------------ */
-
-const fadeUp = {
-  initial: { opacity: 0, y: 24 },
-  animate: { opacity: 1, y: 0 },
+function Words({
+  text,
+  gradient = false,
+}: {
+  text: string;
+  gradient?: boolean;
+}) {
+  const words = text.split(" ");
+  if (gradient) {
+    return (
+      <>
+        {words.map((word, i) => (
+          <span key={i} className="inline-block">
+            {word}
+            {i < words.length - 1 ? "\u00A0" : ""}
+          </span>
+        ))}
+      </>
+    );
+  }
+  return (
+    <>
+      {words.map((word, i) => (
+        <span
+          key={i}
+          className="inline-block overflow-hidden align-baseline"
+          style={{ paddingBottom: "0.08em" }}
+        >
+          {word}
+          {i < words.length - 1 ? "\u00A0" : ""}
+        </span>
+      ))}
+    </>
+  );
 }
-
-const container = {
-  animate: {
-    transition: { staggerChildren: 0.12, delayChildren: 0.2 },
-  },
-}
-
-/* ------------------------------------------------------------------ */
-/*  Hero                                                              */
-/* ------------------------------------------------------------------ */
 
 function Hero() {
+  const stats = [
+    { icon: Phone, label: "AI Answers Calls 24/7" },
+    { icon: Calendar, label: "Books Appointments" },
+    { icon: Star, label: "Replies to Reviews" },
+    { icon: MessageSquare, label: "SMS & WhatsApp" },
+  ];
+
   return (
-    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-ds-bg-primary">
-      {/* Full-bleed Spline 3D background — first child so it sits behind everything */}
-      <HeroScene />
-
-      {/* ---------------------------------------------------------------- */}
-      {/* Background Styling                                               */}
-      {/* ---------------------------------------------------------------- */}
-      <div className="pointer-events-none absolute inset-0 z-0">
-        {/* Grid pattern overlay */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.025]"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(15,23,42,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.6) 1px, transparent 1px)",
-            backgroundSize: "64px 64px",
-          }}
-        />
-
-        {/* Atmospheric gradient orbs */}
-        <div className="pointer-events-none absolute top-[-20%] right-[-10%] h-[650px] w-[650px] rounded-full bg-ds-accent-primary/[0.05] blur-[140px]" />
-        <div className="pointer-events-none absolute bottom-[5%] left-[-10%] h-[550px] w-[550px] rounded-full bg-ds-accent-highlight/[0.03] blur-[120px]" />
+    <section className="section-full items-center justify-center relative overflow-hidden pt-24 pb-14 sm:pt-10 sm:pb-10">
+      {/* Ambient background — STATIC */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[-15%] right-[-5%] w-[700px] h-[700px] rounded-full bg-[radial-gradient(circle,rgba(190,195,205,0.16)_0%,transparent_70%)] blur-[100px] opacity-60" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(140,145,155,0.12)_0%,transparent_70%)] blur-[120px] opacity-60" />
       </div>
 
-      {/* ---------------------------------------------------------------- */}
-      {/* Hero Content                                                     */}
-      {/* ---------------------------------------------------------------- */}
-      <motion.div
-        className="relative z-10 mx-auto max-w-4xl px-4 text-center select-none"
-        style={{ pointerEvents: "none" }}
-        variants={container}
-        initial="initial"
-        animate="animate"
-      >
-        {/* AI Badge */}
-        <motion.div
-          variants={fadeUp}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <div className="inline-flex items-center gap-2 rounded-full border border-ds-border-primary/80 bg-ds-bg-primary/80 px-4 py-1.5 backdrop-blur-lg">
-            <span className="size-1.5 rounded-full bg-ds-state-success" />
-            <span className="text-ds-overline font-medium text-ds-text-muted uppercase tracking-[0.08em]">
-              AI-Powered Lead Capture
-            </span>
+      {/* Grid lines backdrop — STATIC */}
+      <div
+        className="absolute inset-0 opacity-[0.07] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+          maskImage:
+            "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+        }}
+      />
+      <div className="grain" />
+
+      {/* Content */}
+      <div className="relative z-10 mx-auto max-w-5xl px-5 sm:px-8 w-full flex flex-col items-center text-center">
+        {/* Top — copy (badge, H1, paragraph, CTAs, stats) */}
+        <div className="text-center w-full max-w-3xl">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass-card text-xs text-[#C3C9D6] mb-10">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 pulse-dot" />
+            24/7 AI Receptionist · Instant Setup
           </div>
-        </motion.div>
 
-          {/* Headline (Gap from Badge) */}
-          <motion.h1
-            variants={fadeUp}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-10 md:mt-14 text-balance text-center text-[clamp(2.5rem,5.5vw,4.25rem)] font-bold leading-[1.08] tracking-[-0.03em] text-ds-text-primary drop-shadow-md"
-        >
-          Never miss a lead,{" "}
-          <span className="bg-linear-to-r from-ds-accent-primary via-ds-accent-secondary to-ds-accent-highlight bg-clip-text text-transparent">
-            even after hours
-          </span>
-        </motion.h1>
+          {/* Main heading */}
+          <h1 className="text-[clamp(3rem,7vw,5.5rem)] leading-[1.08] font-semibold tracking-tight text-transparent bg-clip-text bg-[linear-gradient(90deg,#0C0C0C_0%,#0C0C0C_35%,#4E5562_50%,#0C0C0C_65%,#0C0C0C_100%)] bg-[length:200%_100%] animate-[text-shine_7s_linear_infinite]">
+            <span className="block">
+              <Words text="Never miss a lead," />
+            </span>
+            <span className="block">
+              <Words text="even after hours" gradient />
+            </span>
+          </h1>
 
-        {/* Description (Increased gap from Headline) */}
-        <motion.p
-          variants={fadeUp}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-8 md:mt-10 max-w-[640px] mx-auto text-balance text-center text-ds-body text-ds-text-secondary leading-[1.75] drop-shadow-sm font-normal"
-        >
-          Next Call Chat answers every call and chat when you can&apos;t.
-          Capture leads, book appointments, and grow your business — 24/7.
-        </motion.p>
+          {/* Supporting paragraph */}
+          <p className="mt-8 text-base sm:text-lg text-[#C3C9D6] max-w-2xl mx-auto leading-relaxed">
+            <span className="block">
+              NextCall Chat answers every call and chat when you can&apos;t.
+            </span>
+            <span className="block">
+              Captures leads, books appointments, and grows your business —
+              24/7.
+            </span>
+          </p>
 
-          {/* Trust Indicators */}
-          <motion.div
-            variants={fadeUp}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-16 md:mt-20 flex items-center justify-center gap-x-6 gap-y-3 flex-wrap"
-          >
-          {[
-            { icon: "lucide:phone-call", label: "24/7 AI Receptionist" },
-            { icon: "lucide:target", label: "Never Miss A Lead" },
-            { icon: "lucide:zap", label: "Instant Setup" },
-            { icon: "lucide:briefcase", label: "Works With Your Business" },
-          ].map((item) => (
-            <div key={item.label} className="flex items-center gap-2 bg-ds-bg-primary/80 px-3.5 py-1.5 rounded-full backdrop-blur-md border border-ds-border-primary/50">
-              <Icon
-                icon={item.icon}
-                width={14}
-                className="text-ds-accent-primary"
-              />
-              <span className="text-ds-caption font-medium text-ds-text-secondary whitespace-nowrap">
-                {item.label}
-              </span>
+          {/* CTA buttons */}
+          <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center">
+            <a
+              href="#pricing"
+              className="btn-silver text-sm sm:text-base font-medium px-6 py-3 rounded-full inline-flex items-center justify-center gap-2"
+            >
+              Start Free Trial
+              <ArrowDown className="w-4 h-4" />
+            </a>
+            <a
+              href="#how-it-works"
+              className="text-sm sm:text-base font-medium text-[#C3C9D6] px-6 py-3 rounded-full border border-white/15 hover:bg-white/5 hover:-translate-y-0.5 hover:scale-[1.03] hover:border-white/25 transition-all inline-flex items-center justify-center"
+            >
+              See how it works
+            </a>
+          </div>
+
+          {/* Rolling ticker — quick badges loop continuously */}
+          <div className="relative mt-12 w-full overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_12%,black_88%,transparent)]">
+            <div className="flex w-max items-center gap-x-10 sm:gap-x-14 animate-[marquee_22s_linear_infinite]">
+              {[...stats, ...stats].map((s, i) => (
+                <span
+                  key={i}
+                  className="flex items-center gap-2.5 text-xs sm:text-sm text-[#C3C9D6] whitespace-nowrap"
+                >
+                  <s.icon className="w-4 h-4 text-[#D3D8E2]" />
+                  {s.label}
+                </span>
+              ))}
             </div>
-          ))}
-        </motion.div>
-      </motion.div>
+          </div>
+        </div>
+      </div>
 
+      {/* Scroll hint */}
+      <div className="absolute bottom-7 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-zinc-500">
+        <span className="text-[10px] uppercase tracking-[0.2em]">Scroll</span>
+        <ArrowDown className="w-3.5 h-3.5" />
+      </div>
     </section>
-  )
+  );
 }
 
-export { Hero }
+export { Hero };

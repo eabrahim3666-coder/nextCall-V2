@@ -45,7 +45,7 @@ export default function TermsPage() {
                     </section>
 
                     <section className="border border-white/[0.06] rounded-2xl p-6 bg-white/[0.02]">
-                        <h2 className="text-lg font-medium text-white mb-3">5. Refund Policy</h2>
+                        <h2 id="refund-policy" className="text-lg font-medium text-white mb-3">5. Refund Policy</h2>
                         <ul className="list-disc list-inside space-y-3 mt-3">
                             <li><strong>Subscription Billing:</strong> NextCall subscriptions are billed in advance on a recurring monthly basis through Paddle. By subscribing, you authorize us to charge your designated payment method for all applicable fees.</li>
                             <li><strong>Cancellation:</strong> You may cancel your subscription at any time. Upon cancellation, your subscription remains active until the end of the current billing cycle. No further charges will be made. We do not issue automatic refunds for the unused portion of a billing cycle after a cancellation, unless explicitly required by law.</li>

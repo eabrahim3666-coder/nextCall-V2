@@ -1,9 +1,11 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { Icon } from "@iconify/react"
+import { motion } from "framer-motion";
+import { Clock, Mail, ArrowRight, Loader, Database, Inbox, X } from "lucide-react";
 
-import { cn } from "@/lib/utils"
+import { Reveal } from "@/components/Reveal";
+import { PerspectiveCard } from "@/components/PerspectiveCard";
+import { cn } from "@/lib/utils";
 
 const fadeUp = {
   initial: { opacity: 0, y: 24 },
@@ -45,6 +47,9 @@ interface ContactProps {
   clearSubmissions: () => void
 }
 
+const inputClass =
+  "w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-[#E5E7EB] placeholder:text-zinc-500 transition-all duration-200 focus:border-white/30 focus:ring-4 focus:ring-white/10 focus:outline-none shadow-sm";
+
 function Contact({
   formData,
   setFormData,
@@ -58,254 +63,234 @@ function Contact({
   return (
     <section
       id="ask"
-      className="relative bg-ds-bg-primary py-24 md:py-32 overflow-hidden"
+      className="section-full relative overflow-hidden py-20 sm:py-24 flex flex-col justify-center"
     >
-      <div className="pointer-events-none absolute bottom-[-10%] left-[-5%] h-[500px] w-[500px] rounded-full bg-ds-accent-primary/[0.02] blur-[100px]" />
-      <div className="pointer-events-none absolute top-[-10%] right-[-5%] h-[400px] w-[400px] rounded-full bg-ds-accent-highlight/[0.015] blur-[80px]" />
+      {/* Ambient background — STATIC */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[-15%] right-[-5%] w-[700px] h-[700px] rounded-full bg-[radial-gradient(circle,rgba(190,195,205,0.16)_0%,transparent_70%)] blur-[100px] opacity-60" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(140,145,155,0.12)_0%,transparent_70%)] blur-[120px] opacity-60" />
+      </div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-6">
+      {/* Grid lines backdrop — STATIC */}
+      <div
+        className="absolute inset-0 opacity-[0.07] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+          maskImage:
+            "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+        }}
+      />
+      <div className="grain" />
+
+      <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8 w-full">
         <div className="grid gap-12 lg:grid-cols-5 lg:gap-16">
           {/* Left — Info */}
-          <motion.div
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true, margin: "-80px" }}
-            variants={{
-              animate: { transition: { staggerChildren: 0.1 } },
-            }}
-            className="lg:col-span-2 flex flex-col justify-center"
-          >
-            <motion.span
-              variants={fadeUp}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="text-ds-overline font-medium text-ds-accent-primary uppercase tracking-[0.08em]"
-            >
-              Got Questions?
-            </motion.span>
-            <motion.h2
-              variants={fadeUp}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-4 text-ds-section-heading text-ds-text-primary"
-            >
-              Let&apos;s{" "}
-              <span className="bg-linear-to-r from-ds-accent-primary via-ds-accent-secondary to-ds-accent-highlight bg-clip-text text-transparent">
-                talk about it
+          <div className="lg:col-span-2 flex flex-col justify-center">
+            <Reveal>
+              <span className="text-xs uppercase tracking-[0.25em] text-[#C3C9D6] font-medium">
+                Got Questions?
               </span>
-            </motion.h2>
-            <motion.p
-              variants={fadeUp}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-4 text-ds-body text-ds-text-secondary leading-relaxed"
-            >
-              Ask us anything about Next Call Chat. We&apos;ll get back to you
-              within the hour.
-            </motion.p>
+            </Reveal>
+            <Reveal delay={0.05}>
+              <h2 className="mt-3 text-4xl sm:text-5xl font-semibold tracking-tight leading-tight text-transparent bg-clip-text bg-[linear-gradient(90deg,#0C0C0C_0%,#0C0C0C_35%,#4E5562_50%,#0C0C0C_65%,#0C0C0C_100%)] bg-[length:200%_100%] animate-[text-shine_7s_linear_infinite]">
+                Let&apos;s talk about it
+              </h2>
+            </Reveal>
+            <Reveal delay={0.1}>
+              <p className="mt-4 text-base text-[#C3C9D6] leading-relaxed">
+                Ask us anything about Next Call Chat. We&apos;ll get back to
+                you within the hour.
+              </p>
+            </Reveal>
 
-            <motion.div
-              variants={fadeUp}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-8 space-y-4"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg border border-ds-accent-primary/20 bg-ds-accent-primary/10">
-                  <Icon
-                    icon="lucide:clock"
-                    width={18}
-                    className="text-ds-accent-primary"
-                  />
+            <Reveal delay={0.15} className="mt-8">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
+                  <div className="flex size-10 items-center justify-center rounded-xl border border-white/10 bg-white/5">
+                    <Clock className="w-4.5 h-4.5 text-[#C3C9D6]" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-[#D3D8E2]">
+                      Response time
+                    </p>
+                    <p className="text-xs text-[#C3C9D6]">
+                      Within 1 hour — usually faster
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-ds-label text-ds-text-primary">
-                    Response time
-                  </p>
-                  <p className="text-ds-caption text-ds-text-muted">
-                    Within 1 hour — usually faster
-                  </p>
+
+                <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
+                  <div className="flex size-10 items-center justify-center rounded-xl border border-white/10 bg-white/5">
+                    <Mail className="w-4.5 h-4.5 text-[#C3C9D6]" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-[#D3D8E2]">Email</p>
+                    <p className="text-xs text-[#C3C9D6]">
+                      Support replies from our team mailbox instantly
+                    </p>
+                  </div>
                 </div>
               </div>
-
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-lg border border-ds-accent-secondary/20 bg-ds-accent-secondary/10">
-                  <Icon
-                    icon="lucide:mail"
-                    width={18}
-                    className="text-ds-accent-secondary"
-                  />
-                </div>
-                <div>
-                  <p className="text-ds-label text-ds-text-primary">Email</p>
-                  <p className="text-ds-caption text-ds-text-muted">
-                    Support replies from our team mailbox instantly
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
+            </Reveal>
+          </div>
 
           {/* Right — Form */}
-          <motion.div
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true, margin: "-80px" }}
-            variants={{
-              animate: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } },
-            }}
-            className="lg:col-span-3"
-          >
-            <motion.form
-              variants={fadeUp}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              onSubmit={handleSubmit}
-              className="rounded-xl border border-ds-border-primary bg-ds-bg-card p-8 shadow-ds-sm md:p-10"
-            >
-              <div className="grid gap-5 md:grid-cols-2">
-                <div>
+          <div className="lg:col-span-3">
+            <Reveal delay={0.1}>
+              <PerspectiveCard
+                maxTilt={0}
+                scale={1}
+                glare={false}
+                hover={false}
+                className="rounded-3xl border border-white/10 bg-white/[0.04] shadow-[0_20px_60px_-25px_rgba(0,0,0,0.6)] backdrop-blur-xl"
+              >
+                <motion.form
+                  variants={fadeUp}
+                  onSubmit={handleSubmit}
+                  className="p-8 md:p-10"
+                >
+                <div className="grid gap-5 md:grid-cols-2">
+                  <div>
+                    <label
+                      htmlFor="contact-name"
+                      className="mb-2 block text-xs font-medium text-[#C3C9D6]"
+                    >
+                      Your Name
+                    </label>
+                    <input
+                      id="contact-name"
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
+                      required
+                      placeholder="John Doe"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="contact-email"
+                      className="mb-2 block text-xs font-medium text-[#C3C9D6]"
+                    >
+                      Email
+                    </label>
+                    <input
+                      id="contact-email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      required
+                      placeholder="john@company.com"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-5">
                   <label
-                    htmlFor="contact-name"
-                    className="mb-2 block text-ds-caption font-medium text-ds-text-primary"
+                    htmlFor="contact-topic"
+                    className="mb-2 block text-xs font-medium text-[#C3C9D6]"
                   >
-                    Your Name
+                    What&apos;s on your mind?
                   </label>
+                  <select
+                    id="contact-topic"
+                    value={formData.topic}
+                    onChange={(e) =>
+                      setFormData({ ...formData, topic: e.target.value })
+                    }
+                    className={cn(inputClass, "appearance-none cursor-pointer")}
+                  >
+                    <option value="general">General Question</option>
+                    <option value="pricing">Pricing & Plans</option>
+                    <option value="integration">Integrations</option>
+                    <option value="demo">Request a Demo</option>
+                    <option value="support">Technical Support</option>
+                    <option value="partnership">Partnership</option>
+                  </select>
+                </div>
+
+                <div className="mt-5">
+                  <label
+                    htmlFor="contact-message"
+                    className="mb-2 block text-xs font-medium text-[#C3C9D6]"
+                  >
+                    Your Question
+                  </label>
+                  <textarea
+                    id="contact-message"
+                    value={formData.message}
+                    onChange={(e) =>
+                      setFormData({ ...formData, message: e.target.value })
+                    }
+                    required
+                    rows={4}
+                    placeholder="Tell us what you'd like to know..."
+                    className={cn(inputClass, "resize-none")}
+                  />
+                </div>
+
+                <div className="hidden" aria-hidden="true">
                   <input
-                    id="contact-name"
                     type="text"
-                    value={formData.name}
+                    name="_hp"
+                    value={formData._hp}
                     onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
+                      setFormData({ ...formData, _hp: e.target.value })
                     }
-                    required
-                    placeholder="John Doe"
-                    className="w-full rounded-lg border border-ds-border-primary bg-ds-bg-primary px-4 py-3 text-ds-small-body text-ds-text-primary placeholder:text-ds-text-muted transition-all duration-200 focus:border-ds-border-hover focus:ring-2 focus:ring-ds-accent-primary/20 focus:outline-none"
+                    tabIndex={-1}
+                    autoComplete="off"
                   />
                 </div>
-                <div>
-                  <label
-                    htmlFor="contact-email"
-                    className="mb-2 block text-ds-caption font-medium text-ds-text-primary"
+
+                <div className="mt-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                  <p className="text-xs text-[#C3C9D6]">
+                    We store this securely. No spam, ever.
+                  </p>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={cn(
+                      "text-sm sm:text-base font-medium text-[#0B0C12] px-6 py-3 rounded-full inline-flex items-center justify-center gap-2 bg-[linear-gradient(180deg,#8B919E_0%,#5E6470_100%)] shadow-[0_8px_24px_-8px_rgba(94,100,112,0.5)] hover:brightness-110 transition-all",
+                      loading && "opacity-60 cursor-not-allowed"
+                    )}
                   >
-                    Email
-                  </label>
-                  <input
-                    id="contact-email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    required
-                    placeholder="john@company.com"
-                    className="w-full rounded-lg border border-ds-border-primary bg-ds-bg-primary px-4 py-3 text-ds-small-body text-ds-text-primary placeholder:text-ds-text-muted transition-all duration-200 focus:border-ds-border-hover focus:ring-2 focus:ring-ds-accent-primary/20 focus:outline-none"
-                  />
+                    {loading ? (
+                      <>
+                        <Loader className="w-4 h-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        Send Question
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
                 </div>
-              </div>
-
-              <div className="mt-5">
-                <label
-                  htmlFor="contact-topic"
-                  className="mb-2 block text-ds-caption font-medium text-ds-text-primary"
-                >
-                  What&apos;s on your mind?
-                </label>
-                <select
-                  id="contact-topic"
-                  value={formData.topic}
-                  onChange={(e) =>
-                    setFormData({ ...formData, topic: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-ds-border-primary bg-ds-bg-primary px-4 py-3 text-ds-small-body text-ds-text-primary transition-all duration-200 focus:border-ds-border-hover focus:ring-2 focus:ring-ds-accent-primary/20 focus:outline-none appearance-none cursor-pointer"
-                >
-                  <option value="general">General Question</option>
-                  <option value="pricing">Pricing & Plans</option>
-                  <option value="integration">Integrations</option>
-                  <option value="demo">Request a Demo</option>
-                  <option value="support">Technical Support</option>
-                  <option value="partnership">Partnership</option>
-                </select>
-              </div>
-
-              <div className="mt-5">
-                <label
-                  htmlFor="contact-message"
-                  className="mb-2 block text-ds-caption font-medium text-ds-text-primary"
-                >
-                  Your Question
-                </label>
-                <textarea
-                  id="contact-message"
-                  value={formData.message}
-                  onChange={(e) =>
-                    setFormData({ ...formData, message: e.target.value })
-                  }
-                  required
-                  rows={4}
-                  placeholder="Tell us what you'd like to know..."
-                  className="w-full rounded-lg border border-ds-border-primary bg-ds-bg-primary px-4 py-3 text-ds-small-body text-ds-text-primary placeholder:text-ds-text-muted transition-all duration-200 focus:border-ds-border-hover focus:ring-2 focus:ring-ds-accent-primary/20 focus:outline-none resize-none"
-                />
-              </div>
-
-              <div className="hidden" aria-hidden="true">
-                <input
-                  type="text"
-                  name="_hp"
-                  value={formData._hp}
-                  onChange={(e) =>
-                    setFormData({ ...formData, _hp: e.target.value })
-                  }
-                  tabIndex={-1}
-                  autoComplete="off"
-                />
-              </div>
-
-              <div className="mt-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <p className="text-ds-caption text-ds-text-muted">
-                  We store this securely. No spam, ever.
-                </p>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={cn(
-                    "inline-flex w-full items-center justify-center gap-2 rounded-full px-8 py-3.5 text-ds-button font-medium transition-all duration-200 sm:w-auto",
-                    loading
-                      ? "bg-ds-text-primary/50 text-ds-bg-primary cursor-not-allowed"
-                      : "bg-ds-text-primary text-ds-bg-primary hover:opacity-90"
-                  )}
-                >
-                  {loading ? (
-                    <>
-                      <Icon
-                        icon="lucide:loader"
-                        width={16}
-                        className="animate-spin"
-                      />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      Send Question
-                      <Icon icon="lucide:arrow-right" width={16} />
-                    </>
-                  )}
-                </button>
-              </div>
-            </motion.form>
+              </motion.form>
+              </PerspectiveCard>
+            </Reveal>
 
             {/* View Submissions */}
-            <motion.div
-              variants={fadeUp}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-6 text-center"
-            >
+            <Reveal delay={0.15} className="mt-6 text-center">
               <button
                 onClick={() => setShowPanel(!showPanel)}
-                className="inline-flex items-center gap-2 text-ds-caption font-medium text-ds-text-muted transition-colors hover:text-ds-text-primary"
+                className="inline-flex items-center gap-2 text-xs font-medium text-[#C3C9D6] transition-colors hover:text-[#D3D8E2]"
               >
-                <Icon icon="lucide:database" width={14} />
+                <Database className="w-3.5 h-3.5" />
                 View Stored Submissions
-                <span className="rounded-full border border-ds-accent-primary/20 bg-ds-accent-primary/10 px-2 py-0.5 text-ds-caption text-ds-accent-primary">
+                <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs text-[#C3C9D6]">
                   {submissions.length}
                 </span>
               </button>
-            </motion.div>
+            </Reveal>
 
             {/* Submissions Panel */}
             {showPanel && (
@@ -313,28 +298,30 @@ function Contact({
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="mt-6 rounded-xl border border-ds-border-primary bg-ds-bg-card p-6 shadow-ds-sm"
+              >
+              <PerspectiveCard
+                maxTilt={0}
+                scale={1}
+                glare={false}
+                hover={false}
+                className="mt-6 rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-lg backdrop-blur-xl"
               >
                 <div className="mb-4 flex items-center justify-between">
-                  <h4 className="flex items-center gap-2 text-ds-label text-ds-text-primary">
-                    <Icon
-                      icon="lucide:inbox"
-                      width={16}
-                      className="text-ds-accent-primary"
-                    />
+                  <h4 className="flex items-center gap-2 text-sm font-medium text-[#D3D8E2]">
+                    <Inbox className="w-4 h-4 text-[#C3C9D6]" />
                     Question Submissions
                   </h4>
                   <button
                     onClick={() => setShowPanel(false)}
-                    className="text-ds-text-muted transition-colors hover:text-ds-text-primary"
+                    className="text-[#C3C9D6] transition-colors hover:text-[#D3D8E2]"
                     aria-label="Close submissions panel"
                   >
-                    <Icon icon="lucide:x" width={16} />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="max-h-64 space-y-3 overflow-y-auto">
                   {submissions.length === 0 ? (
-                    <p className="py-4 text-center text-ds-caption text-ds-text-muted">
+                    <p className="py-4 text-center text-xs text-[#C3C9D6]">
                       No submissions yet
                     </p>
                   ) : (
@@ -343,58 +330,59 @@ function Contact({
                       .map((q) => (
                         <div
                           key={q.id}
-                          className="rounded-lg border border-ds-border-primary bg-ds-bg-primary p-4"
+                          className="rounded-xl border border-white/10 bg-black/20 p-4"
                         >
-                          <div className="mb-2 flex items-center justify-between">
+                          <div className="mb-2 flex items-center justify-between gap-2 flex-wrap">
                             <div className="flex items-center gap-2">
-                              <span className="text-ds-caption font-medium text-ds-text-primary">
+                              <span className="text-xs font-medium text-[#D3D8E2]">
                                 {q.name}
                               </span>
-                              <span className="text-ds-caption text-ds-text-muted">
+                              <span className="text-xs text-[#C3C9D6]">
                                 {q.email}
                               </span>
                             </div>
                             <div className="flex items-center gap-2">
                               <span
                                 className={cn(
-                                  "rounded-full px-2 py-0.5 text-ds-caption",
+                                  "rounded-full px-2 py-0.5 text-xs",
                                   q.status === "new"
-                                    ? "bg-ds-state-success/10 text-ds-state-success"
-                                    : "border border-ds-border-primary text-ds-text-muted"
+                                    ? "bg-emerald-500/15 text-emerald-400"
+                                    : "border border-white/10 text-[#C3C9D6]"
                                 )}
                               >
                                 {q.status}
                               </span>
-                              <span className="text-ds-caption text-ds-text-muted">
+                              <span className="text-xs text-[#C3C9D6]">
                                 {new Date(q.timestamp).toLocaleDateString()}
                               </span>
                             </div>
                           </div>
-                          <div className="mb-1 text-ds-caption font-medium text-ds-accent-primary uppercase tracking-wider">
+                          <div className="mb-1 text-xs font-medium text-[#C3C9D6] uppercase tracking-wider">
                             {q.topic}
                           </div>
-                          <p className="text-ds-small-body text-ds-text-secondary leading-relaxed">
+                          <p className="text-sm text-[#C3C9D6] leading-relaxed">
                             {q.message}
                           </p>
                         </div>
                       ))
                   )}
                 </div>
-                <div className="mt-4 flex justify-end border-t border-ds-border-primary pt-4">
+                <div className="mt-4 flex justify-end border-t border-white/10 pt-4">
                   <button
                     onClick={clearSubmissions}
-                    className="text-ds-caption font-medium uppercase tracking-wider text-ds-state-danger transition-colors hover:opacity-80"
+                    className="text-xs font-medium uppercase tracking-wider text-rose-400 transition-colors hover:opacity-80"
                   >
                     Clear All
                   </button>
                 </div>
+              </PerspectiveCard>
               </motion.div>
             )}
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>
-  )
+  );
 }
 
-export { Contact }
+export { Contact };

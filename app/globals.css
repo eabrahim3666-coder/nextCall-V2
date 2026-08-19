@@ -188,3 +188,362 @@
   background: #333;
   border-radius: 3px;
 }
+
+/* ============ CINEMATIC LANDING STYLES ============ */
+
+/* Brand gradient text (purple → cyan, matching NextCall brand) */
+.text-gradient {
+  background: linear-gradient(110deg, #a78bfa 0%, #818cf8 35%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.text-gradient-warm {
+  background: linear-gradient(110deg, #f0abfc 0%, #a78bfa 50%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Ambient radial glow — large volumetric lighting */
+.glow-aurora {
+  background: radial-gradient(
+    circle at 70% 30%,
+    rgba(139, 92, 246, 0.45) 0%,
+    rgba(99, 102, 241, 0.25) 30%,
+    rgba(34, 211, 238, 0.15) 55%,
+    transparent 75%
+  );
+  filter: blur(100px);
+}
+
+.glow-aurora-warm {
+  background: radial-gradient(
+    circle at 50% 100%,
+    rgba(167, 139, 250, 0.65) 0%,
+    rgba(99, 102, 241, 0.4) 30%,
+    rgba(56, 189, 248, 0.25) 55%,
+    transparent 80%
+  );
+  filter: blur(120px);
+}
+
+/* Intense hero-only aurora — the volumetric "god ray" effect */
+.glow-aurora-intense {
+  background:
+    radial-gradient(circle at 75% 25%, rgba(167, 139, 250, 0.55) 0%, transparent 50%),
+    radial-gradient(circle at 25% 70%, rgba(34, 211, 238, 0.35) 0%, transparent 50%);
+  filter: blur(110px);
+}
+
+/* Glass card */
+.glass-card {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.01) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.04) inset,
+    0 30px 60px -20px rgba(0, 0, 0, 0.6);
+}
+
+.glass-card:hover {
+  border-color: rgba(167, 139, 250, 0.35);
+  background: linear-gradient(
+    135deg,
+    rgba(167, 139, 250, 0.06) 0%,
+    rgba(34, 211, 238, 0.02) 100%
+  );
+}
+
+/* Glass card without hover accent (e.g. pricing cards) */
+.glass-card.no-hover,
+.glass-card.no-hover:hover {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.01) 100%
+  );
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.04) inset,
+    0 30px 60px -20px rgba(0, 0, 0, 0.6);
+}
+
+/* Light editorial sections (browser-window feel) */
+.editorial-frame {
+  background: #f5f5f7;
+  color: #0a0a0a;
+  border-radius: 20px;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 40px 100px -30px rgba(0, 0, 0, 0.5),
+    0 20px 50px -20px rgba(139, 92, 246, 0.25);
+}
+
+/* 3D perspective helpers */
+.perspective-1000 {
+  perspective: 1000px;
+}
+.perspective-2000 {
+  perspective: 2000px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* Section grain overlay */
+.grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Animated underline for nav */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 1px;
+  width: 0;
+  background: linear-gradient(90deg, #a78bfa, #22d3ee);
+  transition: width 0.35s ease;
+}
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* Pulse dot */
+.pulse-dot {
+  position: relative;
+}
+.pulse-dot::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid rgba(34, 211, 238, 0.6);
+  animation: pulse-ring 2s ease-out infinite;
+}
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Scroll-snap-friendly sections (full viewport) */
+.section-full {
+  min-height: 100vh;
+  min-height: 100svh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hero circuit: the supplied artwork stays crisp while the signal layer moves independently. */
+.hero-circuit {
+  position: relative;
+  width: 100%;
+  height: clamp(240px, 34vw, 430px);
+  isolation: isolate;
+}
+
+.hero-circuit__art,
+.hero-circuit__glow {
+  position: absolute;
+  inset: 0;
+}
+
+.hero-circuit__art {
+  z-index: 2;
+  filter: drop-shadow(0 26px 32px rgba(0, 0, 0, 0.52));
+}
+
+.hero-circuit__glow {
+  z-index: 1;
+  inset: 12% 10%;
+  background: radial-gradient(ellipse, rgba(255, 108, 20, 0.24), transparent 62%);
+  filter: blur(42px);
+}
+
+.hero-circuit__signals {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hero-signal {
+  position: absolute;
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #fff4d7;
+  box-shadow: 0 0 8px 3px #ff7b18, 0 0 28px 8px rgba(255, 101, 16, 0.6);
+  animation: hero-signal-pulse 4.2s ease-in-out infinite;
+}
+
+.hero-signal-top { top: 31%; left: 64%; }
+.hero-signal-left { top: 57%; left: 27%; }
+.hero-signal-right { top: 69%; left: 75%; }
+.hero-signal-bottom { top: 87%; left: 51%; }
+
+.hero-circuit__floor {
+  position: absolute;
+  z-index: 0;
+  right: 8%;
+  bottom: -7%;
+  left: 8%;
+  height: 20%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255, 96, 12, 0.22), transparent 68%);
+  filter: blur(16px);
+}
+
+@keyframes hero-signal-pulse {
+  0%, 100% { transform: scale(0.5); opacity: 0.25; }
+  18%, 35% { transform: scale(1); opacity: 1; }
+  52% { transform: scale(0.6); opacity: 0.35; }
+}
+
+@media (max-width: 640px) {
+  .hero-circuit {
+    height: 255px;
+    width: 132%;
+    margin-left: -16%;
+  }
+
+  .hero-signal { width: 9px; height: 9px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-signal { animation: none; opacity: 0.75; }
+}
+
+/* Slow spin for orbit decorations */
+@keyframes slow-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dark silver sheen sweeping right-to-left across headline text */
+@keyframes text-shine {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: 0% 0;
+  }
+}
+
+/* Continuous rolling ticker (marquee) — content loops seamlessly */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Glass button — matches the feature box look, violet glare on hover */
+.btn-silver {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  color: #C3C9D6;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: color 0.4s ease, border-color 0.4s ease, background 0.4s ease,
+    transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.btn-silver::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    240px circle at 50% 50%,
+    rgba(167, 139, 250, 0.25),
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn-silver:hover::before {
+  opacity: 1;
+}
+
+.btn-silver:hover {
+  border-color: rgba(167, 139, 250, 0.4);
+  background: linear-gradient(
+    135deg,
+    rgba(167, 139, 250, 0.08) 0%,
+    rgba(34, 211, 238, 0.03) 100%
+  );
+  color: #D8D4F0;
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 0 30px -8px rgba(167, 139, 250, 0.45);
+}
+
+@keyframes silver-sweep {
+  from {
+    background-position: 250% 0;
+  }
+  to {
+    background-position: -250% 0;
+  }
+}
+.slow-spin {
+  animation: slow-spin 30s linear infinite;
+}
+
+/* Gradient border button */
+.btn-gradient {
+  background: linear-gradient(110deg, #8b5cf6 0%, #6366f1 50%, #06b6d4 100%);
+  background-size: 200% 100%;
+  background-position: 0% 0%;
+  transition: background-position 0.5s ease, transform 0.2s ease;
+  box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.6);
+}
+.btn-gradient:hover {
+  background-position: 100% 0%;
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 16px 36px -12px rgba(99, 102, 241, 0.7);
+}
+
+/* Hide default scrollbar inside panels */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
