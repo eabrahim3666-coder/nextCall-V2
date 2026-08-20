@@ -96,7 +96,7 @@ export default function Paywall({ refCode, allowTrial = true }: { refCode?: stri
                 <div className={`grid gap-6 ${allowTrial ? "md:grid-cols-3" : "md:grid-cols-2 max-w-3xl mx-auto"}`}>
                     {/* Free Trial */}
                     {allowTrial && (
-                    <div className="relative p-8 rounded-2xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-xl text-center">
+                    <div className="relative p-8 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-center">
                         <div className="mb-5">
                             <h3 className="text-lg font-semibold text-white">Free Trial</h3>
                             <p className="text-xs text-neutral-500 mt-1">Test the waters</p>
@@ -148,7 +148,7 @@ export default function Paywall({ refCode, allowTrial = true }: { refCode?: stri
                     )}
 
                     {/* Standard Plan */}
-                    <div className="relative p-8 rounded-2xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-xl text-center">
+                    <div className="relative p-8 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-center">
                         <div className="mb-5">
                             <h3 className="text-lg font-semibold text-white">Standard</h3>
                             <p className="text-xs text-neutral-500 mt-1">For small businesses</p>
@@ -191,7 +191,7 @@ export default function Paywall({ refCode, allowTrial = true }: { refCode?: stri
                     </div>
 
                     {/* Premium Plan */}
-                    <div className="relative p-8 rounded-2xl bg-white/[0.03] border border-indigo-500/30 backdrop-blur-xl overflow-hidden text-center">
+                    <div className="relative p-8 rounded-2xl bg-white/[0.03] border border-indigo-500/30 overflow-hidden text-center">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-[50px] pointer-events-none" />
                         <div className="relative z-10">
                             <div className="flex items-center justify-center gap-3 mb-5">

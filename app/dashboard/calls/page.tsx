@@ -35,7 +35,7 @@ export default async function CallsPage() {
             </div>
 
             {/* Call Log Table */}
-            <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl backdrop-blur-xl overflow-hidden">
+            <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl overflow-hidden">
                 {calls.length === 0 ? (
                     <div className="text-center py-16">
                         <div className="flex items-center justify-center w-12 h-12 mx-auto rounded-full bg-white/[0.05] mb-3">

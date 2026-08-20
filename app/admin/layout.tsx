@@ -28,7 +28,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         .catch(() => 0);
 
     return (
-        <div className="min-h-screen bg-[#050505] grain">
+        <div className="min-h-screen bg-[#050505]">
             <nav className="bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-white/[0.06] px-6 py-3 flex justify-between items-center sticky top-0 z-50">
                 <div className="flex items-center gap-8">
                     <Link href="/admin" className="flex items-center gap-3">

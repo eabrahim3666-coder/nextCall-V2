@@ -10,6 +10,7 @@ import NavLinks from "./_components/NavLinks";
 import MinutesCounter from "./_components/MinutesCounter";
 import DashboardAccessGate from "./_components/DashboardAccessGate";
 import { findBusinessByUserId, isTrialExpired } from "@/lib/business";
+import DisableLenis from "./_components/DisableLenis";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,8 @@ export default async function DashboardLayout({
     const isAIActive = isActiveBusiness && Number(business?.total_minutes_used || 0) < Number(business?.minutes_limit || 200);
 
     return (
-        <div className="min-h-screen bg-[#050505] grain">
+        <div className="min-h-screen bg-[#050505] dashboard-root">
+            <DisableLenis />
             <nav className="bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-white/[0.06] px-6 py-3 flex justify-between items-center sticky top-0 z-50">
                 <div className="flex items-center gap-8">
                     <Link href="/dashboard" className="flex items-center">

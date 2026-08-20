@@ -83,7 +83,7 @@ export default function DashboardCards({ calls, minutesUsed, totalCalls, activeN
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
             {/* Card 1: Total Calls */}
-            <div className="bg-white/[0.03] border border-white/[0.06] p-6 rounded-2xl backdrop-blur-xl hover:border-white/[0.1] transition-colors">
+            <div className="bg-white/[0.03] border border-white/[0.06] p-6 rounded-2xl hover:border-white/[0.1] transition-colors">
                 <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
                         <Phone className="h-5 w-5 text-indigo-400" />
@@ -120,7 +120,7 @@ export default function DashboardCards({ calls, minutesUsed, totalCalls, activeN
             </div>
 
             {/* Card 2: Minutes Used */}
-            <div className="bg-white/[0.03] border border-white/[0.06] p-6 rounded-2xl backdrop-blur-xl hover:border-white/[0.1] transition-colors">
+            <div className="bg-white/[0.03] border border-white/[0.06] p-6 rounded-2xl hover:border-white/[0.1] transition-colors">
                 <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                         <Clock className="h-5 w-5 text-emerald-400" />
@@ -151,7 +151,7 @@ export default function DashboardCards({ calls, minutesUsed, totalCalls, activeN
             </div>
 
             {/* Card 3: Active Number Management */}
-            <div className="bg-white/[0.03] border border-white/[0.06] p-6 rounded-2xl backdrop-blur-xl hover:border-white/[0.1] transition-colors">
+            <div className="bg-white/[0.03] border border-white/[0.06] p-6 rounded-2xl hover:border-white/[0.1] transition-colors">
                 <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
                         <Smartphone className="h-5 w-5 text-cyan-400" />

@@ -80,7 +80,7 @@ export default function OnboardingFlow() {
 
                 {/* STEP 1 */}
                 {step === 1 && (
-                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8 backdrop-blur-xl">
+                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
                         <h2 className="text-2xl font-semibold text-white tracking-tight">Tell us about <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">your business</span></h2>
                         <p className="text-sm text-neutral-400 mt-2 mb-6">We'll use this to personalize your AI</p>
 
@@ -109,7 +109,7 @@ export default function OnboardingFlow() {
 
                 {/* STEP 2 */}
                 {step === 2 && (
-                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8 backdrop-blur-xl">
+                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
                         <h2 className="text-2xl font-semibold text-white tracking-tight">What do <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">you do?</span></h2>
                         <p className="text-sm text-neutral-400 mt-2 mb-6">Help us train your AI for your industry</p>
 
@@ -152,7 +152,7 @@ export default function OnboardingFlow() {
 
                 {/* STEP 3 */}
                 {step === 3 && (
-                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8 backdrop-blur-xl">
+                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
                         <h2 className="text-2xl font-semibold text-white tracking-tight">Almost <span className="bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">there!</span></h2>
                         <p className="text-sm text-neutral-400 mt-2 mb-6">Last details to make your AI perfect</p>
 

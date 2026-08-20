@@ -160,7 +160,7 @@ export default async function DashboardHome() {
             )}
 
             {isAIActive && (
-                <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 backdrop-blur-xl">
+                <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
                         <div className="flex items-center gap-3">
                             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
@@ -255,7 +255,7 @@ export default async function DashboardHome() {
             {isAIActive && (
                 <>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-2 bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 backdrop-blur-xl">
+                        <div className="lg:col-span-2 bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6">
                             <div className="flex items-center justify-between mb-5">
                                 <div>
                                     <h2 className="text-base font-bold text-white">Recent Activity</h2>
@@ -303,7 +303,7 @@ export default async function DashboardHome() {
 
                         <div className="space-y-6">
                             {activeNumbers.length > 0 && (
-                                <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 backdrop-blur-xl">
+                                <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6">
                                     <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">Your AI Numbers</h3>
                                     <div className="space-y-4">
                                         {activeNumbers.map((numObj, i) => (

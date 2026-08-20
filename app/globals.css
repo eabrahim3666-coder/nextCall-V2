@@ -7,13 +7,28 @@
 /* ===== Next Call Chat Custom Styles ===== */
 
 .grain::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0.03;
-  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+   content: '';
+   position: fixed;
+   inset: 0;
+   z-index: 9999;
+   pointer-events: none;
+   opacity: 0.03;
+   background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+ }
+
+/* Dashboard: mix-blend-mode on the page root + backdrop-filter children is a
+   Chrome black-paint bomb, so `grain` is intentionally not used on app roots.
+   Keep content explicitly above any fixed layers. */
+.dashboard-root {
+  position: relative;
+  z-index: 1;
+  opacity: 1 !important;
+}
+
+.dashboard-root main {
+  position: relative;
+  z-index: 2;
+  opacity: 1 !important;
 }
 
 .grid-bg {
