@@ -50,8 +50,14 @@ function Hero() {
     <section className="section-full items-center justify-center relative overflow-hidden pt-24 pb-14 sm:pt-10 sm:pb-10">
       {/* Ambient background — STATIC */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-15%] right-[-5%] w-[700px] h-[700px] rounded-full bg-[radial-gradient(circle,rgba(190,195,205,0.16)_0%,transparent_70%)] blur-[100px] opacity-60" />
-        <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(140,145,155,0.12)_0%,transparent_70%)] blur-[120px] opacity-60" />
+        <div
+          className="absolute inset-0 bg-no-repeat bg-center"
+          style={{
+            backgroundImage: "url('/hero-bg.png')",
+            backgroundSize: "cover",
+            opacity: 0.35,
+          }}
+        />
       </div>
 
       {/* Grid lines backdrop — STATIC */}
@@ -78,7 +84,7 @@ function Hero() {
           </div>
 
           {/* Main heading */}
-          <h1 className="text-[clamp(3rem,7vw,5.5rem)] leading-[1.08] font-semibold tracking-tight text-transparent bg-clip-text bg-[linear-gradient(90deg,#0C0C0C_0%,#0C0C0C_35%,#4E5562_50%,#0C0C0C_65%,#0C0C0C_100%)] bg-[length:200%_100%] animate-[text-shine_7s_linear_infinite]">
+          <h1 className="hero-headline-shine text-[clamp(3rem,7vw,5.5rem)] leading-[1.08] font-semibold tracking-tight text-transparent bg-clip-text bg-[linear-gradient(90deg,#4E5562_0%,#4E5562_35%,#0C0C0C_50%,#4E5562_65%,#4E5562_100%)] bg-[length:200%_100%] animate-[text-shine_7s_linear_infinite]">
             <span className="block">
               <Words text="Never miss a lead," />
             </span>
