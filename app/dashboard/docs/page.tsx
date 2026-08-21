@@ -82,7 +82,6 @@ export default function DocsPage() {
                                 <li><strong className="text-white">Daily summary emails</strong> — every morning: calls, leads, appointments, and sentiment trends.</li>
                                 <li><strong className="text-white">Job-done tracking + review requests</strong> — mark jobs Done/No-show in the Call Log, send the customer a Google review SMS instantly, or let the automatic 24-hour follow-up do it for you.</li>
                                 <li><strong className="text-white">Buy extra minutes</strong> — purchase additional minutes anytime from Settings → Billing.</li>
-                                <li><strong className="text-white">Simulate New Review</strong> — preview how the AI responds to a customer review.</li>
                                 <li><strong className="text-white">Email support</strong> — 24/7 support from the nextCall team.</li>
                             </ul>
                             <p className="text-neutral-500 italic">200 minutes included per month. Overage: $0.50/min. Unused minutes do not roll over.</p>
