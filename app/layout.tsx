@@ -19,8 +19,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const clerkPubKey =
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+    "pk_test_Y2xhc3NpYy1jYW1lbC03Ny5jbGVyay5hY2NvdW50cy5kZXYk";
+
   return (
-    <ClerkProvider>
+    <ClerkProvider publishableKey={clerkPubKey}>
       <html lang="en" suppressHydrationWarning>
         <head>
           {/* eslint-disable-next-line @next/next/no-page-custom-font */}

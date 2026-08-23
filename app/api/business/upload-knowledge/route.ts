@@ -38,7 +38,6 @@ export async function POST(request: Request) {
 
     // 2. Extract text from PDF (Dynamic import + 'any' cast to bypass TS strictness)
     const pdfModule = await import('pdf-parse');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pdf = (pdfModule as any).default || pdfModule;
     const data = await pdf(buffer);
     const extractedText = data.text;

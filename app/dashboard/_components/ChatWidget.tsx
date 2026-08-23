@@ -42,7 +42,9 @@ export default function ChatWidget({ businessId }: { businessId: string }) {
     const fileRef = useRef<HTMLInputElement>(null);
     const listRef = useRef<HTMLDivElement>(null);
 
-    openRef.current = open;
+    useEffect(() => {
+        openRef.current = open;
+    }, [open]);
 
     const notifyNewMessage = () => {
         try {

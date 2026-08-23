@@ -1,0 +1,6 @@
+{
+  "name": "nextCall",
+  "description": "AI-powered call & chat receptionist platform for capturing leads and managing business communications 24/7",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

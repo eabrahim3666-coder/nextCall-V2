@@ -1,6 +1,8 @@
 import Stripe from 'stripe';
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-04-22.dahlia',
+const apiKey = process.env.STRIPE_SECRET_KEY || 'sk_test_dummy_key';
+
+export const stripe = new Stripe(apiKey, {
+  apiVersion: '2026-04-22.dahlia' as any,
   typescript: true,
 });
