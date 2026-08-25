@@ -119,7 +119,7 @@ export default function Home() {
         <Navigation />
         <main>
           {/* Hero — subtle 3D so its internal parallax stays the star */}
-          <Section3D id="top" intensity="subtle" bg={BG_DARK}>
+          <Section3D id="top" intensity="subtle" bg={BG_DARK} preserveOpacity minHeight="calc(72svh - 96px)">
             <Hero />
           </Section3D>
 

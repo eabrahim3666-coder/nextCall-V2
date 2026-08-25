@@ -10,8 +10,8 @@ function FinalCta() {
     <section className="section-full relative overflow-hidden py-24 sm:py-40 flex flex-col justify-center items-center">
       {/* Ambient background — STATIC */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-15%] right-[-5%] w-[700px] h-[700px] rounded-full bg-[radial-gradient(circle,rgba(190,195,205,0.16)_0%,transparent_70%)] blur-[100px] opacity-60" />
-        <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(140,145,155,0.12)_0%,transparent_70%)] blur-[120px] opacity-60" />
+        <div className="absolute top-[-15%] right-[-5%] w-[700px] h-[700px] rounded-full bg-[radial-gradient(circle,rgba(190,195,205,0.14)_0%,transparent_70%)] blur-[56px] opacity-40" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(140,145,155,0.1)_0%,transparent_70%)] blur-[64px] opacity-40" />
       </div>
 
       {/* Grid lines backdrop — STATIC */}
@@ -29,14 +29,14 @@ function FinalCta() {
 
       <div className="relative z-10 mx-auto max-w-4xl px-5 sm:px-8 w-full text-center">
         <Reveal>
-          <span className="inline-flex items-center gap-2 rounded-full glass-card px-4 py-1.5 text-xs text-[#C3C9D6]">
-            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+          <span className="inline-flex items-center gap-2 rounded-full glass-card px-4 py-1.5 text-xs text-[#D3D8E2]">
+            <Sparkles className="w-3.5 h-3.5 text-[#D3D8E2]" />
             Start today — no credit card required
           </span>
         </Reveal>
 
         <Reveal delay={0.05}>
-          <h2 className="mt-6 text-[clamp(2.4rem,5vw,4.5rem)] font-semibold tracking-tight leading-[1.1] text-transparent bg-clip-text bg-[linear-gradient(90deg,#0C0C0C_0%,#0C0C0C_35%,#4E5562_50%,#0C0C0C_65%,#0C0C0C_100%)] bg-[length:200%_100%] animate-[text-shine_7s_linear_infinite]">
+          <h2 className="section-headline-shine mt-6 text-[clamp(2.4rem,5vw,4.5rem)] font-semibold tracking-tight leading-[1.1]">
             Ready to never miss a lead?
           </h2>
         </Reveal>
@@ -54,7 +54,7 @@ function FinalCta() {
             className="btn-silver inline-flex items-center gap-2 rounded-full px-8 py-4 text-sm sm:text-base font-medium"
           >
             Get Started Free
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 text-purple-300" />
           </Link>
         </Reveal>
       </div>

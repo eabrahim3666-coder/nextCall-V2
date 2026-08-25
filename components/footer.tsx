@@ -153,21 +153,21 @@ function Footer() {
           <div className="flex items-center gap-4">
             <a
               href="#"
-              className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-zinc-500 transition-all duration-200 hover:border-purple-400/40 hover:text-purple-300"
+              className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-purple-300 transition-all duration-200 hover:border-purple-400/40 hover:text-purple-300"
               aria-label="Twitter"
             >
               <Icon icon="lucide:twitter" width={16} />
             </a>
             <a
               href="#"
-              className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-zinc-500 transition-all duration-200 hover:border-purple-400/40 hover:text-purple-300"
+              className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-purple-300 transition-all duration-200 hover:border-purple-400/40 hover:text-purple-300"
               aria-label="GitHub"
             >
               <Icon icon="lucide:github" width={16} />
             </a>
             <a
               href="#"
-              className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-zinc-500 transition-all duration-200 hover:border-purple-400/40 hover:text-purple-300"
+              className="flex size-9 items-center justify-center rounded-lg border border-white/10 text-purple-300 transition-all duration-200 hover:border-purple-400/40 hover:text-purple-300"
               aria-label="LinkedIn"
             >
               <Icon icon="lucide:linkedin" width={16} />

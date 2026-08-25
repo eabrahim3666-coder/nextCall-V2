@@ -28,10 +28,10 @@ export default async function DashboardLayout({
     const isAIActive = isActiveBusiness && Number(business?.total_minutes_used || 0) < Number(business?.minutes_limit || 200);
 
     return (
-        <div className="min-h-screen bg-[#050505] dashboard-root">
+        <div className="min-h-screen overflow-x-clip bg-[#0C0C0C] dashboard-root">
             <DisableLenis />
-            <nav className="bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-white/[0.06] px-6 py-3 flex justify-between items-center sticky top-0 z-50">
-                <div className="flex items-center gap-8">
+            <nav className="bg-black/40 backdrop-blur-xl border-b border-white/10 px-6 py-3 flex justify-between items-center sticky top-0 z-50">
+                <div className="flex items-center gap-3 sm:gap-8">
                     <Link href="/dashboard" className="flex items-center">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src="/logo.png" alt="Next Call" className="h-7 w-auto" />
@@ -43,7 +43,7 @@ export default async function DashboardLayout({
                     )}
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 sm:gap-4">
                     {isActiveBusiness && <NotificationBell />}
                     {isActiveBusiness && business && (
                         <MinutesCounter
@@ -53,8 +53,10 @@ export default async function DashboardLayout({
                             paddleCustomerId={business?.paddle_customer_id || null}
                         />
                     )}
-                    {isActiveBusiness && <AIStatusPill isActive={isAIActive} />}
-                    <span className="text-sm text-neutral-400 hidden sm:block">
+                    {isActiveBusiness && (
+                        <div className="hidden sm:flex"><AIStatusPill isActive={isAIActive} /></div>
+                    )}
+                    <span className="text-sm text-[#C3C9D6] hidden lg:block">
                         {user?.firstName || user?.username}&apos;s Dashboard
                     </span>
                     <UserButton appearance={{ elements: { avatarBox: "w-8 h-8" } }} />

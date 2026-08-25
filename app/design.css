@@ -1,5 +1,3 @@
-@import "tailwindcss";
-
 /* ==========================================================================
    DESIGN SYSTEM — Theme Definition
    All tokens are consumed via Tailwind utility classes and CSS custom properties.
@@ -293,12 +291,17 @@ body {
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  *:not(.hero-headline-shine),
-  *:not(.hero-headline-shine)::before,
-  *:not(.hero-headline-shine)::after {
+  *:not(.hero-headline-shine):not(.section-headline-shine),
+  *:not(.hero-headline-shine):not(.section-headline-shine)::before,
+  *:not(.hero-headline-shine):not(.section-headline-shine)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .hero-headline-shine,
+  .section-headline-shine {
+    animation: text-shine 7s linear infinite !important;
   }
 }

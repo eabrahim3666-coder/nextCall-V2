@@ -1,16 +1,13 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: "Inter", sans-serif;
-}
+@custom-variant dark (&:is(.dark *));
 
 /* ===== Next Call Chat Custom Styles ===== */
 
 .grain::before {
    content: '';
-   position: fixed;
+   position: absolute;
    inset: 0;
-   z-index: 9999;
    pointer-events: none;
    opacity: 0.03;
    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
@@ -223,6 +220,14 @@
   color: transparent;
 }
 
+.section-label-gradient {
+  background: linear-gradient(90deg, #a78bfa 0%, #6366f1 50%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
 /* Ambient radial glow — large volumetric lighting */
 .glow-aurora {
   background: radial-gradient(
@@ -317,7 +322,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.04;
+  opacity: 0.025;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
@@ -372,86 +377,6 @@
   flex-direction: column;
 }
 
-/* Hero circuit: the supplied artwork stays crisp while the signal layer moves independently. */
-.hero-circuit {
-  position: relative;
-  width: 100%;
-  height: clamp(240px, 34vw, 430px);
-  isolation: isolate;
-}
-
-.hero-circuit__art,
-.hero-circuit__glow {
-  position: absolute;
-  inset: 0;
-}
-
-.hero-circuit__art {
-  z-index: 2;
-  filter: drop-shadow(0 26px 32px rgba(0, 0, 0, 0.52));
-}
-
-.hero-circuit__glow {
-  z-index: 1;
-  inset: 12% 10%;
-  background: radial-gradient(ellipse, rgba(255, 108, 20, 0.24), transparent 62%);
-  filter: blur(42px);
-}
-
-.hero-circuit__signals {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.hero-signal {
-  position: absolute;
-  display: block;
-  width: 12px;
-  height: 12px;
-  border-radius: 999px;
-  background: #fff4d7;
-  box-shadow: 0 0 8px 3px #ff7b18, 0 0 28px 8px rgba(255, 101, 16, 0.6);
-  animation: hero-signal-pulse 4.2s ease-in-out infinite;
-}
-
-.hero-signal-top { top: 31%; left: 64%; }
-.hero-signal-left { top: 57%; left: 27%; }
-.hero-signal-right { top: 69%; left: 75%; }
-.hero-signal-bottom { top: 87%; left: 51%; }
-
-.hero-circuit__floor {
-  position: absolute;
-  z-index: 0;
-  right: 8%;
-  bottom: -7%;
-  left: 8%;
-  height: 20%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(255, 96, 12, 0.22), transparent 68%);
-  filter: blur(16px);
-}
-
-@keyframes hero-signal-pulse {
-  0%, 100% { transform: scale(0.5); opacity: 0.25; }
-  18%, 35% { transform: scale(1); opacity: 1; }
-  52% { transform: scale(0.6); opacity: 0.35; }
-}
-
-@media (max-width: 640px) {
-  .hero-circuit {
-    height: 255px;
-    width: 132%;
-    margin-left: -16%;
-  }
-
-  .hero-signal { width: 9px; height: 9px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-signal { animation: none; opacity: 0.75; }
-}
-
 /* Slow spin for orbit decorations */
 @keyframes slow-spin {
   from {
@@ -470,6 +395,24 @@
   100% {
     background-position: 0% 0;
   }
+}
+
+.section-headline-shine {
+  color: transparent;
+  background-image: linear-gradient(
+    90deg,
+    #050505 0%,
+    #050505 35%,
+    #d3d8e2 50%,
+    #050505 65%,
+    #050505 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: text-shine 7s linear infinite;
+  will-change: background-position;
 }
 
 /* Continuous rolling ticker (marquee) — content loops seamlessly */
@@ -554,6 +497,28 @@
   box-shadow: 0 16px 36px -12px rgba(99, 102, 241, 0.7);
 }
 
+/* Orange gradient button (header Start Free Trial) */
+.btn-gradient-orange {
+  background: radial-gradient(
+    circle at 30% 30%,
+    #ff993e 0%,
+    #ff7800 60%,
+    #e86a00 100%
+  );
+  background-size: 180% 180%;
+  background-position: 0% 0%;
+  color: #0c0c0c;
+  transition: background-position 0.5s ease, transform 0.2s ease,
+    box-shadow 0.2s ease;
+  box-shadow: 0 10px 30px -10px rgba(255, 120, 0, 0.5);
+}
+
+.btn-gradient-orange:hover {
+  background-position: 100% 100%;
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 16px 36px -12px rgba(255, 120, 0, 0.6);
+}
+
 /* Hide default scrollbar inside panels */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
@@ -561,4 +526,86 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+:root {
+  --chart-1: oklch(0.32 0 none);
+  --chart-2: oklch(0.41 0 none);
+  --chart-3: oklch(0.54 0 none);
+  --chart-4: oklch(0.71 0 none);
+  --chart-5: oklch(0.89 0 none);
+  --chart-background: oklch(1 0 0);
+  --chart-foreground: oklch(0.145 0.004 285);
+  --chart-foreground-muted: oklch(0.55 0.014 260);
+  --chart-line-primary: var(--chart-1);
+  --chart-line-secondary: var(--chart-2);
+  --chart-crosshair: oklch(0.4 0.1828 274.34);
+  --chart-grid: oklch(0.9 0 0);
+  --chart-brush-border: var(--chart-grid);
+  --chart-tooltip-background: oklch(0.21 0.006 285 / 0.8);
+  --chart-tooltip-foreground: oklch(0.985 0 0);
+  --chart-tooltip-muted: oklch(0.65 0.01 260);
+  --chart-marker-background: oklch(0.97 0.005 260);
+  --chart-marker-border: oklch(0.85 0.01 260);
+  --chart-marker-foreground: oklch(0.3 0.01 260);
+  --chart-label: oklch(0.45 0.01 260);
+  --chart-scale-01: oklch(0.98 0.003 106);
+  --chart-scale-02: oklch(0.92 0.008 106);
+  --chart-scale-03: oklch(0.82 0.015 106);
+  --chart-scale-04: oklch(0.68 0.02 106);
+  --chart-scale-05: oklch(0.55 0.025 106);
+  --chart-scale-pattern-color: oklch(0.96 0.005 106);
+}
+
+.dark {
+  --chart-1: oklch(1 0 none);
+  --chart-2: oklch(0.73 0 none);
+  --chart-3: oklch(0.51 0 none);
+  --chart-4: oklch(0.39 0 none);
+  --chart-5: oklch(0.32 0 none);
+  --chart-background: oklch(0.145 0 0);
+  --chart-foreground: oklch(0.45 0 0);
+  --chart-foreground-muted: oklch(0.65 0.01 260);
+  --chart-crosshair: oklch(0.45 0 0);
+  --chart-grid: oklch(0.25 0 0);
+  --chart-brush-border: var(--chart-grid);
+  --chart-marker-background: oklch(0.25 0.01 260);
+  --chart-marker-border: oklch(0.4 0.01 260);
+  --chart-marker-foreground: oklch(0.9 0 0);
+  --chart-label: oklch(0.75 0.01 260);
+  --chart-scale-01: oklch(0.28 0.03 270);
+  --chart-scale-02: oklch(0.38 0.04 270);
+  --chart-scale-03: oklch(0.48 0.05 270);
+  --chart-scale-04: oklch(0.58 0.06 270);
+  --chart-scale-05: oklch(0.68 0.07 270);
+  --chart-scale-pattern-color: oklch(0.145 0 0);
+}
+
+@theme inline {
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-background: var(--chart-background);
+  --color-chart-foreground: var(--chart-foreground);
+  --color-chart-foreground-muted: var(--chart-foreground-muted);
+  --chart-line-primary: var(--chart-line-primary);
+  --chart-line-secondary: var(--chart-line-secondary);
+  --color-chart-crosshair: var(--chart-crosshair);
+  --color-chart-grid: var(--chart-grid);
+  --chart-brush-border: var(--chart-brush-border);
+  --color-chart-tooltip-background: var(--chart-tooltip-background);
+  --color-chart-tooltip-foreground: var(--chart-tooltip-foreground);
+  --color-chart-tooltip-muted: var(--chart-tooltip-muted);
+  --color-chart-marker-background: var(--chart-marker-background);
+  --color-chart-marker-border: var(--chart-marker-border);
+  --color-chart-marker-foreground: var(--chart-marker-foreground);
+  --color-chart-label: var(--chart-label);
+  --color-chart-scale-01: var(--chart-scale-01);
+  --color-chart-scale-02: var(--chart-scale-02);
+  --color-chart-scale-03: var(--chart-scale-03);
+  --color-chart-scale-04: var(--chart-scale-04);
+  --color-chart-scale-05: var(--chart-scale-05);
+  --color-chart-scale-pattern-color: var(--chart-scale-pattern-color);
 }

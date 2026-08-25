@@ -48,8 +48,8 @@ function Integrations() {
     >
       {/* Ambient background — STATIC */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-15%] right-[-5%] w-[700px] h-[700px] rounded-full bg-[radial-gradient(circle,rgba(190,195,205,0.16)_0%,transparent_70%)] blur-[100px] opacity-60" />
-        <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(140,145,155,0.12)_0%,transparent_70%)] blur-[120px] opacity-60" />
+        <div className="absolute top-[-15%] right-[-5%] w-[700px] h-[700px] rounded-full bg-[radial-gradient(circle,rgba(190,195,205,0.14)_0%,transparent_70%)] blur-[56px] opacity-40" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(140,145,155,0.1)_0%,transparent_70%)] blur-[64px] opacity-40" />
       </div>
 
       {/* Grid lines backdrop — STATIC */}
@@ -68,12 +68,12 @@ function Integrations() {
       <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8 w-full">
         <div className="text-center max-w-3xl mx-auto mb-16 sm:mb-20">
           <Reveal>
-            <span className="text-xs uppercase tracking-[0.25em] text-[#C3C9D6] font-medium">
+            <span className="text-xs uppercase tracking-[0.25em] text-[#D3D8E2] font-medium">
               Integrations
             </span>
           </Reveal>
-                    <Reveal delay={0.05}>
-            <h2 className="mt-3 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight text-transparent bg-clip-text bg-[linear-gradient(90deg,#0C0C0C_0%,#0C0C0C_35%,#4E5562_50%,#0C0C0C_65%,#0C0C0C_100%)] bg-[length:200%_100%] animate-[text-shine_7s_linear_infinite]">
+          <Reveal delay={0.05}>
+            <h2 className="section-headline-shine mt-3 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
               Works with your stack
             </h2>
           </Reveal>
@@ -103,13 +103,13 @@ function Integrations() {
                   {"iconName" in item ? (
                     <Icon
                       icon={item.iconName!}
-                      className="w-6 h-6 text-[#C3C9D6]"
+                      className="w-6 h-6 text-purple-300"
                     />
                   ) : (
                     (() => {
                       const LucideIconComp = item.icon as LucideIcon;
                       return (
-                        <LucideIconComp className="w-6 h-6 text-[#C3C9D6]" />
+                        <LucideIconComp className="w-6 h-6 text-purple-300" />
                       );
                     })()
                   )}
@@ -130,7 +130,7 @@ function Integrations() {
 
         <Reveal delay={0.15} className="mt-10 text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm text-[#A7ADBB] shadow-sm">
-            <Zap className="w-4 h-4 text-[#C3C9D6]" />
+            <Zap className="w-4 h-4 text-purple-300" />
             + 2,000 more tools via Zapier / Make / n8n webhooks
           </span>
         </Reveal>

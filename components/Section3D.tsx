@@ -17,6 +17,8 @@ interface Section3DProps {
   id?: string;
   intensity?: Intensity;
   bg?: string;
+  preserveOpacity?: boolean;
+  minHeight?: string;
 }
 
 const INTENSITY: Record<
@@ -29,9 +31,9 @@ const INTENSITY: Record<
     blur: number;
   }
 > = {
-  subtle: { rotate: 4, scale: 0.98, z: -40, opacityFloor: 0.75, blur: 2 },
-  medium: { rotate: 7, scale: 0.96, z: -80, opacityFloor: 0.55, blur: 3 },
-  strong: { rotate: 12, scale: 0.92, z: -160, opacityFloor: 0.35, blur: 6 },
+  subtle: { rotate: 1.5, scale: 0.995, z: -8, opacityFloor: 0.92, blur: 0 },
+  medium: { rotate: 2.25, scale: 0.99, z: -14, opacityFloor: 0.88, blur: 0 },
+  strong: { rotate: 4, scale: 0.98, z: -28, opacityFloor: 0.78, blur: 0 },
 };
 
 export function Section3D({
@@ -40,6 +42,8 @@ export function Section3D({
   id,
   intensity = "medium",
   bg,
+  preserveOpacity = false,
+  minHeight = "100vh",
 }: Section3DProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -59,26 +63,20 @@ export function Section3D({
     [0, 0.5, 1],
     [cfg.scale, 1, cfg.scale]
   );
-  const zRaw = useTransform(
-    scrollYProgress,
-    [0, 0.5, 1],
-    [cfg.z, 0, cfg.z]
-  );
   const opacityRaw = useTransform(
     scrollYProgress,
     [0, 0.15, 0.85, 1],
-    [cfg.opacityFloor, 1, 1, cfg.opacityFloor]
+    preserveOpacity ? [1, 1, 1, 1] : [cfg.opacityFloor, 1, 1, cfg.opacityFloor]
   );
   const yRaw = useTransform(
     scrollYProgress,
     [0, 0.5, 1],
-    [30, 0, -30]
+    [10, 0, -10]
   );
 
-  const springCfg = { stiffness: 140, damping: 36, mass: 0.5 };
+  const springCfg = { stiffness: 130, damping: 40, mass: 0.5 };
   const rotateX = useSpring(rotateXRaw, springCfg);
   const scale = useSpring(scaleRaw, springCfg);
-  const z = useSpring(zRaw, springCfg);
   const opacity = useSpring(opacityRaw, springCfg);
   const y = useSpring(yRaw, springCfg);
 
@@ -88,8 +86,6 @@ export function Section3D({
       id={id}
       className={cn("relative w-full", className)}
       style={{
-        perspective: "1000px",
-        perspectiveOrigin: "center center",
         background: bg,
       }}
     >
@@ -97,14 +93,13 @@ export function Section3D({
         style={{
           rotateX,
           scale,
-          z,
           opacity,
           y,
-          transformStyle: "preserve-3d",
           transformOrigin: "center center",
           background: bg,
-          minHeight: "100vh",
+          minHeight,
           width: "100%",
+          willChange: "transform",
         }}
       >
         {children}

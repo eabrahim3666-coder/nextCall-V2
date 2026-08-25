@@ -22,7 +22,7 @@ export function Reveal({
   children,
   direction = "up",
   delay = 0,
-  duration = 2,
+  duration = 0.65,
   className,
   once = true,
   amount = 0.2,
@@ -34,13 +34,13 @@ export function Reveal({
     Direction,
     { x: number; y: number; scale: number; rotate: number }
   > = {
-    up: { x: 0, y: 60, scale: 0.96, rotate: 0 },
-    down: { x: 0, y: -60, scale: 0.96, rotate: 0 },
-    left: { x: 60, y: 0, scale: 0.96, rotate: 0 },
-    right: { x: -60, y: 0, scale: 0.96, rotate: 0 },
-    scale: { x: 0, y: 0, scale: 0.85, rotate: 0 },
+    up: { x: 0, y: 24, scale: 0.98, rotate: 0 },
+    down: { x: 0, y: -24, scale: 0.98, rotate: 0 },
+    left: { x: 24, y: 0, scale: 0.98, rotate: 0 },
+    right: { x: -24, y: 0, scale: 0.98, rotate: 0 },
+    scale: { x: 0, y: 0, scale: 0.96, rotate: 0 },
     fade: { x: 0, y: 0, scale: 1, rotate: 0 },
-    tilt: { x: 0, y: 50, scale: 0.95, rotate: -2 },
+    tilt: { x: 0, y: 22, scale: 0.98, rotate: -1 },
   };
 
   const off = offsets[direction];
@@ -54,7 +54,6 @@ export function Reveal({
         y: off.y,
         scale: off.scale,
         rotate: off.rotate,
-        filter: "blur(14px)",
       }}
       animate={
         inView
@@ -64,13 +63,12 @@ export function Reveal({
               y: 0,
               scale: 1,
               rotate: 0,
-              filter: "blur(0px)",
             }
           : undefined
       }
       transition={{
         duration,
-        delay: delay + 0.15,
+        delay: delay + 0.05,
         ease: EXPO_OUT,
       }}
       className={cn(className)}
@@ -83,7 +81,7 @@ export function Reveal({
 export function StaggerGroup({
   children,
   className,
-  stagger = 0.18,
+  stagger = 0.08,
   delay = 0,
 }: {
   children: ReactNode;
@@ -103,7 +101,7 @@ export function StaggerGroup({
           opacity: 1,
           transition: {
             staggerChildren: stagger,
-            delayChildren: delay + 0.1,
+            delayChildren: delay + 0.05,
           },
         },
       }}
@@ -116,17 +114,15 @@ export function StaggerGroup({
 export const staggerItem: Variants = {
 hidden: {
     opacity: 0,
-    y: 50,
-    scale: 0.94,
-    filter: "blur(12px)",
+    y: 24,
+    scale: 0.98,
   },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
-    filter: "blur(0px)",
     transition: {
-      duration: 1.8,
+      duration: 0.65,
       ease: EXPO_OUT,
     },
   },
@@ -160,8 +156,8 @@ export function StaggerGrid<T>({
         visible: {
           opacity: 1,
           transition: {
-            staggerChildren: 0.15,
-            delayChildren: 0.1,
+            staggerChildren: 0.06,
+            delayChildren: 0.04,
           },
         },
       }}
@@ -169,24 +165,22 @@ export function StaggerGrid<T>({
       {items.map((item, i) => {
         const row = Math.floor(i / columns);
         const colInRow = i % columns;
-        const delay = row * 0.45 + colInRow * 0.15;
+        const delay = row * 0.12 + colInRow * 0.04;
         return (
           <motion.div
             key={i}
             variants={{
               hidden: {
                 opacity: 0,
-                y: 50,
-                scale: 0.92,
-                filter: "blur(12px)",
+                y: 22,
+                scale: 0.98,
               },
               visible: {
                 opacity: 1,
                 y: 0,
                 scale: 1,
-                filter: "blur(0px)",
                 transition: {
-                  duration: 1.8,
+                  duration: 0.65,
                   ease: EXPO_OUT,
                   delay,
                 },

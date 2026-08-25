@@ -28,8 +28,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         .catch(() => 0);
 
     return (
-        <div className="min-h-screen bg-[#050505]">
-            <nav className="bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-white/[0.06] px-6 py-3 flex justify-between items-center sticky top-0 z-50">
+        <div className="min-h-screen overflow-x-clip bg-[#0C0C0C]">
+            <nav className="bg-black/40 backdrop-blur-xl border-b border-white/10 px-6 py-3 flex justify-between items-center sticky top-0 z-50">
                 <div className="flex items-center gap-8">
                     <Link href="/admin" className="flex items-center gap-3">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -48,7 +48,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                             </span>
                         )}
                     </Link>
-                    <Link href="/dashboard" className="text-xs text-neutral-400 hover:text-white transition-colors">
+                    <Link href="/dashboard" className="text-xs text-[#C3C9D6] hover:text-white transition-colors">
                         Back to User Dashboard →
                     </Link>
                     <span className="text-sm text-neutral-400 hidden sm:block">
