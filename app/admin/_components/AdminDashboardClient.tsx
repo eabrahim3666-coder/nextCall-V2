@@ -105,7 +105,7 @@ export default function AdminDashboardClient({ allBusinesses, totalCallsProcesse
         const limit = b.minutes_limit || 200;
         const percent = limit > 0 ? (used / limit) : 0;
 
-        let riskLevel = null;
+        let riskLevel: "high" | "medium" | null = null;
         let riskReason = "";
 
         if (b.status === "active" && (b.total_calls_processed || 0) === 0) {

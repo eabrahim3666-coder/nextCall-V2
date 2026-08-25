@@ -118,8 +118,8 @@ export default async function AdminDashboard() {
     // Use estimated counts for the header stats to avoid loading everything into memory
     const totalUsers = await businessesCollection.countDocuments({}, 1000000);
 
-    const totalCallsProcessed = allBusinesses.reduce((sum, b) => sum + (b.total_calls_processed || 0), 0);
-    const totalMinutesConsumed = allBusinesses.reduce((sum, b) => sum + (b.total_minutes_used || 0), 0);
+    const totalCallsProcessed = allBusinesses.reduce((sum: number, b: any) => sum + (b.total_calls_processed || 0), 0);
+    const totalMinutesConsumed = allBusinesses.reduce((sum: number, b: any) => sum + (b.total_minutes_used || 0), 0);
 
     // 2. Document Counts for DB Estimation
     const businessCount = totalUsers;
@@ -146,13 +146,13 @@ export default async function AdminDashboard() {
     // and monthly buckets) + phone numbers.
     const rates = costRates();
     const { monthly, allTimeMsgs } = await aggregateUsage(
-        allBusinesses.map((b) => b.business_id)
+        allBusinesses.map((b: any) => b.business_id)
     );
     const currYm = currentYm();
 
     // Serialize data for the client component (convert any AstraDB weird types to plain JSON)
     const { serializedBusinesses, totals, monthTotals } = (() => {
-        const serialized = allBusinesses.map(b => {
+        const serialized = allBusinesses.map((b: any) => {
             const plan = b.plan_type || b.plan || undefined;
             const minutes = b.total_minutes_used || 0;
             const phoneCount = b.twilio_number ? 1 : 0;
@@ -228,9 +228,9 @@ export default async function AdminDashboard() {
         });
 
         const sum = (key: "totalCost" | "revenue" | "net") =>
-            serialized.reduce((s, b) => s + (b.cost?.[key] || 0), 0);
+            serialized.reduce((s: number, b: any) => s + (b.cost?.[key] || 0), 0);
         const monthSum = (key: "totalCost" | "revenue" | "net") =>
-            serialized.reduce((s, b) => s + (b.monthCost?.[key] || 0), 0);
+            serialized.reduce((s: number, b: any) => s + (b.monthCost?.[key] || 0), 0);
 
         return {
             serializedBusinesses: serialized,
