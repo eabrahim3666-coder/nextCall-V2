@@ -51,8 +51,8 @@ function Navigation() {
       <div
         className={`pointer-events-auto flex h-14 sm:h-16 w-full max-w-3xl items-center justify-between rounded-full border px-5 sm:px-8 backdrop-blur-xl transition-all duration-500 ${
           scrolled
-            ? "bg-[#f8f8f8] border-[#1e1e1e] shadow-[0_12px_40px_-16px_rgba(0,0,0,0.18)]"
-            : "bg-[#f8f8f8] border-[#1e1e1e]"
+            ? "bg-[#f8f8f8] border-black shadow-[0_12px_40px_-16px_rgba(0,0,0,0.18)]"
+            : "bg-[#f8f8f8] border-black"
         }`}
       >
         {/* Logo */}
@@ -92,7 +92,7 @@ function Navigation() {
             </Link>
           ) : (
             <SignInButton forceRedirectUrl="/dashboard">
-              <span className="inline-flex items-center justify-center rounded-full bg-[#1e1e1e] px-5 py-2 text-sm font-semibold text-white hover:bg-black transition-colors">
+              <span className="inline-flex items-center justify-center rounded-full bg-[#ff4b00] px-5 py-2 text-sm font-semibold text-white hover:bg-[#e04400] transition-colors">
                 Login
               </span>
             </SignInButton>
@@ -102,7 +102,7 @@ function Navigation() {
         {/* Mobile toggle */}
         <button
           onClick={() => setOpen((o) => !o)}
-          className="md:hidden grid place-items-center w-9 h-9 rounded-md text-[#1e1e1e]"
+          className="md:hidden grid place-items-center w-9 h-9 rounded-md text-[#ff4b00]"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           aria-controls="mobile-menu"
@@ -121,7 +121,7 @@ function Navigation() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className="md:hidden overflow-hidden bg-[#f8f8f8] backdrop-blur-xl border-t border-[#1e1e1e]/10"
+            className="md:hidden overflow-hidden bg-[#f8f8f8] backdrop-blur-xl border-t border-black"
           >
             <div className="px-5 py-4 flex flex-col gap-3">
               {NAV_LINKS.map((l) => (
@@ -144,7 +144,7 @@ function Navigation() {
                 </Link>
               ) : (
                 <SignInButton forceRedirectUrl="/dashboard">
-                  <span className="w-full mt-2 inline-flex items-center justify-center rounded-full bg-[#1e1e1e] px-5 py-2.5 text-sm font-semibold text-white hover:bg-black transition-colors">
+                  <span className="w-full mt-2 inline-flex items-center justify-center rounded-full bg-[#ff4b00] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#e04400] transition-colors">
                     Login
                   </span>
                 </SignInButton>

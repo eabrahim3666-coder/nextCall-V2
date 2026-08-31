@@ -83,25 +83,25 @@ export default function DashboardCards({ calls, minutesUsed, totalCalls, activeN
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
             {/* Card 1: Total Calls */}
-            <div className="bg-white/[0.03] border border-white/[0.06] p-6 rounded-2xl hover:border-white/[0.1] transition-colors">
+            <div className="bg-black border border-white/5 p-6 rounded-2xl hover:border-white/5 transition-colors">
                 <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-                        <Phone className="h-5 w-5 text-indigo-400" />
+                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#ff4b00]/10 border border-[#ff4b00]/20">
+                        <Phone className="h-5 w-5 text-[#ff4b00]" />
                     </div>
                     <Dialog>
                         <DialogTrigger asChild>
-                            <p className="text-xs font-medium text-indigo-400 hover:text-indigo-300 cursor-pointer underline underline-offset-2">View History</p>
+                            <p className="text-xs font-medium text-[#ff4b00] hover:text-[#ff4b00] cursor-pointer underline underline-offset-2">View History</p>
                         </DialogTrigger>
-                        <DialogContent className="bg-[#0a0a0a] border border-white/[0.06] text-white max-w-2xl">
+                        <DialogContent className="bg-[#0a0a0a] border border-white/5 text-white max-w-2xl">
                             <DialogHeader><DialogTitle className="text-xl text-white font-bold">Call History</DialogTitle></DialogHeader>
                             <div className="max-h-[60vh] overflow-y-auto mt-4">
-                                {localCalls.length === 0 ? <p className="text-neutral-500 text-center py-8 text-sm">No calls yet.</p> : (
+                                {localCalls.length === 0 ? <p className="text-[#A7ADBB] text-center py-8 text-sm">No calls yet.</p> : (
                                     <div className="space-y-3">
                                         {localCalls.map((call) => (
-                                            <div key={call.call_id} className={`p-4 border rounded-lg flex justify-between items-start ${call.is_flagged ? 'bg-amber-500/5 border-amber-500/20' : 'bg-white/[0.02] border-white/[0.06]'}`}>
+                                            <div key={call.call_id} className={`p-4 border rounded-lg flex justify-between items-start ${call.is_flagged ? 'bg-amber-500/5 border-amber-500/20' : 'bg-black border-white/5'}`}>
                                                 <div className="space-y-1">
                                                     <p className="font-semibold text-white text-sm">{call.customer_phone}</p>
-                                                    <p className="text-xs text-neutral-400">{call.summary || "No summary"}</p>
+                                                    <p className="text-xs text-[#A7ADBB]">{call.summary || "No summary"}</p>
                                                     <p className="text-xs text-neutral-600">{new Date(call.created_at).toLocaleString()}</p>
                                                 </div>
                                                 <Button variant="ghost" size="sm" className={call.is_flagged ? "text-amber-400 hover:text-amber-300" : "text-neutral-600 hover:text-white"} onClick={() => handleToggleFlag(call.call_id, call.is_flagged || false)}>
@@ -115,12 +115,12 @@ export default function DashboardCards({ calls, minutesUsed, totalCalls, activeN
                         </DialogContent>
                     </Dialog>
                 </div>
-                <h3 className="text-sm font-medium text-neutral-500 uppercase tracking-wider">Total Calls</h3>
+                <h3 className="text-sm font-medium text-[#A7ADBB] uppercase tracking-wider">Total Calls</h3>
                 <p className="text-3xl font-bold text-white mt-1">{totalCalls}</p>
             </div>
 
             {/* Card 2: Minutes Used */}
-            <div className="bg-white/[0.03] border border-white/[0.06] p-6 rounded-2xl hover:border-white/[0.1] transition-colors">
+            <div className="bg-black border border-white/5 p-6 rounded-2xl hover:border-white/5 transition-colors">
                 <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                         <Clock className="h-5 w-5 text-emerald-400" />
@@ -129,15 +129,15 @@ export default function DashboardCards({ calls, minutesUsed, totalCalls, activeN
                         <DialogTrigger asChild>
                             <p className="text-xs font-medium text-emerald-400 hover:text-emerald-300 cursor-pointer underline underline-offset-2">View Breakdown</p>
                         </DialogTrigger>
-                        <DialogContent className="bg-[#0a0a0a] border border-white/[0.06] text-white max-w-2xl">
+                        <DialogContent className="bg-[#0a0a0a] border border-white/5 text-white max-w-2xl">
                             <DialogHeader><DialogTitle className="text-xl text-white font-bold">Minutes Breakdown</DialogTitle></DialogHeader>
                             <div className="max-h-[60vh] overflow-y-auto mt-4">
-                                {localCalls.length === 0 ? <p className="text-neutral-500 text-center py-8 text-sm">No minutes logged yet.</p> : (
+                                {localCalls.length === 0 ? <p className="text-[#A7ADBB] text-center py-8 text-sm">No minutes logged yet.</p> : (
                                     <div className="space-y-3">
                                         {localCalls.map((call) => (
-                                            <div key={call.call_id} className="p-4 border border-white/[0.06] rounded-lg flex justify-between items-center bg-white/[0.02]">
+                                            <div key={call.call_id} className="p-4 border border-white/5 rounded-lg flex justify-between items-center bg-black">
                                                 <div><p className="font-semibold text-white text-sm">{call.customer_phone}</p><p className="text-xs text-neutral-600">{new Date(call.created_at).toLocaleString()}</p></div>
-                                                <p className="text-lg font-bold text-white">{(call.call_duration / 60).toFixed(1)} <span className="text-xs font-normal text-neutral-500">min</span></p>
+                                                <p className="text-lg font-bold text-white">{(call.call_duration / 60).toFixed(1)} <span className="text-xs font-normal text-[#A7ADBB]">min</span></p>
                                             </div>
                                         ))}
                                     </div>
@@ -146,26 +146,26 @@ export default function DashboardCards({ calls, minutesUsed, totalCalls, activeN
                         </DialogContent>
                     </Dialog>
                 </div>
-                <h3 className="text-sm font-medium text-neutral-500 uppercase tracking-wider">Minutes Used</h3>
-                <p className="text-3xl font-bold text-white mt-1">{Number(minutesUsed || 0).toFixed(1)} <span className="text-lg font-normal text-neutral-500">min</span></p>
+                <h3 className="text-sm font-medium text-[#A7ADBB] uppercase tracking-wider">Minutes Used</h3>
+                <p className="text-3xl font-bold text-white mt-1">{Number(minutesUsed || 0).toFixed(1)} <span className="text-lg font-normal text-[#A7ADBB]">min</span></p>
             </div>
 
             {/* Card 3: Active Number Management */}
-            <div className="bg-white/[0.03] border border-white/[0.06] p-6 rounded-2xl hover:border-white/[0.1] transition-colors">
+            <div className="bg-black border border-white/5 p-6 rounded-2xl hover:border-white/5 transition-colors">
                 <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
-                        <Smartphone className="h-5 w-5 text-cyan-400" />
+                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#ff4b00]/10 border border-[#ff4b00]/20">
+                        <Smartphone className="h-5 w-5 text-[#ff4b00]" />
                     </div>
                     <Dialog>
                         <DialogTrigger asChild>
-                            <p className="text-xs font-medium text-cyan-400 hover:text-cyan-300 cursor-pointer underline underline-offset-2">Manage Numbers</p>
+                            <p className="text-xs font-medium text-[#ff4b00] hover:text-cyan-300 cursor-pointer underline underline-offset-2">Manage Numbers</p>
                         </DialogTrigger>
 
-                        <DialogContent className="bg-[#0a0a0a] border border-white/[0.06] text-white sm:max-w-md">
+                        <DialogContent className="bg-[#0a0a0a] border border-white/5 text-white sm:max-w-md">
                             <DialogHeader>
                                 <DialogTitle className="text-xl text-white font-bold flex items-center gap-3">
                                     {view !== "list" && (
-                                        <button onClick={() => setView("list")} className="text-neutral-400 hover:text-white transition-colors">
+                                        <button onClick={() => setView("list")} className="text-[#A7ADBB] hover:text-white transition-colors">
                                             <ArrowLeft className="h-5 w-5" />
                                         </button>
                                     )}
@@ -178,22 +178,22 @@ export default function DashboardCards({ calls, minutesUsed, totalCalls, activeN
                                 {view === "list" && (
                                     <div className="space-y-3">
                                         {localNumbers.map((numObj, index) => (
-                                            <div key={numObj.number} className="flex items-center justify-between p-3 border border-white/[0.06] rounded-lg bg-white/[0.02]">
+                                            <div key={numObj.number} className="flex items-center justify-between p-3 border border-white/5 rounded-lg bg-black">
                                                 <div>
                                                     <p className="font-mono font-semibold text-white text-sm">{numObj.number}</p>
-                                                    <p className="text-xs text-neutral-500">{numObj.label}</p>
+                                                    <p className="text-xs text-[#A7ADBB]">{numObj.label}</p>
                                                 </div>
-                                                <Button variant="ghost" size="icon" className="hover:bg-white/[0.05]" onClick={() => openEditView(index)}>
-                                                    <Pencil className="h-4 w-4 text-neutral-500 hover:text-indigo-400" />
+                                                <Button variant="ghost" size="icon" className="hover:bg-black" onClick={() => openEditView(index)}>
+                                                    <Pencil className="h-4 w-4 text-[#A7ADBB] hover:text-[#ff4b00]" />
                                                 </Button>
                                             </div>
                                         ))}
                                         {planType === "premium" ? (
-                                            <Button onClick={handleBuyNumber} disabled={buyingNumber} className="w-full bg-indigo-600 hover:bg-indigo-500 mt-4 text-sm font-medium">
+                                            <Button onClick={handleBuyNumber} disabled={buyingNumber} className="w-full bg-indigo-600 hover:bg-[#ff4b00] mt-4 text-sm font-medium">
                                                 {buyingNumber ? "Buying..." : "+ Add New Number"}
                                             </Button>
                                         ) : (
-                                            <p className="text-xs text-neutral-500 text-center mt-4">Extra numbers are available on the Premium plan.</p>
+                                            <p className="text-xs text-[#A7ADBB] text-center mt-4">Extra numbers are available on the Premium plan.</p>
                                         )}
                                     </div>
                                 )}
@@ -202,30 +202,30 @@ export default function DashboardCards({ calls, minutesUsed, totalCalls, activeN
                                 {view === "edit" && selectedIndex !== null && (
                                     <div className="space-y-5">
                                         <div>
-                                            <label className="block text-xs font-medium text-neutral-500 mb-1">Phone Number (Cannot be changed)</label>
-                                            <Input value={localNumbers[selectedIndex].number} disabled className="bg-white/[0.03] border-white/[0.06] text-neutral-500 font-mono text-sm" />
+                                            <label className="block text-xs font-medium text-[#A7ADBB] mb-1">Phone Number (Cannot be changed)</label>
+                                            <Input value={localNumbers[selectedIndex].number} disabled className="bg-black border-white/5 text-[#A7ADBB] font-mono text-sm" />
                                         </div>
 
                                         <div>
-                                            <label className="block text-xs font-medium text-neutral-500 mb-1">Label / Nickname</label>
+                                            <label className="block text-xs font-medium text-[#A7ADBB] mb-1">Label / Nickname</label>
                                             <Input
                                                 value={editLabel}
                                                 onChange={(e) => setEditLabel(e.target.value)}
                                                 placeholder="e.g. Main Website Line"
-                                                className="bg-white/[0.03] border-white/[0.06] text-white placeholder-neutral-700 focus:border-indigo-500/50 text-sm"
+                                                className="bg-black border-white/5 text-white placeholder-neutral-700 focus:border-indigo-500/50 text-sm"
                                             />
                                         </div>
 
                                         <div className="flex gap-3 pt-2">
                                             <Button
                                                 variant="outline"
-                                                className="flex-1 border-white/[0.06] text-neutral-400 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20"
+                                                className="flex-1 border-white/5 text-[#A7ADBB] hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20"
                                                 onClick={() => setView("delete")}
                                             >
                                                 <Trash2 className="h-4 w-4 mr-2" /> Delete
                                             </Button>
                                             <Button
-                                                className="flex-1 bg-indigo-600 hover:bg-indigo-500"
+                                                className="flex-1 bg-indigo-600 hover:bg-[#ff4b00]"
                                                 onClick={handleSaveLabel}
                                             >
                                                 <Save className="h-4 w-4 mr-2" /> Save
@@ -238,22 +238,22 @@ export default function DashboardCards({ calls, minutesUsed, totalCalls, activeN
                                 {view === "delete" && selectedIndex !== null && (
                                     <div className="space-y-4 bg-red-500/5 p-6 border border-red-500/20 rounded-xl">
                                         <p className="text-red-400 font-bold text-lg">Are you absolutely sure?</p>
-                                        <p className="text-neutral-400 text-sm">This will permanently delete <span className="font-mono font-bold text-white">{localNumbers[selectedIndex].number}</span>.</p>
+                                        <p className="text-[#A7ADBB] text-sm">This will permanently delete <span className="font-mono font-bold text-white">{localNumbers[selectedIndex].number}</span>.</p>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-neutral-400 mb-1">
-                                                Type <span className="font-mono bg-white/[0.05] px-1.5 py-0.5 rounded font-bold text-white text-xs">delete</span> to confirm.
+                                            <label className="block text-sm font-medium text-[#A7ADBB] mb-1">
+                                                Type <span className="font-mono bg-black px-1.5 py-0.5 rounded font-bold text-white text-xs">delete</span> to confirm.
                                             </label>
                                             <Input
                                                 value={deleteInput}
                                                 onChange={(e) => setDeleteInput(e.target.value)}
-                                                className="bg-white/[0.03] border-white/[0.06] text-white placeholder-neutral-700 focus:border-red-500/50 text-sm"
+                                                className="bg-black border-white/5 text-white placeholder-neutral-700 focus:border-red-500/50 text-sm"
                                                 placeholder="Type 'delete' here..."
                                             />
                                         </div>
 
                                         <div className="flex gap-3 pt-2">
-                                            <Button variant="outline" className="flex-1 border-white/[0.06] text-neutral-400 hover:bg-white/[0.05] text-sm" onClick={() => setView("edit")}>
+                                            <Button variant="outline" className="flex-1 border-white/5 text-[#A7ADBB] hover:bg-black text-sm" onClick={() => setView("edit")}>
                                                 Cancel
                                             </Button>
                                             <Button
@@ -271,7 +271,7 @@ export default function DashboardCards({ calls, minutesUsed, totalCalls, activeN
                         </DialogContent>
                     </Dialog>
                 </div>
-                <h3 className="text-sm font-medium text-neutral-500 uppercase tracking-wider">Active Numbers</h3>
+                <h3 className="text-sm font-medium text-[#A7ADBB] uppercase tracking-wider">Active Numbers</h3>
                 <p className="text-3xl font-bold text-white mt-1">{localNumbers.length}</p>
             </div>
 

@@ -1,12 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
 
 import { Reveal } from "@/components/Reveal";
 import { PerspectiveCard } from "@/components/PerspectiveCard";
 import { cn } from "@/lib/utils";
+
+const FAQ_BOX_CSS = `
+.faq-box {
+  background-image: linear-gradient(var(--ga, 135deg), #0a0604 0%, #000000 62%);
+  border-radius: 16px;
+  border: none !important;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, filter 0.35s ease;
+}
+.faq-box:hover, .faq-box:active {
+  transform: translateY(-4px);
+  filter: brightness(1.15);
+  box-shadow: 0 18px 44px -16px rgba(255, 75, 0, 0.22), 0 10px 26px -14px rgba(0, 0, 0, 0.85);
+}
+@media (hover: none) {
+  .faq-box:active {
+    transform: translateY(-4px);
+    filter: brightness(1.15);
+    box-shadow: 0 18px 44px -16px rgba(255, 75, 0, 0.22), 0 10px 26px -14px rgba(0, 0, 0, 0.85);
+  }
+}
+`;
 
 const FAQ_ITEMS = [
   {
@@ -59,14 +80,8 @@ function FaqAccordion({
 }) {
   return (
     <PerspectiveCard
-      maxTilt={3}
-      scale={1.01}
-      className={cn(
-        "rounded-2xl border transition-all duration-300",
-        isOpen
-          ? "border-purple-500/30 bg-white/[0.04] shadow-[0_0_40px_-15px_rgba(139,92,246,0.35)]"
-          : "border-white/10 bg-white/[0.02] hover:border-white/20"
-      )}
+      hover={false}
+      className={cn("faq-box", isOpen && "ring-1 ring-[#ff4b00]/20")}
     >
       <h3>
         <button
@@ -87,7 +102,7 @@ function FaqAccordion({
                 : "border-white/15 text-[#C3C9D6]"
             )}
           >
-            <Plus className="w-4 h-4 text-purple-300" />
+            <Plus className="w-4 h-4 text-[#ff4b00]" />
           </span>
         </button>
       </h3>
@@ -124,10 +139,11 @@ function Faq() {
       id="faq"
       className="section-full relative overflow-hidden py-20 sm:py-24 flex flex-col justify-center"
     >
+      <style dangerouslySetInnerHTML={{ __html: FAQ_BOX_CSS }} />
       {/* Ambient background — STATIC */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-15%] right-[-5%] w-[700px] h-[700px] rounded-full bg-[radial-gradient(circle,rgba(190,195,205,0.14)_0%,transparent_70%)] blur-[56px] opacity-40" />
-        <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(140,145,155,0.1)_0%,transparent_70%)] blur-[64px] opacity-40" />
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(8,5,4,0.45)_0%,transparent_60%)] opacity-30" />
+        <div className="absolute inset-0 bg-[linear-gradient(315deg,rgba(8,5,4,0.4)_0%,transparent_60%)] opacity-30" />
       </div>
 
       {/* Grid lines backdrop — STATIC */}
@@ -137,8 +153,7 @@ function Faq() {
           backgroundImage:
             "linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)",
           backgroundSize: "60px 60px",
-          maskImage:
-            "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+          maskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
         }}
       />
       <div className="grain" />
@@ -146,15 +161,11 @@ function Faq() {
       <div className="relative z-10 mx-auto max-w-3xl px-5 sm:px-8 w-full">
         <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-14">
           <Reveal>
-            <span className="text-xs uppercase tracking-[0.25em] text-[#D3D8E2] font-medium">
-              FAQ
-            </span>
+            <div className="flex items-center justify-center gap-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#D3D8E2]"><span aria-hidden className="h-px w-8 bg-white/15" />FAQ<span aria-hidden className="h-px w-8 bg-white/15" /></div>
           </Reveal>
-          <Reveal delay={0.05}>
-            <h2 className="section-headline-shine mt-3 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
-              Common questions
-            </h2>
-          </Reveal>
+          <h2 className="mt-3 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight text-white">
+            Common questions
+          </h2>
           <Reveal delay={0.1}>
             <p className="mt-5 text-base sm:text-lg text-[#C3C9D6]">
               Everything you need to know before getting started.
@@ -165,12 +176,14 @@ function Faq() {
         <div className="space-y-3">
           {FAQ_ITEMS.map((item, i) => (
             <Reveal key={item.question} delay={i * 0.05} amount={0.3}>
-              <FaqAccordion
-                item={item}
-                index={i}
-                isOpen={openIndex === i}
-                onToggle={() => setOpenIndex(openIndex === i ? null : i)}
-              />
+              <div style={{ "--ga": `${[135,205,315,110,225,160,250][i % 7]}deg` } as CSSProperties}>
+                <FaqAccordion
+                  item={item}
+                  index={i}
+                  isOpen={openIndex === i}
+                  onToggle={() => setOpenIndex(openIndex === i ? null : i)}
+                />
+              </div>
             </Reveal>
           ))}
         </div>

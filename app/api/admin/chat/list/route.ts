@@ -55,6 +55,6 @@ export async function GET() {
         return NextResponse.json({ conversations: withNames });
     } catch (error) {
         console.error("Admin chat list error:", error);
-        return NextResponse.json({ conversations: [] });
+        return NextResponse.json({ error: "Failed to load conversations" }, { status: 502 });
     }
 }

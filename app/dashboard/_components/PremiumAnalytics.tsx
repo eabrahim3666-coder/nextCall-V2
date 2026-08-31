@@ -61,10 +61,10 @@ export default function PremiumAnalytics({ calls, businessType, avgJobValue: use
 
         // Funnel data
         const funnelData = [
-            { name: "Calls", value: totalCalls, color: "#818cf8" },
-            { name: "Leads", value: capturedLeads, color: "#a78bfa" },
-            { name: "Appointments", value: appointments, color: "#34d399" },
-            { name: "Revenue", value: appointments, color: "#f59e0b" },
+            { name: "Calls", value: totalCalls, color: "#ff4b00" },
+            { name: "Leads", value: capturedLeads, color: "#ff6a2a" },
+            { name: "Appointments", value: appointments, color: "#ff8a4d" },
+            { name: "Revenue", value: appointments, color: "#ffb07a" },
         ];
 
         // Weekly trend (last 8 weeks)
@@ -111,7 +111,7 @@ export default function PremiumAnalytics({ calls, businessType, avgJobValue: use
         const neu = calls.filter(c => c.sentiment === "Neutral").length;
         const neg = calls.filter(c => c.sentiment === "Negative").length;
         const sentimentBreakdown = [
-            { name: "Positive", value: pos, color: "#34d399" },
+            { name: "Positive", value: pos, color: "#ff8a4d" },
             { name: "Neutral", value: neu, color: "#94a3b8" },
             { name: "Negative", value: neg, color: "#f87171" },
         ];
@@ -175,35 +175,35 @@ export default function PremiumAnalytics({ calls, businessType, avgJobValue: use
             {/* Premium badge */}
             <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-white tracking-tight">Advanced Analytics</h2>
-                <span className="text-[10px] font-medium uppercase tracking-wider text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-full">Premium</span>
+                <span className="text-[10px] font-medium uppercase tracking-wider text-[#ff4b00] bg-[#ff4b00]/10 border border-[#ff4b00]/20 px-3 py-1 rounded-full">Premium</span>
             </div>
 
             {/* Row 1: Key Metrics */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
-                    <p className="text-[10px] uppercase tracking-wider text-neutral-500 mb-2">Revenue Captured</p>
+                <div className="p-5 rounded-2xl bg-black border border-white/5">
+                    <p className="text-[10px] uppercase tracking-wider text-[#A7ADBB] mb-2">Revenue Captured</p>
                     <p className="text-2xl font-semibold text-white">${metrics.totalRevenue.toLocaleString()}</p>
                     <p className="text-[10px] text-emerald-400 mt-1">+{metrics.appointments} appointments</p>
                 </div>
-                <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
-                    <p className="text-[10px] uppercase tracking-wider text-neutral-500 mb-2">Lead Value</p>
+                <div className="p-5 rounded-2xl bg-black border border-white/5">
+                    <p className="text-[10px] uppercase tracking-wider text-[#A7ADBB] mb-2">Lead Value</p>
                     <p className="text-2xl font-semibold text-white">${metrics.leadValue}</p>
-                    <p className="text-[10px] text-indigo-400 mt-1">avg per captured lead</p>
+                    <p className="text-[10px] text-[#ff4b00] mt-1">avg per captured lead</p>
                 </div>
-                <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
-                    <p className="text-[10px] uppercase tracking-wider text-neutral-500 mb-2">AI Performance</p>
+                <div className="p-5 rounded-2xl bg-black border border-white/5">
+                    <p className="text-[10px] uppercase tracking-wider text-[#A7ADBB] mb-2">AI Performance</p>
                     <p className="text-2xl font-semibold text-white">{metrics.aiPerformance}%</p>
-                    <p className="text-[10px] text-purple-400 mt-1">handled without human</p>
+                    <p className="text-[10px] text-[#ff4b00] mt-1">handled without human</p>
                 </div>
-                <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
-                    <p className="text-[10px] uppercase tracking-wider text-neutral-500 mb-2">Conversion</p>
+                <div className="p-5 rounded-2xl bg-black border border-white/5">
+                    <p className="text-[10px] uppercase tracking-wider text-[#A7ADBB] mb-2">Conversion</p>
                     <p className="text-2xl font-semibold text-white">{metrics.conversionRate}%</p>
                     <p className="text-[10px] text-amber-400 mt-1">call to appointment</p>
                 </div>
             </div>
 
             {/* Row 2: Conversion Funnel */}
-            <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+            <div className="p-6 rounded-2xl bg-black border border-white/5">
                 <h3 className="text-sm font-semibold text-white mb-6">Conversion Funnel</h3>
                 <div className="flex items-end gap-3 h-40">
                     {metrics.funnelData.map((step) => {
@@ -220,13 +220,13 @@ export default function PremiumAnalytics({ calls, businessType, avgJobValue: use
                                         border: `1px solid ${step.color}40`,
                                     }}
                                 />
-                                <span className="text-[10px] text-neutral-500 mt-2">{step.name}</span>
+                                <span className="text-[10px] text-[#A7ADBB] mt-2">{step.name}</span>
                             </div>
                         );
                     })}
                 </div>
-                <div className="mt-4 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] text-center">
-                    <p className="text-xs text-neutral-400">
+                <div className="mt-4 p-3 rounded-xl bg-black border border-white/[0.04] text-center">
+                    <p className="text-xs text-[#A7ADBB]">
                         Estimated <span className="text-emerald-400 font-semibold">${metrics.totalRevenue.toLocaleString()}</span> in revenue from {metrics.appointments} booked appointments
                         {avgJobValue ? ` (avg $${avgJobValue}/job)` : ''}
                     </p>
@@ -234,7 +234,7 @@ export default function PremiumAnalytics({ calls, businessType, avgJobValue: use
             </div>
 
             {/* Row 3: Weekly Trends */}
-            <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+            <div className="p-6 rounded-2xl bg-black border border-white/5">
                 <h3 className="text-sm font-semibold text-white mb-6">Weekly Trend</h3>
                 {!hasData ? (
                     <div className="h-48 flex items-center justify-center">
@@ -252,8 +252,8 @@ export default function PremiumAnalytics({ calls, businessType, avgJobValue: use
                                     labelStyle={{ color: '#fff', fontWeight: 'bold' }}
                                     itemStyle={{ color: '#a3a3a3', fontSize: '12px' }}
                                 />
-                                <Line type="monotone" dataKey="calls" stroke="#818cf8" strokeWidth={2} dot={{ fill: '#818cf8', r: 3 }} name="Calls" />
-                                <Line type="monotone" dataKey="appointments" stroke="#34d399" strokeWidth={2} dot={{ fill: '#34d399', r: 3 }} name="Appointments" />
+                                <Line type="monotone" dataKey="calls" stroke="#ff4b00" strokeWidth={2} dot={{ fill: '#ff4b00', r: 3 }} name="Calls" />
+                                <Line type="monotone" dataKey="appointments" stroke="#ff8a4d" strokeWidth={2} dot={{ fill: '#ff8a4d', r: 3 }} name="Appointments" />
                             </LineChart>
                         </ResponsiveContainer>
                     </div>
@@ -263,10 +263,10 @@ export default function PremiumAnalytics({ calls, businessType, avgJobValue: use
             {/* Row 4: Peak Hours + Sentiment */}
             <div className="grid md:grid-cols-2 gap-6">
                 {/* Peak Hours Heatmap */}
-                <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+                <div className="p-6 rounded-2xl bg-black border border-white/5">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-sm font-semibold text-white">Peak Hours</h3>
-                        <div className="flex items-center gap-4 text-[10px] text-neutral-500">
+                        <div className="flex items-center gap-4 text-[10px] text-[#A7ADBB]">
                             <span>Busiest: <span className="text-white font-medium">{metrics.peakHour}</span></span>
                             <span>Best day: <span className="text-white font-medium">{metrics.bestDay}</span></span>
                         </div>
@@ -281,16 +281,16 @@ export default function PremiumAnalytics({ calls, businessType, avgJobValue: use
                             {metrics.heatmapData.map((h) => (
                                 <div key={h.hour} className="flex items-center gap-3">
                                     <span className="text-[10px] text-neutral-600 w-10 text-right">{h.hour}</span>
-                                    <div className="flex-1 h-5 rounded bg-white/[0.03] overflow-hidden">
+                                    <div className="flex-1 h-5 rounded bg-black overflow-hidden">
                                         <div
                                             className="h-full rounded transition-all duration-500"
                                             style={{
                                                 width: `${Math.max(h.intensity, 2)}%`,
                                                 background: h.intensity > 70
-                                                    ? "linear-gradient(to right, rgba(129,140,248,0.3), rgba(129,140,248,0.7))"
+                                                    ? "linear-gradient(to right, rgba(255,75,0,0.3), rgba(255,75,0,0.7))"
                                                     : h.intensity > 40
-                                                        ? "linear-gradient(to right, rgba(129,140,248,0.15), rgba(129,140,248,0.4))"
-                                                        : "linear-gradient(to right, rgba(129,140,248,0.05), rgba(129,140,248,0.15)",
+                                                        ? "linear-gradient(to right, rgba(255,75,0,0.15), rgba(255,75,0,0.4))"
+                                                        : "linear-gradient(to right, rgba(255,75,0,0.05), rgba(255,75,0,0.15)",
                                             }}
                                         />
                                     </div>
@@ -302,7 +302,7 @@ export default function PremiumAnalytics({ calls, businessType, avgJobValue: use
                 </div>
 
                 {/* Sentiment + Lead Quality */}
-                <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+                <div className="p-6 rounded-2xl bg-black border border-white/5">
                     <h3 className="text-sm font-semibold text-white mb-6">Lead Quality Breakdown</h3>
 
                     {!hasData ? (
@@ -332,7 +332,7 @@ export default function PremiumAnalytics({ calls, businessType, avgJobValue: use
 
                             <div className="grid grid-cols-3 gap-3 mt-4">
                                 {metrics.sentimentBreakdown.map((s) => (
-                                    <div key={s.name} className="text-center p-2 rounded-lg bg-white/[0.02]">
+                                    <div key={s.name} className="text-center p-2 rounded-lg bg-black">
                                         <span className="block h-1 rounded-full mb-2" style={{ background: s.color }} />
                                         <p className="text-xs font-medium text-white">{s.value}</p>
                                         <p className="text-[9px] text-neutral-600">{s.name}</p>
@@ -345,9 +345,9 @@ export default function PremiumAnalytics({ calls, businessType, avgJobValue: use
             </div>
 
             {/* Call Source Tracking */}
-            <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+            <div className="p-6 rounded-2xl bg-black border border-white/5">
                 <h3 className="text-sm font-semibold text-white mb-6">Call Sources</h3>
-                <p className="text-xs text-neutral-500 mb-6">See which phone numbers drive the most calls and appointments. Assign each number to a marketing channel.</p>
+                <p className="text-xs text-[#A7ADBB] mb-6">See which phone numbers drive the most calls and appointments. Assign each number to a marketing channel.</p>
 
                 {!hasData ? (
                     <div className="h-32 flex items-center justify-center">
@@ -359,23 +359,23 @@ export default function PremiumAnalytics({ calls, businessType, avgJobValue: use
                             const maxCalls = sourceData[0]?.calls || 1;
                             const barWidth = (s.calls / maxCalls) * 100;
                             return (
-                                <div key={s.rawSource} className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                                <div key={s.rawSource} className="p-4 rounded-xl bg-black border border-white/[0.04]">
                                     <div className="flex items-center justify-between mb-2">
                                         <div className="flex items-center gap-2">
-                                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${i === 0 ? "bg-indigo-500/20 text-indigo-300" : "bg-neutral-500/20 text-neutral-400"}`}>
+                                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${i === 0 ? "bg-[#ff4b00]/20 text-[#ff4b00]" : "bg-neutral-500/20 text-[#A7ADBB]"}`}>
                                                 #{i + 1}
                                             </span>
                                             <span className="text-xs font-medium text-white">{s.source}</span>
                                         </div>
-                                        <div className="flex items-center gap-3 text-[10px] text-neutral-500">
+                                        <div className="flex items-center gap-3 text-[10px] text-[#A7ADBB]">
                                             <span>{s.calls} calls</span>
                                             <span>{s.appointments} appts</span>
                                             <span className={s.conversionRate > 0 ? "text-emerald-400" : ""}>{s.conversionRate}% conv</span>
                                         </div>
                                     </div>
-                                    <div className="w-full bg-white/[0.05] rounded-full h-2">
+                                    <div className="w-full bg-black rounded-full h-2">
                                         <div
-                                            className="h-2 rounded-full transition-all duration-700 bg-gradient-to-r from-indigo-500/60 to-indigo-400"
+                                            className="h-2 rounded-full transition-all duration-700 bg-gradient-to-r from-[#ff4b00]/60 to-indigo-400"
                                             style={{ width: `${barWidth}%` }}
                                         />
                                     </div>
@@ -386,45 +386,45 @@ export default function PremiumAnalytics({ calls, businessType, avgJobValue: use
                 )}
 
                 {/* Tip */}
-                <div className="mt-4 p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                    <p className="text-[10px] text-neutral-500 leading-relaxed">
+                <div className="mt-4 p-3 rounded-xl bg-black border border-white/[0.04]">
+                    <p className="text-[10px] text-[#A7ADBB] leading-relaxed">
                         Put a different number on each marketing channel (website, Google Ads, yard signs, truck wraps). Now you know exactly which ones produce calls and appointments.
                     </p>
                 </div>
             </div>
 
             {/* Row 5: AI Performance Details */}
-            <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+            <div className="p-6 rounded-2xl bg-black border border-white/5">
                 <h3 className="text-sm font-semibold text-white mb-6">AI Performance Score</h3>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] text-center">
+                    <div className="p-4 rounded-xl bg-black border border-white/[0.04] text-center">
                         <p className="text-xl font-semibold text-emerald-400">{metrics.aiPerformance}%</p>
-                        <p className="text-[10px] text-neutral-500 mt-1">Self-Handled</p>
+                        <p className="text-[10px] text-[#A7ADBB] mt-1">Self-Handled</p>
                     </div>
-                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] text-center">
+                    <div className="p-4 rounded-xl bg-black border border-white/[0.04] text-center">
                         <p className="text-xl font-semibold text-rose-400">{metrics.emergencies}</p>
-                        <p className="text-[10px] text-neutral-500 mt-1">Emergencies</p>
+                        <p className="text-[10px] text-[#A7ADBB] mt-1">Emergencies</p>
                     </div>
-                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] text-center">
+                    <div className="p-4 rounded-xl bg-black border border-white/[0.04] text-center">
                         <p className="text-xl font-semibold text-amber-400">{metrics.capturedLeads}</p>
-                        <p className="text-[10px] text-neutral-500 mt-1">Leads Captured</p>
+                        <p className="text-[10px] text-[#A7ADBB] mt-1">Leads Captured</p>
                     </div>
-                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] text-center">
-                        <p className="text-xl font-semibold text-indigo-400">{metrics.conversionRate}%</p>
-                        <p className="text-[10px] text-neutral-500 mt-1">Conversion</p>
+                    <div className="p-4 rounded-xl bg-black border border-white/[0.04] text-center">
+                        <p className="text-xl font-semibold text-[#ff4b00]">{metrics.conversionRate}%</p>
+                        <p className="text-[10px] text-[#A7ADBB] mt-1">Conversion</p>
                     </div>
                 </div>
 
                 {/* Performance bar */}
                 <div className="mt-4">
-                    <div className="flex items-center justify-between text-[10px] text-neutral-500 mb-1.5">
+                    <div className="flex items-center justify-between text-[10px] text-[#A7ADBB] mb-1.5">
                         <span>AI Autonomy</span>
                         <span>{metrics.aiPerformance}%</span>
                     </div>
-                    <div className="w-full bg-white/[0.05] rounded-full h-2">
+                    <div className="w-full bg-black rounded-full h-2">
                         <div
-                            className="h-2 rounded-full transition-all duration-700 bg-gradient-to-r from-indigo-500 to-purple-500"
+                            className="h-2 rounded-full transition-all duration-700 bg-gradient-to-r from-[#ff4b00] to-[#ff8a4d]"
                             style={{ width: `${metrics.aiPerformance}%` }}
                         />
                     </div>

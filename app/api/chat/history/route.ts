@@ -35,6 +35,6 @@ export async function GET() {
         return NextResponse.json({ messages: withPhotos, unread_count: unreadCount });
     } catch (error) {
         console.error("Chat history error:", error);
-        return NextResponse.json({ messages: [], unread_count: 0 });
+        return NextResponse.json({ error: "Failed to load chat history" }, { status: 502 });
     }
 }

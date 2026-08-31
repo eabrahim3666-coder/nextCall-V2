@@ -67,8 +67,8 @@ function Contact({
     >
       {/* Ambient background — STATIC */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-15%] right-[-5%] w-[700px] h-[700px] rounded-full bg-[radial-gradient(circle,rgba(190,195,205,0.14)_0%,transparent_70%)] blur-[56px] opacity-40" />
-        <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(140,145,155,0.1)_0%,transparent_70%)] blur-[64px] opacity-40" />
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(8,5,4,0.45)_0%,transparent_60%)] opacity-30" />
+        <div className="absolute inset-0 bg-[linear-gradient(315deg,rgba(8,5,4,0.4)_0%,transparent_60%)] opacity-30" />
       </div>
 
       {/* Grid lines backdrop — STATIC */}
@@ -89,15 +89,11 @@ function Contact({
           {/* Left — Info */}
           <div className="lg:col-span-2 flex flex-col justify-center">
             <Reveal>
-              <span className="text-xs uppercase tracking-[0.25em] text-[#D3D8E2] font-medium">
-                Got Questions?
-              </span>
+              <div className="flex items-center justify-center gap-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#D3D8E2]"><span aria-hidden className="h-px w-8 bg-white/15" />Got Questions?<span aria-hidden className="h-px w-8 bg-white/15" /></div>
             </Reveal>
-            <Reveal delay={0.05}>
-              <h2 className="section-headline-shine mt-3 text-4xl sm:text-5xl font-semibold tracking-tight leading-tight">
+              <h2 className="mt-3 text-4xl sm:text-5xl font-semibold tracking-tight leading-tight text-white">
                 Let&apos;s talk about it
               </h2>
-            </Reveal>
             <Reveal delay={0.1}>
               <p className="mt-4 text-base text-[#C3C9D6] leading-relaxed">
                 Ask us anything about Next Call Chat. We&apos;ll get back to
@@ -109,7 +105,7 @@ function Contact({
               <div className="space-y-4">
                 <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
                   <div className="flex size-10 items-center justify-center rounded-xl border border-white/10 bg-white/5">
-                    <Clock className="w-4.5 h-4.5 text-purple-300" />
+                    <Clock className="w-4.5 h-4.5 text-[#ff4b00]" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-[#D3D8E2]">
@@ -123,7 +119,7 @@ function Contact({
 
                 <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
                   <div className="flex size-10 items-center justify-center rounded-xl border border-white/10 bg-white/5">
-                    <Mail className="w-4.5 h-4.5 text-purple-300" />
+                    <Mail className="w-4.5 h-4.5 text-[#ff4b00]" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-[#D3D8E2]">Email</p>
@@ -257,19 +253,19 @@ function Contact({
                     type="submit"
                     disabled={loading}
                     className={cn(
-                      "text-sm sm:text-base font-medium text-[#0B0C12] px-6 py-3 rounded-full inline-flex items-center justify-center gap-2 bg-[linear-gradient(180deg,#8B919E_0%,#5E6470_100%)] shadow-[0_8px_24px_-8px_rgba(94,100,112,0.5)] hover:brightness-110 transition-all",
+                      "text-sm sm:text-base font-medium text-white px-6 py-3 rounded-full inline-flex items-center justify-center gap-2 bg-[#ff4b00] shadow-[0_8px_24px_-8px_rgba(255,75,0,0.5)] hover:bg-[#e04400] transition-all",
                       loading && "opacity-60 cursor-not-allowed"
                     )}
                   >
                     {loading ? (
                       <>
-                        <Loader className="w-4 h-4 animate-spin text-purple-300" />
+                        <Loader className="w-4 h-4 animate-spin text-[#ff4b00]" />
                         Sending...
                       </>
                     ) : (
                       <>
                         Send Question
-                        <ArrowRight className="w-4 h-4 text-purple-300" />
+                        <ArrowRight className="w-4 h-4 text-[#ff4b00]" />
                       </>
                     )}
                   </button>
@@ -308,7 +304,7 @@ function Contact({
               >
                 <div className="mb-4 flex items-center justify-between">
                   <h4 className="flex items-center gap-2 text-sm font-medium text-[#D3D8E2]">
-                    <Inbox className="w-4 h-4 text-purple-300" />
+                    <Inbox className="w-4 h-4 text-[#ff4b00]" />
                     Question Submissions
                   </h4>
                   <button
@@ -316,7 +312,7 @@ function Contact({
                     className="text-[#C3C9D6] transition-colors hover:text-[#D3D8E2]"
                     aria-label="Close submissions panel"
                   >
-                    <X className="w-4 h-4 text-purple-300" />
+                    <X className="w-4 h-4 text-[#ff4b00]" />
                   </button>
                 </div>
                 <div className="max-h-64 space-y-3 overflow-y-auto">

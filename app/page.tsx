@@ -5,12 +5,13 @@ import { Icon } from "@iconify/react";
 
 import { SmoothScroll } from "@/components/SmoothScroll";
 import { ScrollProgress } from "@/components/ScrollProgress";
+import { SceneStack } from "@/components/landing/SceneStack";
 import { Section3D } from "@/components/Section3D";
 import { Navigation } from "@/components/navigation";
 import { Hero } from "@/components/hero";
 import { Features } from "@/components/features";
 import { HowItWorks } from "@/components/how-it-works";
-import { Integrations } from "@/components/integrations";
+import IntegrationsSection from "@/components/IntegrationsSection";
 import { Industries } from "@/components/industries";
 import { Testimonials } from "@/components/testimonials";
 import { Pricing } from "@/components/pricing";
@@ -19,7 +20,9 @@ import { Contact } from "@/components/contact";
 import { FinalCta } from "@/components/final-cta";
 import { Footer } from "@/components/footer";
 
-const BG_DARK = "#0C0C0C";
+const BG_DARK = "#050507";
+const BG_PITCH = "#000000";
+const BG_LIGHT = "#ffffff";
 
 export default function Home() {
   const [formData, setFormData] = useState({
@@ -114,68 +117,106 @@ export default function Home() {
 
   return (
     <SmoothScroll>
-      <div className="relative bg-[#0C0C0C] text-white min-h-screen overflow-x-clip">
+      <div className="relative bg-[#050507] text-white min-h-screen overflow-x-clip">
         <ScrollProgress />
         <Navigation />
         <main>
-          {/* Hero — subtle 3D so its internal parallax stays the star */}
-          <Section3D id="top" intensity="subtle" bg={BG_DARK} preserveOpacity minHeight="calc(72svh - 96px)">
-            <Hero />
-          </Section3D>
-
-          {/* Feature grid — medium 3D slide */}
-          <Section3D id="features" intensity="medium" bg={BG_DARK}>
-            <Features />
-          </Section3D>
-
-          {/* How it works — medium 3D */}
-          <Section3D id="how-it-works" intensity="medium" bg={BG_DARK}>
-            <HowItWorks />
-          </Section3D>
-
-          {/* Integrations — dark editorial section */}
-          <Section3D id="built-on" intensity="medium" bg={BG_DARK}>
-            <Integrations />
-          </Section3D>
-
-          {/* Industries — back to dark immersive */}
-          <Section3D intensity="medium" bg={BG_DARK}>
-            <Industries />
-          </Section3D>
-
-          {/* Testimonials — dark */}
-          <Section3D intensity="medium" bg={BG_DARK}>
-            <Testimonials />
-          </Section3D>
-
-          {/* Pricing — dark, center card elevated */}
-          <Section3D id="pricing" intensity="medium" bg={BG_DARK}>
-            <Pricing refCode={refCode} />
-          </Section3D>
-
-          {/* FAQ — dark accordion */}
-          <Section3D id="faq" intensity="medium" bg={BG_DARK}>
-            <Faq />
-          </Section3D>
-
-          {/* Contact — dark editorial */}
-          <Section3D id="ask" intensity="medium" bg={BG_DARK}>
-            <Contact
-              formData={formData}
-              setFormData={setFormData}
-              loading={loading}
-              handleSubmit={handleSubmit}
-              submissions={submissions}
-              showPanel={showPanel}
-              setShowPanel={setShowPanel}
-              clearSubmissions={clearSubmissions}
-            />
-          </Section3D>
-
-          {/* Final CTA — subtle */}
-          <Section3D intensity="subtle" bg={BG_DARK}>
-            <FinalCta />
-          </Section3D>
+          <SceneStack
+            scenes={[
+              {
+                id: "top",
+                bg: "#050505",
+                children: (
+                  <Section3D intensity="subtle" bg="#050505" preserveOpacity minHeight="calc(64svh - 96px)">
+                    <Hero />
+                  </Section3D>
+                ),
+              },
+              {
+                id: "features",
+                bg: "#060606",
+                children: (
+                  <Section3D intensity="medium" bg="#060606">
+                    <Features />
+                  </Section3D>
+                ),
+              },
+              {
+                id: "how",
+                bg: BG_LIGHT,
+                children: (
+                  <Section3D intensity="medium" bg={BG_LIGHT}>
+                    <HowItWorks />
+                  </Section3D>
+                ),
+              },
+              {
+                id: "integrations",
+                bg: BG_DARK,
+                children: <IntegrationsSection />,
+              },
+              {
+                bg: BG_PITCH,
+                children: (
+                  <Section3D intensity="medium" bg={BG_PITCH}>
+                    <Industries />
+                  </Section3D>
+                ),
+              },
+              {
+                bg: BG_PITCH,
+                children: (
+                  <Section3D intensity="medium" bg={BG_PITCH}>
+                    <Testimonials />
+                  </Section3D>
+                ),
+              },
+              {
+                id: "pricing",
+                bg: BG_PITCH,
+                children: (
+                  <Section3D intensity="medium" bg={BG_PITCH}>
+                    <Pricing refCode={refCode} />
+                  </Section3D>
+                ),
+              },
+              {
+                id: "faq",
+                bg: BG_PITCH,
+                children: (
+                  <Section3D intensity="medium" bg={BG_PITCH}>
+                    <Faq />
+                  </Section3D>
+                ),
+              },
+              {
+                id: "ask",
+                bg: BG_PITCH,
+                children: (
+                  <Section3D intensity="subtle" bg={BG_PITCH} preserveOpacity>
+                    <Contact
+                      formData={formData}
+                      setFormData={setFormData}
+                      loading={loading}
+                      handleSubmit={handleSubmit}
+                      submissions={submissions}
+                      showPanel={showPanel}
+                      setShowPanel={setShowPanel}
+                      clearSubmissions={clearSubmissions}
+                    />
+                  </Section3D>
+                ),
+              },
+              {
+                bg: "#0a0a0a",
+                children: (
+                  <Section3D intensity="subtle" bg="#0a0a0a">
+                    <FinalCta />
+                  </Section3D>
+                ),
+              },
+            ]}
+          />
         </main>
         <Footer />
 

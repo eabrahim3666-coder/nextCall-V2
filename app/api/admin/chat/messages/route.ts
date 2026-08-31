@@ -37,6 +37,6 @@ export async function GET(request: Request) {
         return NextResponse.json({ messages: withPhotos });
     } catch (error) {
         console.error("Admin chat messages error:", error);
-        return NextResponse.json({ messages: [] });
+        return NextResponse.json({ error: "Failed to load messages" }, { status: 502 });
     }
 }

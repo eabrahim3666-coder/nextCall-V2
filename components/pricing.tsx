@@ -1,11 +1,98 @@
 "use client";
 
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { motion } from "framer-motion";
-import { Check, Sparkles } from "lucide-react";
+import { Check } from "lucide-react";
 
-import { Reveal, StaggerGroup, staggerItem } from "@/components/Reveal";
 import { PerspectiveCard } from "@/components/PerspectiveCard";
 import { cn } from "@/lib/utils";
+
+const PRICING_INTRO_CSS = `
+.pricing-box {
+  background-image: linear-gradient(var(--ga, 135deg), #0a0604 0%, #000000 62%);
+  border-radius: 16px;
+  border: none;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, filter 0.35s ease;
+}
+.pricing-box:hover, .pricing-box:active {
+  transform: translateY(-4px);
+  filter: brightness(1.15);
+  box-shadow: 0 18px 44px -16px rgba(255, 75, 0, 0.22), 0 10px 26px -14px rgba(0, 0, 0, 0.85);
+}
+@media (hover: none) {
+  .pricing-box:active {
+    transform: translateY(-4px);
+    filter: brightness(1.15);
+    box-shadow: 0 18px 44px -16px rgba(255, 75, 0, 0.22), 0 10px 26px -14px rgba(0, 0, 0, 0.85);
+  }
+}
+.pricing-sheen-bar {
+  position: absolute;
+  top: -15%;
+  bottom: -15%;
+  left: 0;
+  width: 42%;
+  transform: translateX(-150%) skewX(-14deg);
+  background: linear-gradient(100deg, rgba(255,75,0,0) 0%, rgba(255,75,0,0.05) 35%, rgba(255,75,0,0.13) 50%, rgba(255,75,0,0.05) 65%, rgba(255,75,0,0) 100%);
+  will-change: transform;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pricing-section:not(.pricing-play) :is(.pricing-box, .pricing-kicker, .pricing-sub, .pricing-sheen) {
+    opacity: 0;
+  }
+  .pricing-section:not(.pricing-play) .pricing-word {
+    opacity: 0;
+    transform: translateY(115%);
+  }
+  .pricing-section:not(.pricing-play) .pricing-box {
+    transition: none;
+  }
+  .pricing-play .pricing-kicker {
+    animation: pricing-kicker 1.2s cubic-bezier(0.22, 1, 0.36, 1) 180ms backwards;
+  }
+  .pricing-play .pricing-word {
+    animation: pricing-word 1.0s cubic-bezier(0.22, 1, 0.36, 1) var(--wd) backwards;
+  }
+  .pricing-play .pricing-sub {
+    animation: pricing-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 650ms backwards;
+  }
+  .pricing-play .pricing-grid {
+    animation: pricing-grid 2.0s cubic-bezier(0.22, 1, 0.36, 1) 500ms backwards;
+  }
+  .pricing-play .pricing-box {
+    animation: pricing-card 1.2s cubic-bezier(0.22, 1, 0.36, 1) var(--fd) backwards;
+    will-change: transform, opacity, filter;
+  }
+  .pricing-play .pricing-sheen-bar {
+    animation: pricing-sheen-bar 1.3s cubic-bezier(0.22, 1, 0.36, 1) 2400ms backwards;
+  }
+}
+@keyframes pricing-kicker {
+  from { opacity: 0; letter-spacing: 0.55em; transform: translateY(10px); }
+  to { opacity: 1; letter-spacing: 0.3em; transform: translateY(0); }
+}
+@keyframes pricing-word {
+  from { transform: translateY(115%); }
+  to { transform: translateY(0); }
+}
+@keyframes pricing-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pricing-grid {
+  from { opacity: 0.5; transform: scale(1.045) translateY(20px); filter: blur(7px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+@keyframes pricing-card {
+  0% { opacity: 0; transform: translate(var(--fx), var(--fy)) rotate(var(--fr)) scale(var(--fs)); filter: blur(9px); }
+  55% { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: translate(0,0) rotate(0deg) scale(1); filter: blur(0); }
+}
+@keyframes pricing-sheen-bar {
+  from { transform: translateX(-150%) skewX(-14deg); }
+  to { transform: translateX(350%) skewX(-14deg); }
+}
+`;
 
 const PLANS = [
   {
@@ -26,6 +113,11 @@ const PLANS = [
       "Basic call dashboard",
       "50 minutes included",
     ],
+    ga: "135deg",
+    fx: -150,
+    fy: -60,
+    fr: -6,
+    fs: 0.84,
   },
   {
     name: "Standard",
@@ -52,6 +144,11 @@ const PLANS = [
       "Daily & weekly summary emails",
       "Email support",
     ],
+    ga: "205deg",
+    fx: 0,
+    fy: -80,
+    fr: 3,
+    fs: 0.85,
   },
   {
     name: "Premium",
@@ -76,19 +173,55 @@ const PLANS = [
       "Zapier / Make / n8n webhooks",
       "Priority support chat",
     ],
+    ga: "315deg",
+    fx: 150,
+    fy: -60,
+    fr: 6,
+    fs: 0.82,
   },
 ];
 
+const TITLE_WORDS = ["Simple,", "transparent", "pricing"] as const;
+const CARD_BASE = 700;
+const CARD_STAGGER = 130;
+
 function Pricing({ refCode = "" }: { refCode?: string }) {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [playing, setPlaying] = useState(false);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setPlaying(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   return (
     <section
+      ref={sectionRef}
       id="pricing"
-      className="section-full relative overflow-hidden py-20 sm:py-24 flex flex-col justify-center"
+      className={`pricing-section section-full relative overflow-hidden py-20 sm:py-24 flex flex-col justify-center ${playing ? "pricing-play" : ""}`}
     >
+      <style dangerouslySetInnerHTML={{ __html: PRICING_INTRO_CSS }} />
+      <noscript
+        dangerouslySetInnerHTML={{
+          __html:
+            "<style>.pricing-section:not(.pricing-play) :is(.pricing-box,.pricing-kicker,.pricing-sub,.pricing-word){opacity:1!important;transform:none!important}</style>",
+        }}
+      />
       {/* Ambient background — STATIC */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-15%] right-[-5%] w-[700px] h-[700px] rounded-full bg-[radial-gradient(circle,rgba(190,195,205,0.14)_0%,transparent_70%)] blur-[56px] opacity-40" />
-        <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(140,145,155,0.1)_0%,transparent_70%)] blur-[64px] opacity-40" />
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(8,5,4,0.45)_0%,transparent_60%)] opacity-30" />
+        <div className="absolute inset-0 bg-[linear-gradient(315deg,rgba(8,5,4,0.4)_0%,transparent_60%)] opacity-30" />
       </div>
 
       {/* Grid lines backdrop — STATIC */}
@@ -98,8 +231,7 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
           backgroundImage:
             "linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)",
           backgroundSize: "60px 60px",
-          maskImage:
-            "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+          maskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
         }}
       />
       <div className="grain" />
@@ -107,42 +239,52 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
       <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8 w-full">
         {/* Section header */}
         <div className="text-center max-w-3xl mx-auto mb-14 sm:mb-16">
-          <Reveal>
-            <span className="text-xs uppercase tracking-[0.25em] text-[#D3D8E2] font-medium">
-              Pricing
-            </span>
-          </Reveal>
-          <Reveal delay={0.05}>
-            <h2 className="section-headline-shine mt-3 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
-              Simple, transparent pricing
-            </h2>
-          </Reveal>
-          <Reveal delay={0.1}>
-            <p className="mt-5 text-base sm:text-lg text-zinc-400">
-              No hidden fees. No contracts. Cancel anytime. Start with a free
-              3-day trial — no credit card required.
-            </p>
-          </Reveal>
+          <div className="pricing-kicker flex items-center justify-center gap-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#D3D8E2]">
+            <span aria-hidden className="h-px w-8 bg-white/15" />
+            Pricing
+            <span aria-hidden className="h-px w-8 bg-white/15" />
+          </div>
+          <h2 className="mt-3 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight text-white">
+            {TITLE_WORDS.map((word, i) => (
+              <span key={word} className="-mb-2 inline-block overflow-hidden pb-2 align-bottom">
+                <span
+                  className="pricing-word inline-block"
+                  style={{ "--wd": `${220 + i * 110}ms` } as CSSProperties}
+                >
+                  {word}
+                  {i < TITLE_WORDS.length - 1 ? "\u00A0" : ""}
+                </span>
+              </span>
+            ))}
+          </h2>
+          <p className="pricing-sub mt-5 text-base sm:text-lg text-zinc-400">
+            No hidden fees. No contracts. Cancel anytime. Start with a free
+            3-day trial — no credit card required.
+          </p>
         </div>
 
         {/* Pricing cards */}
-        <StaggerGroup
-          className="grid gap-6 lg:grid-cols-3 max-w-6xl mx-auto items-stretch"
-          stagger={0.15}
-          delay={0.1}
-        >
-          {PLANS.map((plan) => (
-            <motion.div
+        <div className="pricing-grid relative grid gap-6 lg:grid-cols-3 max-w-6xl mx-auto items-stretch">
+          {PLANS.map((plan, idx) => (
+            <div
               key={plan.name}
-              variants={staggerItem}
-              className="h-full"
+              style={
+                {
+                  "--ga": plan.ga,
+                  "--fd": `${CARD_BASE + idx * CARD_STAGGER}ms`,
+                  "--fx": `${plan.fx}px`,
+                  "--fy": `${plan.fy}px`,
+                  "--fr": `${plan.fr}deg`,
+                  "--fs": plan.fs,
+                } as CSSProperties
+              }
             >
               <PerspectiveCard
                 maxTilt={0}
                 scale={1}
                 glare={false}
                 hover={false}
-                className="relative flex flex-col rounded-3xl p-7 sm:p-8 overflow-hidden h-full glass-card no-hover"
+                className="pricing-box relative flex flex-col rounded-3xl p-7 sm:p-8 overflow-hidden h-full"
               >
               {plan.highlight && (
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
@@ -164,7 +306,7 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
                       className={cn(
                         "shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em]",
                         plan.highlight
-                          ? "bg-purple-500/20 text-purple-200 border border-purple-400/30"
+                          ? "bg-[#ff4b00]/20 text-[#ff4b00] border border-[#ff4b00]/30"
                           : plan.free
                             ? "border border-white/10 bg-white/5 text-zinc-400"
                             : "border border-white/10 bg-white/5 text-zinc-300"
@@ -193,10 +335,10 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
                 <ul className="flex-1 space-y-1.5">
                   {plan.label && (
                     <li className="flex items-start gap-3 pb-1.5">
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-purple-500/15 text-purple-300">
+                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#ff4b00]/15 text-[#ff4b00]">
                         <Check className="w-3 h-3" />
                       </span>
-                      <span className="text-sm font-semibold text-purple-200">
+                      <span className="text-sm font-semibold text-[#ff4b00]">
                         {plan.label}
                       </span>
                     </li>
@@ -207,8 +349,8 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
                         className={cn(
                           "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full",
                           plan.free
-                            ? "bg-purple-500/15 text-purple-300"
-                            : "bg-purple-500/15 text-purple-300"
+                            ? "bg-[#ff4b00]/15 text-[#ff4b00]"
+                            : "bg-[#ff4b00]/15 text-[#ff4b00]"
                         )}
                       >
                         <Check className="w-3 h-3" />
@@ -231,13 +373,15 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
                   )}
                 >
                   {plan.ctaText}
-                  {plan.free && <Sparkles className="w-4 h-4 text-purple-300" />}
                 </a>
               </div>
               </PerspectiveCard>
-            </motion.div>
+            </div>
           ))}
-        </StaggerGroup>
+          <div aria-hidden="true" className="pricing-sheen pointer-events-none absolute inset-0 z-20 overflow-hidden rounded-2xl">
+            <div className="pricing-sheen-bar" />
+          </div>
+        </div>
       </div>
     </section>
   );

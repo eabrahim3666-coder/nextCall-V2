@@ -29,6 +29,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ incidents, stats });
   } catch (error) {
     console.error("Admin incidents list error:", error);
-    return NextResponse.json({ incidents: [], stats: null });
+    return NextResponse.json({ error: "Failed to load incidents" }, { status: 502 });
   }
 }

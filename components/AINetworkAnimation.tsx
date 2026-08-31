@@ -44,15 +44,15 @@ const COLORS = {
   boxStroke: '#1a1a22',
   boxAccent: '#22222c',
 
-  icon: '#596170',
+  icon: '#ff4b00',
 
   lineWide: '#101016',
   lineCore: '#14141b',
   lineThin: '#23232d',
 
-  pulse: '#ff6a00',
+  pulse: '#ff4b00',
   pulseBright: '#ff9a4d',
-  pulseRGB: '255,106,0',
+  pulseRGB: '255,75,0',
 
   coreFill: '#000000',
   coreStroke: '#20202a',
@@ -62,7 +62,7 @@ const COLORS = {
   text: '#0d0d0e',
   sheenRGB: '67,70,76', // #43464c
 
-  particleRGB: '89,97,112', // #596170
+  particleRGB: '255,75,0', // #ff4b00 brand orange
 };
 
 type Pt = { x: number; y: number };
@@ -137,9 +137,9 @@ export default function AINetworkAnimation() {
     );
 
     const drawIcon = (kind: IconKind, x: number, y: number, glow = 0) => {
-      // icon color blends slate -> bright orange as the box lights up
-      const base: [number, number, number] = [0x59, 0x61, 0x70]; // #596170
-      const lit: [number, number, number] = [0xff, 0x9a, 0x4d]; // #ff9a4d
+      // icon color blends brand orange -> bright orange as the box lights up
+      const base: [number, number, number] = [0xff, 0x4b, 0x00]; // #ff4b00 brand orange
+      const lit: [number, number, number] = [0xff, 0x9a, 0x4d]; // #ff9a4d lit highlight
       const t = Math.min(1, Math.max(0, glow));
       const iconColor = `rgb(${Math.round(base[0] + (lit[0] - base[0]) * t)},${Math.round(
         base[1] + (lit[1] - base[1]) * t
@@ -254,7 +254,7 @@ export default function AINetworkAnimation() {
     type WireSignal = { pos: number; speed: number; rest: number; live: boolean };
     const wireSignals: WireSignal[] = allWires.map((_, i) => ({
       pos: 0,
-      speed: 80 + Math.random() * 30,
+      speed: 165 + Math.random() * 50,
       // each wire starts on its own random clock (staggered + jitter)
       rest: i * 0.4 + Math.random() * 1.8,
       live: false,
@@ -364,7 +364,7 @@ export default function AINetworkAnimation() {
           if (s.rest <= 0) {
             s.live = true;
             s.pos = 0;
-            s.speed = 80 + Math.random() * 30;
+            s.speed = 165 + Math.random() * 50;
           }
           return;
         }
@@ -526,6 +526,7 @@ export default function AINetworkAnimation() {
     if (typeof IntersectionObserver !== 'undefined') {
       observer = new IntersectionObserver(
         (entries) => {
+          if (document.hidden) return;
           if (entries[0].isIntersecting) start();
           else stop();
         },
@@ -536,9 +537,29 @@ export default function AINetworkAnimation() {
       start();
     }
 
+    // Pause when tab is hidden — saves battery/CPU and prevents burst on return.
+    // rAF is already throttled in background (1fps), but we fully stop.
+    // On return we reset `last` so dt doesn't jump and signals don't burst.
+    const handleVisibility = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        // Tab became visible again — restart only if still on-screen
+        const rect = canvas.getBoundingClientRect();
+        const onScreen = rect.top < window.innerHeight + 300 && rect.bottom > -300;
+        if (onScreen) start();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('pagehide', stop);
+    window.addEventListener('pageshow', handleVisibility);
+
     return () => {
       stop();
       observer?.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('pagehide', stop);
+      window.removeEventListener('pageshow', handleVisibility);
     };
   }, []);
 

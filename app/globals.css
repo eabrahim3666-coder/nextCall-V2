@@ -2,6 +2,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@layer base {
+  html { overflow-x: clip; }
+  body { overflow-x: clip; }
+}
+
 /* ===== Next Call Chat Custom Styles ===== */
 
 .grain::before {
@@ -279,6 +284,21 @@
     rgba(167, 139, 250, 0.06) 0%,
     rgba(34, 211, 238, 0.02) 100%
   );
+}
+
+/* Feature card hover: orange #ff4b00 border + darker orange glow (Features section) */
+.feature-card-hover:hover {
+  border-color: rgba(255, 75, 0, 0.85);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 75, 0, 0.06) 0%,
+    rgba(255, 75, 0, 0.01) 100%
+  );
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.04) inset,
+    0 0 45px -6px rgba(255, 75, 0, 0.5),
+    0 0 90px -18px rgba(255, 75, 0, 0.35),
+    0 30px 60px -20px rgba(0, 0, 0, 0.6);
 }
 
 /* Glass card without hover accent (e.g. pricing cards) */

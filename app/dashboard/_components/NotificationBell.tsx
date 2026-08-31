@@ -150,7 +150,7 @@ export default function NotificationBell() {
                     if (!open) fetchNotifications(); // Refresh list when opening
                     setOpen(!open);
                 }}
-                className="relative p-2 text-neutral-400 hover:text-white transition-colors"
+                className="relative p-2 text-[#A7ADBB] hover:text-white transition-colors"
             >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -164,14 +164,14 @@ export default function NotificationBell() {
             </button>
 
             {open && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-[#0a0a0a] border border-white/[0.08] rounded-2xl shadow-2xl z-50 overflow-hidden">
-                    <div className="flex items-center justify-between p-4 border-b border-white/[0.06]">
+                <div className="absolute right-0 top-full mt-2 w-80 bg-[#0a0a0a] border border-white/5 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                    <div className="flex items-center justify-between p-4 border-b border-white/5">
                         <span className="flex items-center gap-2 text-xs font-semibold text-white">
                             Notifications
-                            {unreadCount > 0 && <span className="text-[10px] font-normal text-neutral-500">({unreadCount} unread)</span>}
+                            {unreadCount > 0 && <span className="text-[10px] font-normal text-[#A7ADBB]">({unreadCount} unread)</span>}
                         </span>
                         {unreadCount > 0 && (
-                            <button onClick={markAllRead} className="text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors">
+                            <button onClick={markAllRead} className="text-[10px] text-[#ff4b00] hover:text-[#ff4b00] transition-colors">
                                 Mark all read
                             </button>
                         )}
@@ -190,8 +190,8 @@ export default function NotificationBell() {
                                         key={n._id}
                                         onClick={() => { setSelectedNotif(n); if (!n.read) markRead(n._id); }}
                                         className={`group relative flex items-start gap-3 pl-4 pr-3 py-3.5 border-b border-white/[0.04] cursor-pointer transition-colors ${n.read
-                                            ? "hover:bg-white/[0.03]"
-                                            : "bg-indigo-500/[0.07] hover:bg-indigo-500/[0.11]"}`}
+                                            ? "hover:bg-black"
+                                            : "bg-[#ff4b00]/[0.07] hover:bg-[#ff4b00]/[0.11]"}`}
                                     >
                                         {!n.read && (
                                             <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-indigo-400" />
@@ -199,15 +199,15 @@ export default function NotificationBell() {
                                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${style.badge} flex-shrink-0 mt-0.5`}>{style.badgeText}</span>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between gap-2">
-                                                <span className={`text-xs truncate ${n.read ? "text-neutral-400 font-normal" : "text-white font-semibold"}`}>{n.title}</span>
+                                                <span className={`text-xs truncate ${n.read ? "text-[#A7ADBB] font-normal" : "text-white font-semibold"}`}>{n.title}</span>
                                                 <span className="text-[9px] text-neutral-600 flex-shrink-0">{timeAgo(n.created_at)}</span>
                                             </div>
-                                            <p className={`text-[11px] mt-0.5 leading-relaxed line-clamp-2 ${n.read ? "text-neutral-600" : "text-neutral-400"}`}>{n.message}</p>
+                                            <p className={`text-[11px] mt-0.5 leading-relaxed line-clamp-2 ${n.read ? "text-neutral-600" : "text-[#A7ADBB]"}`}>{n.message}</p>
                                         </div>
                                         <button
                                             aria-label="Delete notification"
                                             onClick={(e) => deleteNotification(n._id, e)}
-                                            className={`flex-shrink-0 p-1 rounded-md transition-all ${n.read ? "opacity-0 group-hover:opacity-100" : "opacity-40 group-hover:opacity-100"} text-neutral-500 hover:text-rose-400 hover:bg-white/[0.06]`}
+                                            className={`flex-shrink-0 p-1 rounded-md transition-all ${n.read ? "opacity-0 group-hover:opacity-100" : "opacity-40 group-hover:opacity-100"} text-[#A7ADBB] hover:text-rose-400 hover:bg-white/[0.06]`}
                                         >
                                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                 <path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><path d="M10 11v6" /><path d="M14 11v6" />
@@ -230,9 +230,9 @@ export default function NotificationBell() {
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
                     <div
                         onClick={(e) => e.stopPropagation()}
-                        className="relative w-full max-w-md bg-[#0a0a0a] border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden"
+                        className="relative w-full max-w-md bg-[#0a0a0a] border border-white/5 rounded-2xl shadow-2xl overflow-hidden"
                     >
-                        <div className="flex items-center justify-between p-4 border-b border-white/[0.06]">
+                        <div className="flex items-center justify-between p-4 border-b border-white/5">
                             <div className="flex items-center gap-2">
                                 {(() => {
                                     const s = TYPE_STYLES[selectedNotif.type] || { badge: "bg-neutral-500/20 text-neutral-300", badgeText: "INFO" };
@@ -242,7 +242,7 @@ export default function NotificationBell() {
                             </div>
                             <button
                                 onClick={() => setSelectedNotif(null)}
-                                className="text-neutral-500 hover:text-white transition-colors"
+                                className="text-[#A7ADBB] hover:text-white transition-colors"
                             >
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M18 6 6 18" /><path d="m6 6 12 12" />
@@ -250,7 +250,7 @@ export default function NotificationBell() {
                             </button>
                         </div>
                         <div className="p-4">
-                            <div className="flex items-center gap-2 text-[11px] text-neutral-500 mb-3">
+                            <div className="flex items-center gap-2 text-[11px] text-[#A7ADBB] mb-3">
                                 <span>{new Date(selectedNotif.created_at).toLocaleString()}</span>
                                 {!selectedNotif.read && (
                                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />

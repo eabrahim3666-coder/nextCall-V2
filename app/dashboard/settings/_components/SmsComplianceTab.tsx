@@ -113,18 +113,18 @@ const MESSAGE_VOLUMES = [
     { value: "5000", label: "5,000+ texts / month" },
 ];
 
-const inputClass = "w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all";
-const labelClass = "block text-[10px] uppercase tracking-wider text-neutral-500 mb-1.5";
-const cardClass = "bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8";
+const inputClass = "w-full bg-black border border-white/5 rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all";
+const labelClass = "block text-[10px] uppercase tracking-wider text-[#A7ADBB] mb-1.5";
+const cardClass = "bg-black border border-white/5 rounded-2xl p-8";
 
 function Section({ step, title, children, defaultOpen = false }: { step: string; title: string; children: React.ReactNode; defaultOpen?: boolean }) {
     const [open, setOpen] = useState(defaultOpen);
     return (
         <div className={cardClass}>
             <button type="button" onClick={() => setOpen(!open)} className="w-full flex items-center gap-3 text-left">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-[10px] font-bold text-indigo-300 flex-shrink-0">{step}</span>
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[#ff4b00]/20 border border-[#ff4b00]/30 text-[10px] font-bold text-[#ff4b00] flex-shrink-0">{step}</span>
                 <span className="text-sm font-semibold text-white flex-1">{title}</span>
-                <span className={`text-neutral-500 text-xs transition-transform ${open ? "rotate-180" : ""}`}>▾</span>
+                <span className={`text-[#A7ADBB] text-xs transition-transform ${open ? "rotate-180" : ""}`}>▾</span>
             </button>
             {open && <div className="mt-6 space-y-5">{children}</div>}
         </div>
@@ -228,7 +228,7 @@ export default function SmsComplianceTab() {
     if (loading) {
         return (
             <div className="flex items-center justify-center py-16">
-                <Loader2 className="w-5 h-5 text-indigo-400 animate-spin" />
+                <Loader2 className="w-5 h-5 text-[#ff4b00] animate-spin" />
             </div>
         );
     }
@@ -259,7 +259,7 @@ export default function SmsComplianceTab() {
                     </div>
                     <div>
                         <h2 className="text-lg font-semibold text-white">Business SMS is verified & active</h2>
-                        <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
+                        <p className="text-xs text-[#A7ADBB] mt-1 leading-relaxed">
                             Your toll-free number <span className="text-emerald-400 font-medium">{compliance?.tollfree_number || "—"}</span> passed
                             Twilio&apos;s Toll-Free Verification. Appointment reminders, missed-call follow-ups, review requests and
                             AI text replies are all live.
@@ -267,7 +267,7 @@ export default function SmsComplianceTab() {
                     </div>
                 </div>
                 <div className="flex items-center gap-3 pt-2">
-                    <button type="button" onClick={refresh} disabled={refreshing} className="flex items-center gap-2 text-xs text-neutral-400 hover:text-white transition-colors">
+                    <button type="button" onClick={refresh} disabled={refreshing} className="flex items-center gap-2 text-xs text-[#A7ADBB] hover:text-white transition-colors">
                         <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} /> Check status
                     </button>
                 </div>
@@ -281,19 +281,19 @@ export default function SmsComplianceTab() {
                 {warning}
             <div className={`${cardClass} space-y-4`}>
                 <div className="flex items-start gap-4">
-                    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex-shrink-0">
-                        <Clock className="w-6 h-6 text-indigo-300" />
+                    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-[#ff4b00]/10 border border-[#ff4b00]/20 flex-shrink-0">
+                        <Clock className="w-6 h-6 text-[#ff4b00]" />
                     </div>
                     <div>
                         <h2 className="text-lg font-semibold text-white">Verification in progress</h2>
-                        <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
-                            We&apos;ve submitted your toll-free number <span className="text-indigo-300 font-medium">{compliance?.tollfree_number || "—"}</span> to Twilio
+                        <p className="text-xs text-[#A7ADBB] mt-1 leading-relaxed">
+                            We&apos;ve submitted your toll-free number <span className="text-[#ff4b00] font-medium">{compliance?.tollfree_number || "—"}</span> to Twilio
                             for Toll-Free SMS verification. Twilio typically reviews in 2–3 business days — you&apos;ll also get an email at
                             your notification address. Your status auto-updates here.
                         </p>
                     </div>
                 </div>
-                <button type="button" onClick={refresh} disabled={refreshing} className="flex items-center gap-2 text-xs text-indigo-300 hover:text-indigo-200 transition-colors">
+                <button type="button" onClick={refresh} disabled={refreshing} className="flex items-center gap-2 text-xs text-[#ff4b00] hover:text-indigo-200 transition-colors">
                     <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} /> Refresh status
                 </button>
             </div>
@@ -315,7 +315,7 @@ export default function SmsComplianceTab() {
                         </div>
                         <div className="flex-1">
                             <h2 className="text-lg font-semibold text-white">Verification needs your attention</h2>
-                            <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
+                            <p className="text-xs text-[#A7ADBB] mt-1 leading-relaxed">
                                 Twilio couldn&apos;t approve SMS on <span className="text-rose-300 font-medium">{compliance?.tollfree_number || "your number"}</span>.
                                 {editable && !expired ? " Fix the issues below and we'll resubmit — no need to re-enter everything." : " We can start a fresh application."}
                             </p>
@@ -356,7 +356,7 @@ export default function SmsComplianceTab() {
                     </div>
                     <div>
                         <h2 className="text-lg font-semibold text-white">Business SMS — almost there</h2>
-                        <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
+                        <p className="text-xs text-[#A7ADBB] mt-1 leading-relaxed">
                             Something went wrong while submitting your verification. Please try again in a few minutes — your details are saved.
                         </p>
                     </div>
@@ -377,12 +377,12 @@ export default function SmsComplianceTab() {
                 {warning}
                 <div className={`${cardClass} space-y-5`}>
                 <div className="flex items-start gap-4">
-                    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex-shrink-0">
-                        <MessageSquareText className="w-6 h-6 text-indigo-300" />
+                    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-[#ff4b00]/10 border border-[#ff4b00]/20 flex-shrink-0">
+                        <MessageSquareText className="w-6 h-6 text-[#ff4b00]" />
                     </div>
                     <div className="flex-1">
                         <h2 className="text-lg font-semibold text-white">Enable Business SMS</h2>
-                        <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
+                        <p className="text-xs text-[#A7ADBB] mt-1 leading-relaxed">
                             Unlock texting from your business number: appointment reminders, missed-call follow-ups, review requests
                             and AI text replies. US regulators require a one-time verification of your business before texts can go out —
                             we handle the whole process for you, you just answer a few questions.
@@ -395,9 +395,9 @@ export default function SmsComplianceTab() {
                         { t: "2. Show how you text", d: "What you send, how customers agree, a sample message" },
                         { t: "3. We submit to Twilio", d: "Auto-submitted. Approved in ~2–3 business days" },
                     ].map((s) => (
-                        <div key={s.t} className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                        <div key={s.t} className="p-4 rounded-xl bg-black border border-white/5">
                             <p className="text-xs font-semibold text-white">{s.t}</p>
-                            <p className="text-[11px] text-neutral-500 mt-1 leading-relaxed">{s.d}</p>
+                            <p className="text-[11px] text-[#A7ADBB] mt-1 leading-relaxed">{s.d}</p>
                         </div>
                     ))}
                 </div>
@@ -493,9 +493,9 @@ function ComplianceForm({ form, update, toggleCategory, submitting, onSubmit, er
                         {USE_CASES.map((u) => {
                             const active = form.useCaseCategories.includes(u.value);
                             return (
-                                <button key={u.value} type="button" onClick={() => toggleCategory(u.value)} className={`p-4 rounded-xl border text-left transition-all ${active ? "bg-indigo-500/15 border-indigo-500/40" : "bg-white/[0.03] border-white/[0.06] hover:border-white/20"}`}>
-                                    <span className={`text-sm font-medium ${active ? "text-indigo-300" : "text-neutral-300"}`}>{u.label}</span>
-                                    <p className="text-[10px] text-neutral-500 mt-1 leading-relaxed">{u.desc}</p>
+                                <button key={u.value} type="button" onClick={() => toggleCategory(u.value)} className={`p-4 rounded-xl border text-left transition-all ${active ? "bg-[#ff4b00]/15 border-indigo-500/40" : "bg-black border-white/5 hover:border-white/20"}`}>
+                                    <span className={`text-sm font-medium ${active ? "text-[#ff4b00]" : "text-neutral-300"}`}>{u.label}</span>
+                                    <p className="text-[10px] text-[#A7ADBB] mt-1 leading-relaxed">{u.desc}</p>
                                 </button>
                             );
                         })}
@@ -509,9 +509,9 @@ function ComplianceForm({ form, update, toggleCategory, submitting, onSubmit, er
                         {OPT_IN_TYPES.map((o) => {
                             const active = form.optInType === o.value;
                             return (
-                                <button key={o.value} type="button" onClick={() => update("optInType", o.value)} className={`p-4 rounded-xl border text-left transition-all ${active ? "bg-indigo-500/15 border-indigo-500/40" : "bg-white/[0.03] border-white/[0.06] hover:border-white/20"}`}>
-                                    <span className={`text-sm font-medium ${active ? "text-indigo-300" : "text-neutral-300"}`}>{o.label}</span>
-                                    <p className="text-[10px] text-neutral-500 mt-1">{o.desc}</p>
+                                <button key={o.value} type="button" onClick={() => update("optInType", o.value)} className={`p-4 rounded-xl border text-left transition-all ${active ? "bg-[#ff4b00]/15 border-indigo-500/40" : "bg-black border-white/5 hover:border-white/20"}`}>
+                                    <span className={`text-sm font-medium ${active ? "text-[#ff4b00]" : "text-neutral-300"}`}>{o.label}</span>
+                                    <p className="text-[10px] text-[#A7ADBB] mt-1">{o.desc}</p>
                                 </button>
                             );
                         })}
@@ -551,7 +551,7 @@ function ComplianceForm({ form, update, toggleCategory, submitting, onSubmit, er
             )}
 
             <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => { if (typeof window !== "undefined") window.location.reload(); }} className="text-sm text-neutral-500 hover:text-white transition-colors px-6 py-3">Cancel</button>
+                <button type="button" onClick={() => { if (typeof window !== "undefined") window.location.reload(); }} className="text-sm text-[#A7ADBB] hover:text-white transition-colors px-6 py-3">Cancel</button>
                 <button type="button" onClick={onSubmit} disabled={submitting} className="bg-white text-black text-sm font-medium px-8 py-3 rounded-full hover:bg-neutral-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
                     {submitting ? "Submitting…" : editing ? "Resubmit for review" : "Submit for verification"}
                 </button>

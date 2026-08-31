@@ -21,7 +21,7 @@ export default function TrialEndedScreen({ refCode = "" }: { refCode?: string })
                     </span>
                 </h2>
 
-                <p className="text-sm text-neutral-400 mt-3 max-w-md mx-auto leading-relaxed">
+                <p className="text-sm text-[#A7ADBB] mt-3 max-w-md mx-auto leading-relaxed">
                     Your AI receptionist is currently{" "}
                     <span className="text-rose-400 font-medium">inactive</span>.
                     Your calls, settings and knowledge base are safe — nothing was

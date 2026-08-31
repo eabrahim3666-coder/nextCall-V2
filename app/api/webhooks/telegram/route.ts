@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { conversationsCollection, webhookEventsCollection, saveChatPhoto } from "@/lib/astra";
 import { notifyChat } from "@/lib/pusher";
 import { sendTelegramMessage, downloadTelegramPhoto } from "@/lib/telegram";
+import { hasValidSecret } from "@/lib/security";
 import type { ChatMessage } from "@/app/api/chat/send/route";
 
 const OWNER_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
@@ -18,6 +19,14 @@ async function ownerMessage(text: string) {
 
 export async function POST(request: Request) {
     try {
+        // Telegram sends the secret_token back in this header when the webhook
+        // was registered with one. Fail closed when it's not configured, same
+        // as the Meta webhook — without it anyone can forge owner replies.
+        if (!hasValidSecret(request.headers.get("x-telegram-bot-api-secret-token"), process.env.TELEGRAM_WEBHOOK_SECRET)) {
+            console.error("[telegram] webhook rejected: missing or invalid secret token (set TELEGRAM_WEBHOOK_SECRET and register the webhook with the same secret_token)");
+            return NextResponse.json({ ok: false }, { status: 403 });
+        }
+
         const body = await request.json();
         const updateId = body?.update_id;
         const msg = body?.message || body?.edited_message;

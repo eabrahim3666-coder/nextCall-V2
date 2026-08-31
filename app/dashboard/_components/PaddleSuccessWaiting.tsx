@@ -20,9 +20,9 @@ export default function PaddleSuccessWaiting({ transactionId }: { transactionId:
 
     return (
         <div className="min-h-[80vh] flex flex-col items-center justify-center text-center px-4">
-            <div className="w-16 h-16 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mb-6"></div>
+            <div className="w-16 h-16 border-4 border-[#ff4b00]/20 border-t-indigo-500 rounded-full animate-spin mb-6"></div>
             <h2 className="text-2xl font-semibold text-white tracking-tight mb-2">Preparing your AI...</h2>
-            <p className="text-sm text-neutral-400 max-w-sm">We are finalizing your subscription. Please wait a moment...</p>
+            <p className="text-sm text-[#A7ADBB] max-w-sm">We are finalizing your subscription. Please wait a moment...</p>
         </div>
     );
 }

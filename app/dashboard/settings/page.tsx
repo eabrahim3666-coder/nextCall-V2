@@ -62,7 +62,7 @@ export default async function SettingsPage() {
         <div className="max-w-4xl mx-auto py-8 space-y-6">
             <div>
                 <h1 className="text-2xl font-semibold text-white tracking-tight">Settings</h1>
-                <p className="mt-1 text-sm text-neutral-400">Configure how your AI answers the phone and qualifies leads.</p>
+                <p className="mt-1 text-sm text-[#A7ADBB]">Configure how your AI answers the phone and qualifies leads.</p>
             </div>
             <SettingsForm initialData={initialData} userId={userId} />
         </div>

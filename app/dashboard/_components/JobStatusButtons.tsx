@@ -38,7 +38,7 @@ export default function JobStatusButtons({ callId, jobStatus }: { callId: string
 
     if (jobStatus === "no_show") {
         return (
-            <span className="text-[10px] px-2 py-1 rounded-full bg-neutral-500/10 text-neutral-400 border border-neutral-500/20 whitespace-nowrap">
+            <span className="text-[10px] px-2 py-1 rounded-full bg-neutral-500/10 text-[#A7ADBB] border border-neutral-500/20 whitespace-nowrap">
                 No-show / Skipped
             </span>
         );
@@ -56,7 +56,7 @@ export default function JobStatusButtons({ callId, jobStatus }: { callId: string
             <button
                 onClick={() => mark("no_show")}
                 disabled={loading !== null}
-                className="text-[10px] px-2 py-1 rounded-full bg-neutral-500/10 text-neutral-400 border border-neutral-500/20 hover:bg-neutral-500/20 transition-colors disabled:opacity-50"
+                className="text-[10px] px-2 py-1 rounded-full bg-neutral-500/10 text-[#A7ADBB] border border-neutral-500/20 hover:bg-neutral-500/20 transition-colors disabled:opacity-50"
             >
                 {loading === "no_show" ? "..." : "No-show"}
             </button>

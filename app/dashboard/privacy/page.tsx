@@ -2,14 +2,14 @@ import Link from "next/link";
 
 export default function PrivacyPage() {
     return (
-        <div className="min-h-screen bg-[#0C0C0C] text-white">
+        <div className="min-h-screen bg-black text-white">
             <div className="max-w-4xl mx-auto px-6 py-24">
-                <Link href="/" className="text-sm text-indigo-400 hover:text-indigo-300 mb-8 inline-block">
+                <Link href="/" className="text-sm text-[#ff4b00] hover:text-[#ff4b00] mb-8 inline-block">
                     &larr; Back to Home
                 </Link>
 
                 <h1 className="text-3xl font-semibold tracking-tight mb-2">Privacy Policy</h1>
-                <p className="text-xs text-neutral-500 mb-12">Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                <p className="text-xs text-[#A7ADBB] mb-12">Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
 
                 <div className="space-y-10 text-sm text-neutral-300 leading-relaxed">
 
@@ -39,7 +39,7 @@ export default function PrivacyPage() {
                         </ul>
                     </section>
 
-                    <section id="security" className="border border-white/[0.06] rounded-2xl p-6 bg-white/[0.02]">
+                    <section id="security" className="border border-white/5 rounded-2xl p-6 bg-black">
                         <h2 className="text-lg font-medium text-white mb-3">4. AI Processing, Automated Decision-Making & Call Recordings</h2>
                         <p>Calls handled through our platform may be recorded, transcribed, analyzed, and summarized by AI systems (utilizing Retell AI and OpenAI) to provide core service functionality.</p>
                         <p className="mt-3 font-semibold text-white">Consent Responsibility: You, the business owner, are solely responsible for obtaining any legally required consent from callers before recording or AI-processing conversations. NextCall assumes no liability for your failure to comply with local, state, or federal call recording consent laws.</p>
@@ -54,8 +54,8 @@ export default function PrivacyPage() {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="border-b border-white/10">
-                                        <th className="py-3 pr-4 text-neutral-400 font-medium">Provider</th>
-                                        <th className="py-3 pr-4 text-neutral-400 font-medium">Purpose</th>
+                                        <th className="py-3 pr-4 text-[#A7ADBB] font-medium">Provider</th>
+                                        <th className="py-3 pr-4 text-[#A7ADBB] font-medium">Purpose</th>
                                     </tr>
                                 </thead>
                                 <tbody>

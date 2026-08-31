@@ -51,36 +51,36 @@ export default function SupportPage() {
         <div className="max-w-4xl mx-auto py-8 space-y-8">
             <div>
                 <h1 className="text-2xl font-semibold text-white tracking-tight">Support Center</h1>
-                <p className="mt-1 text-sm text-neutral-400">Need help? We're here for you.</p>
+                <p className="mt-1 text-sm text-[#A7ADBB]">Need help? We're here for you.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                 {/* Card 1: Documentation */}
-                <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
+                <div className="bg-black border border-white/5 rounded-2xl p-8">
                     <h2 className="text-lg font-semibold text-white mb-2">Documentation</h2>
-                    <p className="text-xs text-neutral-400 leading-relaxed mb-4">
+                    <p className="text-xs text-[#A7ADBB] leading-relaxed mb-4">
                         Before reaching out, check our comprehensive Setup Guide and Rules. Most common questions about AI training and testing are answered there.
                     </p>
-                    <a href="/dashboard/docs" className="inline-block text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors underline underline-offset-2">
+                    <a href="/dashboard/docs" className="inline-block text-sm font-medium text-[#ff4b00] hover:text-[#ff4b00] transition-colors underline underline-offset-2">
                         View Documentation →
                     </a>
                 </div>
 
                 {/* Card 2: Email Support */}
-                <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
+                <div className="bg-black border border-white/5 rounded-2xl p-8">
                     <h2 className="text-lg font-semibold text-white mb-2">Email Support</h2>
-                    <p className="text-xs text-neutral-400 leading-relaxed mb-4">
+                    <p className="text-xs text-[#A7ADBB] leading-relaxed mb-4">
                         For account issues, billing inquiries, or technical bugs, email our support team directly. We respond within 24 hours on business days.
                     </p>
                     <div className="flex items-center gap-3">
-                        <a href="mailto:support@getnextcall.com?subject=Support%20Request" className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors underline underline-offset-2">
+                        <a href="mailto:support@getnextcall.com?subject=Support%20Request" className="text-sm font-medium text-[#ff4b00] hover:text-[#ff4b00] transition-colors underline underline-offset-2">
                             support@getnextcall.com
                         </a>
                         <button
                             type="button"
                             onClick={() => copyEmail("support@getnextcall.com")}
-                            className="text-[10px] text-neutral-500 hover:text-white transition-colors"
+                            className="text-[10px] text-[#A7ADBB] hover:text-white transition-colors"
                         >
                             {copied === "support@getnextcall.com" ? "Copied!" : "Copy"}
                         </button>
@@ -88,9 +88,9 @@ export default function SupportPage() {
                 </div>
 
                 {/* Card 3: System Status */}
-                <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
+                <div className="bg-black border border-white/5 rounded-2xl p-8">
                     <h2 className="text-lg font-semibold text-white mb-2">System Status</h2>
-                    <p className="text-xs text-neutral-400 leading-relaxed mb-4">
+                    <p className="text-xs text-[#A7ADBB] leading-relaxed mb-4">
                         If your AI status pill is red, or calls aren't connecting, check our real-time status page for any ongoing outages with Twilio, OpenAI, or our servers.
                     </p>
                     <span className="inline-block text-sm font-medium text-emerald-400">
@@ -99,17 +99,17 @@ export default function SupportPage() {
                 </div>
 
                 {/* Card 4: Feature Requests */}
-                <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
+                <div className="bg-black border border-white/5 rounded-2xl p-8">
                     <h2 className="text-lg font-semibold text-white mb-2">Feature Requests</h2>
                     {!showForm && !submitted && (
                         <>
-                            <p className="text-xs text-neutral-400 leading-relaxed mb-4">
+                            <p className="text-xs text-[#A7ADBB] leading-relaxed mb-4">
                                 Want nextCall to do more? We build features based on user demand. Let us know what integrations or AI capabilities would help your business grow.
                             </p>
                             <button
                                 type="button"
                                 onClick={() => setShowForm(true)}
-                                className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors underline underline-offset-2"
+                                className="text-sm font-medium text-[#ff4b00] hover:text-[#ff4b00] transition-colors underline underline-offset-2"
                             >
                                 Submit a Feature Request →
                             </button>
@@ -118,19 +118,19 @@ export default function SupportPage() {
                     {submitted && (
                         <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                             <p className="text-sm font-medium text-emerald-400">Thanks for your feedback!</p>
-                            <p className="text-xs text-neutral-400 mt-1">We review every request and prioritize based on demand.</p>
+                            <p className="text-xs text-[#A7ADBB] mt-1">We review every request and prioritize based on demand.</p>
                         </div>
                     )}
                     {showForm && !submitted && (
                         <form onSubmit={handleFeatureSubmit} className="space-y-4">
-                            <p className="text-xs text-neutral-400">Tell us what you'd like to see added to nextCall.</p>
+                            <p className="text-xs text-[#A7ADBB]">Tell us what you'd like to see added to nextCall.</p>
                             <div>
                                 <input
                                     type="text"
                                     placeholder="Feature title"
                                     value={formData.title}
                                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                                    className="w-full bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500/50"
+                                    className="w-full bg-black border border-white/5 rounded-lg px-3 py-2 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500/50"
                                 />
                             </div>
                             <div>
@@ -139,7 +139,7 @@ export default function SupportPage() {
                                     placeholder="Describe the feature and how it would help your business..."
                                     value={formData.description}
                                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                                    className="w-full bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500/50 resize-none"
+                                    className="w-full bg-black border border-white/5 rounded-lg px-3 py-2 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500/50 resize-none"
                                 />
                             </div>
                             {formError && <p className="text-xs text-rose-400">{formError}</p>}
@@ -154,7 +154,7 @@ export default function SupportPage() {
                                 <button
                                     type="button"
                                     onClick={() => { setShowForm(false); setFormError(""); }}
-                                    className="text-xs text-neutral-500 hover:text-white transition-colors"
+                                    className="text-xs text-[#A7ADBB] hover:text-white transition-colors"
                                 >
                                     Cancel
                                 </button>

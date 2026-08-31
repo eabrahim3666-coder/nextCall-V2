@@ -155,18 +155,18 @@ export default function ChatWidget({ businessId }: { businessId: string }) {
     return (
         <div className="fixed bottom-6 right-6 z-[9990] flex flex-col items-end gap-3">
             {open && (
-                <div className="w-80 sm:w-96 h-[28rem] bg-[#0c0c0c] border border-white/[0.08] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08] bg-white/[0.02]">
+                <div className="w-80 sm:w-96 h-[28rem] bg-[#0c0c0c] border border-white/5 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-black">
                         <div className="flex items-center gap-2.5">
-                            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
-                                <MessageCircle className="h-4 w-4 text-indigo-400" />
+                            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#ff4b00]/10 border border-[#ff4b00]/20">
+                                <MessageCircle className="h-4 w-4 text-[#ff4b00]" />
                             </div>
                             <div>
                                 <p className="text-sm font-semibold text-white">Support Chat</p>
-                                <p className="text-[10px] text-neutral-500">Our team replies here</p>
+                                <p className="text-[10px] text-[#A7ADBB]">Our team replies here</p>
                             </div>
                         </div>
-                        <button onClick={() => setOpen(false)} className="text-neutral-500 hover:text-white transition-colors">
+                        <button onClick={() => setOpen(false)} className="text-[#A7ADBB] hover:text-white transition-colors">
                             <X className="h-4 w-4" />
                         </button>
                     </div>
@@ -177,7 +177,7 @@ export default function ChatWidget({ businessId }: { businessId: string }) {
                         )}
                         {messages.map((m) => (
                             <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                                <div className={`max-w-[85%] px-3.5 py-2 rounded-2xl text-sm leading-relaxed ${m.role === "user" ? "bg-indigo-600 text-white rounded-br-md" : m.role === "error" ? "bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-bl-md" : "bg-white/[0.06] border border-white/[0.06] text-neutral-200 rounded-bl-md"}`}>
+                                <div className={`max-w-[85%] px-3.5 py-2 rounded-2xl text-sm leading-relaxed ${m.role === "user" ? "bg-indigo-600 text-white rounded-br-md" : m.role === "error" ? "bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-bl-md" : "bg-white/[0.06] border border-white/5 text-neutral-200 rounded-bl-md"}`}>
                                     {m.photo && (
                                         <img src={m.photo} alt="photo" className="rounded-lg max-h-48 w-auto mb-1.5" />
                                     )}
@@ -188,7 +188,7 @@ export default function ChatWidget({ businessId }: { businessId: string }) {
                         ))}
                     </div>
 
-                    <div className="p-3 border-t border-white/[0.08] flex items-center gap-2">
+                    <div className="p-3 border-t border-white/5 flex items-center gap-2">
                         <input
                             ref={fileRef}
                             type="file"
@@ -199,7 +199,7 @@ export default function ChatWidget({ businessId }: { businessId: string }) {
                         <button
                             onClick={() => fileRef.current?.click()}
                             disabled={sending}
-                            className="text-neutral-500 hover:text-white disabled:opacity-30 transition-colors p-1.5"
+                            className="text-[#A7ADBB] hover:text-white disabled:opacity-30 transition-colors p-1.5"
                             title="Send a photo"
                         >
                             <ImagePlus className="h-5 w-5" />
@@ -209,12 +209,12 @@ export default function ChatWidget({ businessId }: { businessId: string }) {
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && send()}
                             placeholder="Type a message..."
-                            className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-indigo-500/50"
+                            className="flex-1 bg-black border border-white/5 rounded-lg px-3 py-2 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-indigo-500/50"
                         />
                         <button
                             onClick={() => send()}
                             disabled={sending || (!input.trim())}
-                            className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-lg p-2.5 transition-colors"
+                            className="bg-indigo-600 hover:bg-[#ff4b00] disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-lg p-2.5 transition-colors"
                         >
                             <Send className="h-4 w-4" />
                         </button>
@@ -224,7 +224,7 @@ export default function ChatWidget({ businessId }: { businessId: string }) {
 
             <button
                 onClick={toggleOpen}
-                className="relative flex items-center justify-center w-14 h-14 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-600/20 transition-all"
+                className="relative flex items-center justify-center w-14 h-14 rounded-full bg-indigo-600 hover:bg-[#ff4b00] text-white shadow-xl shadow-indigo-600/20 transition-all"
                 aria-label="Support chat"
             >
                 <MessageCircle className="h-6 w-6" />

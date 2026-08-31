@@ -22,7 +22,7 @@ const statusPalette: Record<Activity["status"], { box: string; icon: string; dot
   success: { box: "bg-emerald-500/15", icon: "text-emerald-400", dot: "bg-emerald-400" },
   pending: { box: "bg-amber-500/15", icon: "text-amber-400", dot: "bg-amber-400 animate-pulse" },
   error: { box: "bg-rose-500/15", icon: "text-rose-400", dot: "bg-rose-400" },
-  info: { box: "bg-indigo-500/15", icon: "text-indigo-400", dot: "bg-indigo-400" },
+  info: { box: "bg-[#ff4b00]/15", icon: "text-[#ff4b00]", dot: "bg-indigo-400" },
 };
 
 interface ToastItem extends Activity {
@@ -181,7 +181,7 @@ export default function ActivityFeed({ businessId }: { businessId: string }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
-            className="pointer-events-auto w-[360px] max-w-[calc(100vw-2rem)] rounded-xl bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/[0.06] shadow-2xl shadow-black/50 overflow-hidden"
+            className="pointer-events-auto w-[360px] max-w-[calc(100vw-2rem)] rounded-xl bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/5 shadow-2xl shadow-black/50 overflow-hidden"
           >
             {header && (
               <div className="flex items-center gap-2.5 px-4 py-3 border-b border-white/[0.05]">
@@ -195,14 +195,14 @@ export default function ActivityFeed({ businessId }: { businessId: string }) {
                       transition={{ duration: 0.25 }}
                       className="text-[13px] leading-tight"
                     >
-                      <span className="text-neutral-400">AI </span>
+                      <span className="text-[#A7ADBB]">AI </span>
                       <span className="text-white font-semibold">{header.label}</span>
                     </motion.p>
                   </>
                 ) : (
                   <>
                     <Icon icon="lucide:moon" width={13} className="text-neutral-600" />
-                    <p className="text-[13px] text-neutral-500 font-medium leading-tight">AI Idle</p>
+                    <p className="text-[13px] text-[#A7ADBB] font-medium leading-tight">AI Idle</p>
                   </>
                 )}
               </div>
@@ -235,7 +235,7 @@ export default function ActivityFeed({ businessId }: { businessId: string }) {
                           <div className="min-w-0 flex-1">
                             <p className="text-[13px] font-semibold text-white leading-snug">{toast.title}</p>
                             {toast.message && (
-                              <p className="text-xs text-neutral-500 mt-0.5 line-clamp-2 leading-relaxed">{toast.message}</p>
+                              <p className="text-xs text-[#A7ADBB] mt-0.5 line-clamp-2 leading-relaxed">{toast.message}</p>
                             )}
                           </div>
                           <div className="shrink-0 flex items-start gap-2 pt-1.5">

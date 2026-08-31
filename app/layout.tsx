@@ -25,7 +25,7 @@ export default function RootLayout({
 
   return (
     <ClerkProvider publishableKey={clerkPubKey}>
-      <html lang="en" suppressHydrationWarning>
+      <html lang="en" suppressHydrationWarning className="overflow-x-clip">
         <head>
           {/* eslint-disable-next-line @next/next/no-page-custom-font */}
           <link
@@ -33,7 +33,7 @@ export default function RootLayout({
             rel="stylesheet"
           />
         </head>
-        <body className="antialiased font-sans">{children}</body>
+        <body className="antialiased font-sans overflow-x-clip">{children}</body>
       </html>
     </ClerkProvider>
   );

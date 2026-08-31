@@ -16,7 +16,7 @@ export function ScrollProgress() {
       style={{
         scaleX,
         background:
-          "linear-gradient(90deg, #a78bfa 0%, #6366f1 50%, #22d3ee 100%)",
+          "linear-gradient(90deg, #ff4b00 0%, #ff7a2e 50%, #ffc299 100%)",
       }}
     />
   );

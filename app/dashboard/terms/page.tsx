@@ -2,14 +2,14 @@ import Link from "next/link";
 
 export default function TermsPage() {
     return (
-        <div className="min-h-screen bg-[#0C0C0C] text-white">
+        <div className="min-h-screen bg-black text-white">
             <div className="max-w-4xl mx-auto px-6 py-24">
-                <Link href="/" className="text-sm text-indigo-400 hover:text-indigo-300 mb-8 inline-block">
+                <Link href="/" className="text-sm text-[#ff4b00] hover:text-[#ff4b00] mb-8 inline-block">
                     &larr; Back to Home
                 </Link>
 
                 <h1 className="text-3xl font-semibold tracking-tight mb-2">Terms of Service</h1>
-                <p className="text-xs text-neutral-500 mb-12">Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                <p className="text-xs text-[#A7ADBB] mb-12">Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
 
                 <div className="space-y-10 text-sm text-neutral-300 leading-relaxed">
 
@@ -44,7 +44,7 @@ export default function TermsPage() {
                         </ul>
                     </section>
 
-                    <section className="border border-white/[0.06] rounded-2xl p-6 bg-white/[0.02]">
+                    <section className="border border-white/5 rounded-2xl p-6 bg-black">
                         <h2 className="text-lg font-medium text-white mb-3">5. Refund Policy</h2>
                         <ul className="list-disc list-inside space-y-3 mt-3">
                             <li><strong>Subscription Billing:</strong> NextCall subscriptions are billed in advance on a recurring monthly basis through Paddle. By subscribing, you authorize us to charge your designated payment method for all applicable fees.</li>
@@ -61,7 +61,7 @@ export default function TermsPage() {
                         <p>You agree not to use the Service for any unlawful purpose or in any way that could damage, disable, or impair the Service. You must comply with all applicable telecommunications, privacy, recording, and consumer protection laws, including the Telephone Consumer Protection Act (TCPA).</p>
                     </section>
 
-                    <section className="border border-white/[0.06] rounded-2xl p-6 bg-white/[0.02]">
+                    <section className="border border-white/5 rounded-2xl p-6 bg-black">
                         <h2 className="text-lg font-medium text-white mb-3">7. Call Recording, AI Processing & Legal Compliance</h2>
                         <p>You acknowledge that calls handled through the Service may be recorded, transcribed, analyzed, and processed by AI systems (utilizing Retell AI and OpenAI).</p>
                         <p className="mt-3 font-semibold text-white">Caller Consent &amp; Disclosure: You are solely responsible for providing any legally required notices and obtaining any required consent (including two-party consent) from callers before recording or AI-processing communications. You must disclose to callers that they are interacting with an AI and that calls may be recorded.</p>
@@ -84,7 +84,7 @@ export default function TermsPage() {
                         <p className="mt-3"><strong>Force Majeure:</strong> We shall not be liable for any delay or failure in performance resulting from acts beyond our reasonable control, including but not limited to acts of God, natural disasters, war, terrorism, strikes, labor disputes, internet outages, or failures of third-party telecommunications networks.</p>
                     </section>
 
-                    <section className="border border-white/[0.06] rounded-2xl p-6 bg-white/[0.02]">
+                    <section className="border border-white/5 rounded-2xl p-6 bg-black">
                         <h2 className="text-lg font-medium text-white mb-3">11. AI Output Disclaimer</h2>
                         <p>The Service uses artificial intelligence to route calls, generate transcripts, summaries, and automated responses. AI Output may be inaccurate, incomplete, delayed, or unsuitable for a particular purpose.</p>
                         <p className="mt-3 font-semibold text-white">You are responsible for reviewing and verifying all AI Output before relying on it. The Service is not intended to replace emergency services, professional dispatch, legal advice, medical advice, or human judgment in high-stakes situations.</p>
@@ -144,7 +144,7 @@ export default function TermsPage() {
                         <h2 className="text-lg font-medium text-white mb-3">20. Contact & Legal Notices</h2>
                         <p>If you have any questions, notices, or legal requests regarding these Terms or the Service, please contact us at:</p>
                         <p className="mt-3">
-                            NextCall Technologies — Email: <a href="mailto:support@getnextcall.com" className="text-indigo-400 hover:text-indigo-300">support@getnextcall.com</a>
+                            NextCall Technologies — Email: <a href="mailto:support@getnextcall.com" className="text-[#ff4b00] hover:text-[#ff4b00]">support@getnextcall.com</a>
                         </p>
                     </section>
                 </div>

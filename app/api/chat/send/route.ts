@@ -74,23 +74,26 @@ export async function POST(request: Request) {
         // Notify the admin (admin panel realtime + Telegram pinger, pluggable)
         const senderName = String(business.owner_name || business.business_name || business.owner_email || "Dashboard user").trim();
         const businessName = String(business.business_name || "Your business");
-        await notifyAdminChat({
+        const adminPing = await notifyAdminChat({
             businessName,
             senderName,
             content: content || "📷 Photo",
             hasPhoto: Boolean(photo),
         });
+        if (!adminPing.ok) {
+            console.error("Admin Telegram ping failed for chat message:", adminPing.error);
+        }
         const { notifyChatAdmins } = await import("@/lib/pusher");
         await notifyChatAdmins({
             message: photoForReply ? { ...message, photo: photoForReply } : message,
             business_name: businessName,
             sender_name: senderName,
             business_id: userId,
-        }).catch(() => {});
+        }).catch((e) => console.error("Admin realtime push failed for chat message:", e));
 
         return NextResponse.json({ ok: true, message: photoForReply ? { ...message, photo: photoForReply } : message });
     } catch (error) {
         console.error("Chat send error:", error);
-        return NextResponse.json({ error: `Failed to send: ${(error as Error)?.message || "unknown"}` }, { status: 500 });
+        return NextResponse.json({ error: "Failed to send message. Please try again." }, { status: 500 });
     }
 }

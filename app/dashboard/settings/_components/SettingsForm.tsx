@@ -139,6 +139,13 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
     const currentTab = hiddenTabs.includes(activeTab) ? "business" : activeTab;
 
     useEffect(() => {
+        const focus = searchParams.get("focus");
+        if (focus && TABS.some((t) => t.id === focus) && !hiddenTabs.includes(focus)) {
+            setActiveTab(focus);
+        }
+    }, [searchParams]);
+
+    useEffect(() => {
         if (searchParams.get("meta_error") || searchParams.get("meta_success") || searchParams.get("connected")) {
             const url = new URL(window.location.href);
             url.searchParams.delete("meta_error");
@@ -305,7 +312,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
                 <span className="text-5xl">✓</span>
                 <h2 className="text-2xl font-semibold text-white">Settings Saved!</h2>
-                <p className="text-sm text-neutral-400">Your AI has been updated. Redirecting...</p>
+                <p className="text-sm text-[#A7ADBB]">Your AI has been updated. Redirecting...</p>
             </div>
         );
     }
@@ -346,8 +353,8 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
         </div>
     ) : null;
 
-    const inputClass = "w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all";
-    const labelClass = "block text-[10px] uppercase tracking-wider text-neutral-500 mb-1.5";
+    const inputClass = "w-full bg-black border border-white/5 rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all";
+    const labelClass = "block text-[10px] uppercase tracking-wider text-[#A7ADBB] mb-1.5";
 
     // Calculate minute usage for billing tab
     const minutesUsed = data.total_minutes_used || 0;
@@ -362,20 +369,20 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             {googleFailedBanner}
             {googleDisconnectedBanner}
             {isTrial && (
-                <div className="p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/20 text-xs text-neutral-300 leading-relaxed">
-                    You&apos;re on the <span className="font-medium text-indigo-300">Free Trial</span> — only trial features are shown.
+                <div className="p-4 rounded-xl bg-[#ff4b00]/5 border border-[#ff4b00]/20 text-xs text-neutral-300 leading-relaxed">
+                    You&apos;re on the <span className="font-medium text-[#ff4b00]">Free Trial</span> — only trial features are shown.
                     Upgrade to <span className="font-medium text-white">Standard</span> to unlock AI knowledge base, follow-up emails, daily summaries and more.{" "}
-                    <a href="/dashboard" className="text-indigo-400 font-medium hover:text-indigo-300">Choose a plan →</a>
+                    <a href="/dashboard" className="text-[#ff4b00] font-medium hover:text-[#ff4b00]">Choose a plan →</a>
                 </div>
             )}
-            {/* Tab bar */}
-            <div className="flex gap-1 p-1 bg-white/[0.03] border border-white/[0.06] rounded-xl overflow-x-auto">
+            {/* Tab bar — hidden, now handled by left sidebar dropdown */}
+            <div className="hidden">
                 {TABS.filter((tab) => !hiddenTabs.includes(tab.id)).map((tab) => (
                     <button
                         key={tab.id}
                         type="button"
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex-1 py-2.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap px-3 ${currentTab === tab.id ? "bg-white/[0.08] text-white" : "text-neutral-500 hover:text-neutral-300"}`}
+                        className={`flex-1 py-2.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap px-3 ${currentTab === tab.id ? "bg-white/[0.08] text-white" : "text-[#A7ADBB] hover:text-neutral-300"}`}
                     >
                         {tab.label}
                     </button>
@@ -391,9 +398,9 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             {currentTab === "business" && (
                 // ... EXACTLY THE SAME AS YOUR CURRENT CODE ...
                 <div className="space-y-6">
-                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
+                    <div className="bg-black border border-white/5 rounded-2xl p-8">
                         <h2 className="text-lg font-semibold text-white mb-1">Business Identity</h2>
-                        <p className="text-xs text-neutral-500 mb-6">How the AI introduces your business.</p>
+                        <p className="text-xs text-[#A7ADBB] mb-6">How the AI introduces your business.</p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div><label className={labelClass}>Business Name</label><input type="text" value={data.business_name} onChange={(e) => updateField("business_name", e.target.value)} placeholder="e.g. Mike's Plumbing" className={inputClass} /></div>
                             <div><label className={labelClass}>Business Type</label><input type="text" value={data.business_type} onChange={(e) => updateField("business_type", e.target.value)} placeholder="e.g. Plumbing, Dental, HVAC" className={inputClass} /></div>
@@ -408,21 +415,21 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             {currentTab === "knowledge" && (
                 // ... EXACTLY THE SAME AS YOUR CURRENT CODE ...
                 <div className="space-y-5">
-                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
+                    <div className="bg-black border border-white/5 rounded-2xl p-8">
                         <h2 className="text-lg font-semibold text-white mb-1">AI Knowledge Base</h2>
-                        <p className="text-xs text-neutral-500 mb-6">Teach your AI what it needs to know. Fill out each section and it compiles automatically.</p>
+                        <p className="text-xs text-[#A7ADBB] mb-6">Teach your AI what it needs to know. Fill out each section and it compiles automatically.</p>
                         <div className="space-y-6">
                             <div><label className={labelClass}>Business Hours</label><input type="text" value={data.hours} onChange={(e) => updateField("hours", e.target.value)} placeholder="e.g. Mon-Fri 8am-6pm, Sat 9am-2pm, Closed Sunday" className={inputClass} /><p className="text-[10px] text-neutral-600 mt-1">Be specific about after-hours handling</p></div>
                             <div><label className={labelClass}>Services You Offer</label><textarea value={data.services} onChange={(e) => updateField("services", e.target.value)} rows={4} placeholder="List each service on a new line. e.g.&#10;Emergency leak repair — we can dispatch within 2 hours&#10;Water heater installation — need make/model for estimate&#10;Drain cleaning — standard and hydro-jetting available" className={`${inputClass} resize-none`} /></div>
                             <div><label className={labelClass}>What You DO NOT Do</label><textarea value={data.exclusions} onChange={(e) => updateField("exclusions", e.target.value)} rows={3} placeholder="e.g.&#10;We do NOT work on gas lines&#10;We do NOT repair hot tubs&#10;We do NOT offer financing" className={`${inputClass} resize-none`} /><p className="text-[10px] text-neutral-600 mt-1">AI will politely decline these and redirect</p></div>
                             <div><label className={labelClass}>Pricing & Quoting Rules</label><textarea value={data.pricing_rules} onChange={(e) => updateField("pricing_rules", e.target.value)} rows={3} placeholder="e.g.&#10;$89 diagnostic fee, waived if you proceed with repair&#10;Do NOT give exact quotes for large jobs over the phone&#10;Seniors get 10% off — mention automatically" className={`${inputClass} resize-none`} /></div>
                             <div>
-                                <div className="flex items-center justify-between mb-3"><label className={labelClass}>Frequently Asked Questions</label><button type="button" onClick={addFaq} className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">+ Add Question</button></div>
-                                {data.faq.length === 0 && (<div className="p-4 border border-dashed border-white/[0.1] rounded-xl text-center"><p className="text-xs text-neutral-600">No FAQ added yet. Click "+ Add Question" to start.</p></div>)}
+                                <div className="flex items-center justify-between mb-3"><label className={labelClass}>Frequently Asked Questions</label><button type="button" onClick={addFaq} className="text-xs text-[#ff4b00] hover:text-[#ff4b00] transition-colors">+ Add Question</button></div>
+                                {data.faq.length === 0 && (<div className="p-4 border border-dashed border-white/5 rounded-xl text-center"><p className="text-xs text-neutral-600">No FAQ added yet. Click "+ Add Question" to start.</p></div>)}
                                 <div className="space-y-3">
                                     {data.faq.map((pair, i) => (
-                                        <div key={i} className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-3">
-                                            <div className="flex items-center justify-between"><span className="text-[10px] text-neutral-500 uppercase tracking-wider">Q&A #{i + 1}</span><button type="button" onClick={() => removeFaq(i)} className="text-xs text-rose-400 hover:text-rose-300 transition-colors">Remove</button></div>
+                                        <div key={i} className="p-4 rounded-xl bg-black border border-white/5 space-y-3">
+                                            <div className="flex items-center justify-between"><span className="text-[10px] text-[#A7ADBB] uppercase tracking-wider">Q&A #{i + 1}</span><button type="button" onClick={() => removeFaq(i)} className="text-xs text-rose-400 hover:text-rose-300 transition-colors">Remove</button></div>
                                             <input type="text" value={pair.question} onChange={(e) => updateFaq(i, "question", e.target.value)} placeholder="Question: e.g. Do you offer free estimates?" className={inputClass} />
                                             <input type="text" value={pair.answer} onChange={(e) => updateFaq(i, "answer", e.target.value)} placeholder="Answer: e.g. Yes! We offer free estimates for all standard services." className={inputClass} />
                                         </div>
@@ -439,17 +446,17 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             {currentTab === "greeting" && (
                 // ... EXACTLY THE SAME AS YOUR CURRENT CODE ...
                 <div className="space-y-5">
-                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
+                    <div className="bg-black border border-white/5 rounded-2xl p-8">
                         <h2 className="text-lg font-semibold text-white mb-1">Greeting & Tone</h2>
-                        <p className="text-xs text-neutral-500 mb-6">Control how your AI sounds when it picks up the phone.</p>
+                        <p className="text-xs text-[#A7ADBB] mb-6">Control how your AI sounds when it picks up the phone.</p>
                         <div className="mb-6"><label className={labelClass}>AI Name</label><input type="text" value={data.ai_name} onChange={(e) => { updateField("ai_name", e.target.value); if (data.greeting_tone) { const newGreeting = generateGreeting(data.greeting_tone, data.business_name, e.target.value); updateField("greeting_text", newGreeting); } }} placeholder="e.g. Sam, Alex, Jamie" className={inputClass} /><p className="text-[10px] text-neutral-600 mt-1">The name your AI uses to introduce itself</p></div>
                         <div className="mb-6">
                             <label className={labelClass}>Conversation Tone</label>
                             <div className="grid grid-cols-3 gap-3">
                                 {TONE_OPTIONS.map((tone) => (
-                                    <button key={tone.id} type="button" onClick={() => handleToneChange(tone.id)} className={`p-4 rounded-xl border text-left transition-all ${data.greeting_tone === tone.id ? "bg-indigo-500/20 border-indigo-500/40" : "bg-white/[0.03] border-white/[0.06] hover:border-white/20"}`}>
-                                        <span className={`text-sm font-medium ${data.greeting_tone === tone.id ? "text-indigo-300" : "text-neutral-400"}`}>{tone.label}</span>
-                                        <p className="text-[10px] text-neutral-500 mt-1">{tone.desc}</p>
+                                    <button key={tone.id} type="button" onClick={() => handleToneChange(tone.id)} className={`p-4 rounded-xl border text-left transition-all ${data.greeting_tone === tone.id ? "bg-[#ff4b00]/20 border-indigo-500/40" : "bg-black border-white/5 hover:border-white/20"}`}>
+                                        <span className={`text-sm font-medium ${data.greeting_tone === tone.id ? "text-[#ff4b00]" : "text-[#A7ADBB]"}`}>{tone.label}</span>
+                                        <p className="text-[10px] text-[#A7ADBB] mt-1">{tone.desc}</p>
                                     </button>
                                 ))}
                             </div>
@@ -464,9 +471,9 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             {currentTab === "routing" && (
                 // ... EXACTLY THE SAME AS YOUR CURRENT CODE ...
                 <div className="space-y-5">
-                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
+                    <div className="bg-black border border-white/5 rounded-2xl p-8">
                         <h2 className="text-lg font-semibold text-white mb-1">Call Routing Rules</h2>
-                        <p className="text-xs text-neutral-500 mb-6">Control what happens after each call. Toggle rules on/off.</p>
+                        <p className="text-xs text-[#A7ADBB] mb-6">Control what happens after each call. Toggle rules on/off.</p>
 
                         {/* Emergency Definition Input */}
                         <div className="mb-6 p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
@@ -476,17 +483,25 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                 value={data.emergency_definition}
                                 onChange={(e) => updateField("emergency_definition", e.target.value)}
                                 placeholder="e.g. Burst pipes, gas leaks, sewage backup, or severe flooding"
-                                className="w-full bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-amber-500/50 transition-all"
+                                className="w-full bg-black border border-white/5 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-amber-500/50 transition-all"
                             />
-                            <p className="text-[10px] text-neutral-500 mt-1.5">If a caller mentions these keywords, the AI will instantly transfer the call to your phone.</p>
+                            <p className="text-[10px] text-[#A7ADBB] mt-1.5">If a caller mentions these keywords, the AI will instantly transfer the call to your phone.</p>
                         </div>
-                        <p className="text-xs text-neutral-500 mb-6">Control what happens after each call. Toggle rules on/off.</p>
+                        <p className="text-xs text-[#A7ADBB] mb-6">Control what happens after each call. Toggle rules on/off.</p>
                         <div className="space-y-4">
                             {[{ key: "forward_emergency" as keyof RoutingRules, title: "Forward emergency calls to my cell", desc: "When caller says words like 'emergency', 'burst pipe', 'flooding' — AI forwards to your phone", paidOnly: false, premiumOnly: false }, { key: "notify_hot_lead" as keyof RoutingRules, title: "Notify me about hot leads", desc: "Get an in-app notification when AI detects a high-intent lead ready to buy", paidOnly: true, premiumOnly: true }, { key: "sms_missed_call" as keyof RoutingRules, title: "SMS customer if we miss their call", desc: "Auto-send: 'Sorry we missed you! Call us back or reply here.' — Costs ~$0.008 per SMS", paidOnly: true, premiumOnly: true }, { key: "email_followup" as keyof RoutingRules, title: "Send follow-up email after every call", desc: "Customer gets a branded confirmation email with their request details", paidOnly: true, premiumOnly: false }, { key: "daily_summary" as keyof RoutingRules, title: "Daily summary email", desc: "Every morning you get an email with: calls, leads, appointments, and revenue captured", paidOnly: true, premiumOnly: false }, { key: "appointment_reminders" as keyof RoutingRules, title: "Appointment reminders", desc: isTrial ? "Email reminder 24 hours before the appointment" : "SMS 1 hour before + email 24 hours before the appointment", paidOnly: false, premiumOnly: false }, { key: "review_followup" as keyof RoutingRules, title: "Auto review follow-up", desc: "If you forget to mark a job done, we ask the customer for a review 24 hours after their appointment", paidOnly: false, premiumOnly: false }].filter(rule => (!rule.paidOnly || !isTrial) && (!rule.premiumOnly || isPremium)).map((rule) => (
-                                <div key={rule.key} className="flex items-start justify-between gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                                    <div className="flex-1"><p className="text-sm font-medium text-white">{rule.title}</p><p className="text-xs text-neutral-500 mt-1 leading-relaxed">{rule.desc}</p></div>
-                                    <button type="button" onClick={() => updateRouting(rule.key, !data.routing_rules[rule.key])} className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${data.routing_rules[rule.key] ? "bg-indigo-500" : "bg-white/10"}`}>
-                                        <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${data.routing_rules[rule.key] ? "translate-x-5" : "translate-x-0.5"}`} />
+                                <div key={rule.key} className="flex items-start justify-between gap-4 p-4 rounded-xl bg-black border border-white/[0.04]">
+                                    <div className="flex-1"><p className="text-sm font-medium text-white">{rule.title}</p><p className="text-xs text-[#A7ADBB] mt-1 leading-relaxed">{rule.desc}</p></div>
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={data.routing_rules[rule.key]}
+                                        onClick={() => updateRouting(rule.key, !data.routing_rules[rule.key])}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full p-[2px] transition-all duration-200 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff4b00]/40 ${data.routing_rules[rule.key] ? "bg-[#ff4b00] shadow-[0_0_12px_rgba(255,75,0,0.35)]" : "bg-white/10 border border-white/10"}`}
+                                    >
+                                        <span
+                                            className={`inline-block h-5 w-5 rounded-full bg-white shadow-md transition-transform duration-200 ${data.routing_rules[rule.key] ? "translate-x-5" : "translate-x-0"}`}
+                                        />
                                     </button>
                                 </div>
                             ))}
@@ -498,14 +513,14 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             {/* TAB 5: Billing & Plan */}
             {currentTab === "billing" && (
                 <div className="space-y-5">
-                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
+                    <div className="bg-black border border-white/5 rounded-2xl p-8">
                         <h2 className="text-lg font-semibold text-white mb-1">Plan & Billing</h2>
-                        <p className="text-xs text-neutral-500 mb-6">Manage your subscription, minutes, and invoices.</p>
+                        <p className="text-xs text-[#A7ADBB] mb-6">Manage your subscription, minutes, and invoices.</p>
 
                         {/* Current Plan Card */}
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 mb-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 rounded-xl bg-[#ff4b00]/10 border border-[#ff4b00]/20 mb-6">
                             <div>
-                                <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Current Plan</p>
+                                <p className="text-xs font-semibold text-[#ff4b00] uppercase tracking-wider">Current Plan</p>
                                 <p className="text-xl font-bold text-white capitalize mt-1">{data.plan} Plan</p>
                             </div>
                             {data.paddle_customer_id && (
@@ -526,11 +541,11 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                         <div className="mb-6">
                             <div className="flex justify-between items-end mb-2">
                                 <p className="text-sm font-semibold text-white">Minute Usage</p>
-                                <p className="text-xs text-neutral-500">{minutesUsed} / {minutesLimit} min used</p>
+                                <p className="text-xs text-[#A7ADBB]">{minutesUsed} / {minutesLimit} min used</p>
                             </div>
-                            <div className="w-full bg-white/[0.05] rounded-full h-3">
+                            <div className="w-full bg-black rounded-full h-3">
                                 <div
-                                    className={`h-3 rounded-full transition-all duration-500 ${minutesPercent > 80 ? 'bg-red-500' : minutesPercent > 50 ? 'bg-amber-500' : 'bg-indigo-500'}`}
+                                    className={`h-3 rounded-full transition-all duration-500 ${minutesPercent > 80 ? 'bg-red-500' : minutesPercent > 50 ? 'bg-amber-500' : 'bg-[#ff4b00]'}`}
                                     style={{ width: `${minutesPercent}%` }}
                                 />
                             </div>
@@ -541,17 +556,17 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
 
                         {/* Buy Additional Minutes */}
                         {!isTrial && (
-                        <div className="mb-6 p-5 rounded-xl bg-white/[0.02] border border-indigo-500/20">
+                        <div className="mb-6 p-5 rounded-xl bg-black border border-[#ff4b00]/20">
                             <div className="flex items-center justify-between mb-3">
                                 <p className="text-sm font-semibold text-white">Buy Additional Minutes</p>
-                                <span className="text-[10px] text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full">{data.plan === "premium" ? "$0.30/min" : "$0.40/min"}</span>
+                                <span className="text-[10px] text-[#ff4b00] bg-[#ff4b00]/10 px-2 py-0.5 rounded-full">{data.plan === "premium" ? "$0.30/min" : "$0.40/min"}</span>
                             </div>
-                            <p className="text-xs text-neutral-500 mb-4">Add minutes to your plan. Save vs overage rates — minimum 50, up to your plan limit.</p>
+                            <p className="text-xs text-[#A7ADBB] mb-4">Add minutes to your plan. Save vs overage rates — minimum 50, up to your plan limit.</p>
                             <div className="flex items-center gap-3">
                                 <select
                                     value={minutesToBuy}
                                     onChange={(e) => setMinutesToBuy(Number(e.target.value))}
-                                    className="bg-white/[0.05] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50"
+                                    className="bg-black border border-white/5 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500/50"
                                 >
                                     {Array.from(
                                         { length: (data.plan === "premium" ? 500 : 200) / 50 },
@@ -564,7 +579,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                     type="button"
                                     onClick={handleBuyMinutes}
                                     disabled={minutesLoading || !data.paddle_customer_id}
-                                    className="bg-indigo-500 text-white text-sm font-medium px-6 py-2.5 rounded-xl hover:bg-indigo-600 transition-colors disabled:opacity-30"
+                                    className="bg-[#ff4b00] text-white text-sm font-medium px-6 py-2.5 rounded-xl hover:bg-indigo-600 transition-colors disabled:opacity-30"
                                 >
                                     {minutesLoading ? "Opening..." : "Purchase"}
                                 </button>
@@ -577,23 +592,23 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
 
                         {/* Average Job Value — feeds PremiumAnalytics revenue calculation */}
                         {isPremium && (
-                        <div className="mb-6 p-5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                            <label className="block text-[10px] uppercase tracking-wider text-neutral-500 mb-1.5">Average Job Value ($)</label>
+                        <div className="mb-6 p-5 rounded-xl bg-black border border-white/5">
+                            <label className="block text-[10px] uppercase tracking-wider text-[#A7ADBB] mb-1.5">Average Job Value ($)</label>
                             <input
                                 type="number"
                                 min={0}
                                 value={data.avg_job_value || ""}
                                 onChange={(e) => updateField("avg_job_value", Number(e.target.value))}
                                 placeholder="e.g. 350"
-                                className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all"
+                                className="w-full bg-black border border-white/5 rounded-xl px-4 py-3 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all"
                             />
                             <p className="text-[10px] text-neutral-600 mt-1.5">Used to calculate estimated revenue in your analytics dashboard. Enter your typical job or service value.</p>
                         </div>
                         )}
 
                         {/* Invoices Notice */}
-                        <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                            <p className="text-xs text-neutral-400 leading-relaxed">
+                        <div className="p-4 rounded-xl bg-black border border-white/5">
+                            <p className="text-xs text-[#A7ADBB] leading-relaxed">
                                 <span className="font-semibold text-neutral-300">Need a receipt?</span> Click "Manage Billing & Invoices" above to access the secure Paddle customer portal — update your card, download invoices, or cancel your subscription.
                             </p>
                         </div>
@@ -610,9 +625,9 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             {/* TAB 6: Referrals */}
             {currentTab === "referrals" && (
                 <div className="space-y-5">
-                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
+                    <div className="bg-black border border-white/5 rounded-2xl p-8">
                         <h2 className="text-lg font-semibold text-white mb-1">Refer a Business, Earn 50 Minutes</h2>
-                        <p className="text-xs text-neutral-500 mb-6">Share your unique link with other businesses. When they subscribe, you earn bonus minutes — no limits per referrer.</p>
+                        <p className="text-xs text-[#A7ADBB] mb-6">Share your unique link with other businesses. When they subscribe, you earn bonus minutes — no limits per referrer.</p>
 
                         {data.bonus_minutes > 0 && (
                             <div className="mb-6 p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-center gap-3">
@@ -622,8 +637,8 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
 
                         <div className="space-y-4">
                             {generatingCode ? (
-                                <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                                    <p className="text-xs text-neutral-400">Generating your unique referral link...</p>
+                                <div className="p-4 rounded-xl bg-black border border-white/5">
+                                    <p className="text-xs text-[#A7ADBB]">Generating your unique referral link...</p>
                                 </div>
                             ) : referralCode === "N/A" ? (
                                 <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
@@ -632,13 +647,13 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                             ) : (
                                 <>
                                     <div>
-                                        <label className="block text-[10px] uppercase tracking-wider text-neutral-500 mb-1.5">Your Unique Referral Link</label>
+                                        <label className="block text-[10px] uppercase tracking-wider text-[#A7ADBB] mb-1.5">Your Unique Referral Link</label>
                                         <div className="flex items-center gap-2">
                                             <input
                                                 type="text"
                                                 readOnly
                                                 value={referralLink}
-                                                className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white font-mono focus:outline-none"
+                                                className="flex-1 bg-black border border-white/5 rounded-xl px-4 py-3 text-sm text-white font-mono focus:outline-none"
                                             />
                                             <button
                                                 type="button"
@@ -652,8 +667,8 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                 </>
                             )}
 
-                            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                                <p className="text-xs text-neutral-400 leading-relaxed">
+                            <div className="p-4 rounded-xl bg-black border border-white/5">
+                                <p className="text-xs text-[#A7ADBB] leading-relaxed">
                                     <span className="font-semibold text-neutral-300">How it works:</span>
                                     <br />1. Share your link with a business owner.
                                     <br />2. They click it and sign up for a free trial.
@@ -671,13 +686,14 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
             {/* TAB 7: Integrations */}
             {currentTab === "integrations" && (
                 <div className="space-y-5">
-                    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
+                    <div className="bg-black border border-white/5 rounded-2xl p-8">
                         <h2 className="text-lg font-semibold text-white mb-1">Integrations</h2>
-                        <p className="text-xs text-neutral-500 mb-6">Connect your favorite tools to automate your workflow.</p>
+                        <p className="text-xs text-[#A7ADBB] mb-6">Connect your favorite tools to automate your workflow.</p>
 
                         <div className="space-y-4">
                             {/* Unified Google Account Card — all plans (calendar sync needed for AI booking) */}
-                            <div className="flex items-center justify-between p-5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                            <div className="p-5 rounded-xl bg-black border border-white/5 space-y-4">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <div className="flex items-center gap-4">
                                     <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20">
                                         <svg className="w-6 h-6 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
@@ -686,7 +702,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-white">Google Account</p>
-                                        <p className="text-xs text-neutral-500 mt-0.5">Connect your account to enable AI Appointment Booking (Calendar) and Google Reviews Auto-Reply.</p>
+                                        <p className="text-xs text-[#A7ADBB] mt-0.5">Connect your account to enable AI Appointment Booking (Calendar) and Google Reviews Auto-Reply.</p>
                                     </div>
                                 </div>
 
@@ -697,7 +713,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                             <span className="text-xs font-medium text-emerald-400">Connected</span>
                                         </div>
                                         {data.google_account_email && (
-                                            <span className="text-[10px] text-neutral-500">{data.google_account_email}</span>
+                                            <span className="text-[10px] text-[#A7ADBB]">{data.google_account_email}</span>
                                         )}
                                         <button
                                             type="button"
@@ -734,17 +750,18 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                     </button>
                                 )}
 
+                                </div>
                                 {data.google_refresh_token && (
-                                    <div className="mt-4 w-full">
+                                    <div className="w-full pt-4 border-t border-white/5">
                                         <label className="block text-xs font-medium text-neutral-300 mb-1.5">Google Review Link</label>
                                         <input
                                             type="url"
                                             value={data.review_link}
                                             onChange={(e) => setData({ ...data, review_link: e.target.value })}
                                             placeholder="https://g.page/r/xxxx/review"
-                                            className="w-full bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-2.5 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500/50 transition-all"
+                                            className="w-full bg-black border border-white/5 rounded-lg px-3 py-2.5 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#ff4b00]/50 transition-all"
                                         />
-                                        <p className="text-[10px] text-neutral-500 mt-1.5 leading-relaxed">
+                                        <p className="text-[10px] text-[#A7ADBB] mt-1.5 leading-relaxed">
                                             Used in your review-request emails & SMS. Get it from Google Business Profile → Profile → "Share review form".
                                         </p>
                                     </div>
@@ -753,14 +770,14 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
 
                             {/* Zapier / Webhooks Card — Premium only */}
                             {isPremium && (
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-xl bg-white/[0.02] border border-white/[0.06] gap-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-xl bg-black border border-white/5 gap-4">
                                 <div className="flex items-center gap-4">
                                     <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20">
                                         <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-white">Webhooks (Zapier / Make / n8n)</p>
-                                        <p className="text-xs text-neutral-500">Send call data to 5,000+ apps. Premium only.</p>
+                                        <p className="text-xs text-[#A7ADBB]">Send call data to 5,000+ apps. Premium only.</p>
                                     </div>
                                 </div>
 
@@ -770,7 +787,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                         value={data.zapier_webhook_url || ''}
                                         onChange={(e) => updateField("zapier_webhook_url", e.target.value)}
                                         placeholder="https://hooks.zapier.com/..."
-                                        className="w-full bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500/50"
+                                        className="w-full bg-black border border-white/5 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500/50"
                                     />
                                 </div>
                             </div>
@@ -778,14 +795,14 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
 
                             {/* Social Channels Card — Premium only */}
                             {isPremium && (
-                            <div className="flex items-center justify-between p-5 rounded-xl bg-white/[0.02] border border-white/[0.06] gap-4">
+                            <div className="flex items-center justify-between p-5 rounded-xl bg-black border border-white/5 gap-4">
                                 <div className="flex items-center gap-4">
                                     <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20">
                                         <svg className="w-6 h-6 text-blue-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.34 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96A10 10 0 0022 12.06C22 6.53 17.5 2.04 12 2.04Z" /></svg>
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-white">Facebook & Instagram</p>
-                                        <p className="text-xs text-neutral-500">Auto-reply to DMs and Messages</p>
+                                        <p className="text-xs text-[#A7ADBB]">Auto-reply to DMs and Messages</p>
                                     </div>
                                 </div>
 
@@ -795,12 +812,12 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                             <div className="text-right">
                                                 <p className="text-sm font-medium text-white">{data.meta_page_name || 'Connected'}</p>
                                                 {data.meta_ig_business_name && (
-                                                    <p className="text-[10px] text-neutral-400">IG: {data.meta_ig_business_name}</p>
+                                                    <p className="text-[10px] text-[#A7ADBB]">IG: {data.meta_ig_business_name}</p>
                                                 )}
                                             </div>
                                             {data.meta_page_picture && (
                                                 // eslint-disable-next-line @next/next/no-img-element
-                                                <img src={data.meta_page_picture} alt="" className="w-8 h-8 rounded-full object-cover border border-white/[0.08]" />
+                                                <img src={data.meta_page_picture} alt="" className="w-8 h-8 rounded-full object-cover border border-white/5" />
                                             )}
                                             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                                                 <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -865,7 +882,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                 <button
                     type="button"
                     onClick={() => router.push("/dashboard")}
-                    className="text-sm text-neutral-500 hover:text-white transition-colors px-6 py-3"
+                    className="text-sm text-[#A7ADBB] hover:text-white transition-colors px-6 py-3"
                 >
                     Cancel
                 </button>

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { businessesCollection, webhookEventsCollection } from '@/lib/astra';
-import { hasValidSecret } from '@/lib/security';
+import { hasValidSecret, escapeHtml } from '@/lib/security';
+import { sendTelegramMessage } from '@/lib/telegram';
 import { TRIAL_DURATION_MS } from '@/lib/business';
 import { provisionTwilioNumber, isProvisioned } from '@/lib/twilio-provision';
 
@@ -221,12 +222,27 @@ export async function POST(request: Request) {
           { $inc: { minutes_limit: minutesAdded, bonus_minutes: minutesAdded }, $set: { updated_at: new Date().toISOString() } }
         );
         console.log(`Added ${minutesAdded} minutes to ${clerkId}`);
+      } else {
+        console.error("additional_minutes event missing clerk_user_id or minutes; not applied", eventId);
+        await sendTelegramMessage(
+          `⚠️ <b>Paddle additional_minutes not applied</b>\nEvent: ${escapeHtml(eventId)} — missing clerk_user_id or minutes_added in custom_data.`
+        );
       }
     } else if (eventName === 'subscription.created' || eventName === 'subscription.activated' || eventName === 'transaction.completed') {
       try {
         await activateBusinessFromPaddleData(payload.data);
       } catch (error) {
         console.error("Error during automated onboarding:", error);
+        await sendTelegramMessage(
+          `🚨 <b>CRITICAL: Paid activation failed</b>\n` +
+          `<b>Event:</b> ${escapeHtml(eventName)} (${escapeHtml(eventId)})\n` +
+          `<b>Error:</b> ${escapeHtml(error instanceof Error ? error.message : String(error)).slice(0, 300)}\n` +
+          `Paddle will retry; if retries exhaust, activate manually in the dashboard.`
+        );
+        // Drop the idempotency record so Paddle's retry reprocesses this event
+        // instead of hitting the "processing: true" short-circuit below.
+        await webhookEventsCollection.deleteOne({ _id: eventKey });
+        return NextResponse.json({ error: "Activation failed; retry pending" }, { status: 500 });
       }
     }
 

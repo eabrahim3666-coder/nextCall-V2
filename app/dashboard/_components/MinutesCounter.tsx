@@ -55,7 +55,7 @@ export default function MinutesCounter({
             <button
                 type="button"
                 onClick={() => setOpen(!open)}
-                className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border transition-all ${low ? "bg-rose-500/10 border-rose-500/30 text-rose-400" : "bg-white/[0.05] border-white/[0.08] text-neutral-400 hover:text-white"}`}
+                className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border transition-all ${low ? "bg-rose-500/10 border-rose-500/30 text-rose-400" : "bg-black border-white/5 text-[#A7ADBB] hover:text-white"}`}
             >
                 <span>{used}</span>
                 <span className="text-neutral-600">/</span>
@@ -64,14 +64,14 @@ export default function MinutesCounter({
             </button>
 
             {open && (
-                <div className="absolute right-0 top-full mt-2 w-72 bg-[#0c0c0c] border border-white/[0.08] rounded-2xl p-5 shadow-2xl z-50">
+                <div className="absolute right-0 top-full mt-2 w-72 bg-[#0c0c0c] border border-white/5 rounded-2xl p-5 shadow-2xl z-50">
                     <p className="text-sm font-semibold text-white mb-1">Minutes</p>
-                    <p className="text-xs text-neutral-500 mb-4">
+                    <p className="text-xs text-[#A7ADBB] mb-4">
                         {used} of {limit} min used ({percent}%)
                     </p>
-                    <div className="w-full bg-white/[0.05] rounded-full h-2 mb-4">
+                    <div className="w-full bg-black rounded-full h-2 mb-4">
                         <div
-                            className={`h-2 rounded-full transition-all ${low ? "bg-rose-500" : "bg-indigo-500"}`}
+                            className={`h-2 rounded-full transition-all ${low ? "bg-rose-500" : "bg-[#ff4b00]"}`}
                             style={{ width: `${percent}%` }}
                         />
                     </div>
@@ -82,7 +82,7 @@ export default function MinutesCounter({
                                 <select
                                     value={minutes}
                                     onChange={(e) => setMinutes(Number(e.target.value))}
-                                    className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none"
+                                    className="flex-1 bg-black border border-white/5 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none"
                                 >
                                     {Array.from(
                                         { length: (planType === "premium" ? 500 : 200) / 50 },
@@ -97,7 +97,7 @@ export default function MinutesCounter({
                                     type="button"
                                     onClick={handleBuy}
                                     disabled={loading}
-                                    className="bg-indigo-500 text-white text-xs font-medium px-4 py-1.5 rounded-lg hover:bg-indigo-600 transition-colors disabled:opacity-30"
+                                    className="bg-[#ff4b00] text-white text-xs font-medium px-4 py-1.5 rounded-lg hover:bg-indigo-600 transition-colors disabled:opacity-30"
                                 >
                                     {loading ? "..." : "Buy"}
                                 </button>
