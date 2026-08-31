@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import AIStatusPill from "./_components/AIStatusPill";
 import NavLinks from "./_components/NavLinks";
+import MobileNav from "./_components/MobileNav";
 import MinutesCounter from "./_components/MinutesCounter";
 import DashboardAccessGate from "./_components/DashboardAccessGate";
 import { findBusinessByUserId, isTrialExpired } from "@/lib/business";
@@ -36,12 +37,9 @@ export default async function DashboardLayout({
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src="/logo.png" alt="Next Call" className="h-7 w-auto" />
                     </Link>
-                    {/* Mobile: horizontal pills under logo */}
                     <div className="md:hidden ml-2">
                         {isActiveBusiness && (
-                            <NavLinks
-                                planType={String(business?.plan_type || business?.plan || "standard")}
-                            />
+                            <MobileNav planType={String(business?.plan_type || business?.plan || "standard")} />
                         )}
                     </div>
                 </div>

@@ -1,0 +1,37 @@
+
+> nextcall@0.1.0 dev
+> next dev -p 3000 -H 0.0.0.0
+
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://0.0.0.0:3000
+- Environments: .env.local
+✓ Ready in 594ms
+
+ GET / 200 in 1273ms (next.js: 142ms, proxy.ts: 729ms, application-code: 402ms)
+✓ Compiled in 585ms
+ GET / 200 in 525ms (next.js: 86ms, proxy.ts: 398ms, application-code: 41ms)
+✓ Compiled in 118ms
+ GET / 200 in 225ms (next.js: 80ms, proxy.ts: 110ms, application-code: 35ms)
+✓ Compiled in 80ms
+ GET / 200 in 239ms (next.js: 85ms, proxy.ts: 123ms, application-code: 30ms)
+✓ Compiled in 1180ms
+ GET / 200 in 197ms (next.js: 49ms, proxy.ts: 123ms, application-code: 25ms)
+✓ Compiled in 132ms
+ GET / 200 in 270ms (next.js: 101ms, proxy.ts: 125ms, application-code: 44ms)
+✓ Compiled in 381ms
+ GET / 200 in 409ms (next.js: 142ms, proxy.ts: 185ms, application-code: 82ms)
+✓ Compiled in 89ms
+ GET / 200 in 444ms (next.js: 6ms, proxy.ts: 17ms, application-code: 420ms)
+ GET /dashboard 200 in 2.9s (next.js: 434ms, proxy.ts: 52ms, application-code: 2.4s)
+ GET /api/chat/history 200 in 524ms (next.js: 153ms, proxy.ts: 25ms, application-code: 347ms)
+ GET /api/notifications 200 in 533ms (next.js: 213ms, proxy.ts: 27ms, application-code: 292ms)
+ GET /api/notifications 200 in 307ms (next.js: 11ms, proxy.ts: 17ms, application-code: 278ms)
+ GET /api/chat/history 200 in 321ms (next.js: 6ms, proxy.ts: 17ms, application-code: 299ms)
+ POST /api/pusher/auth 200 in 385ms (next.js: 91ms, proxy.ts: 16ms, application-code: 278ms)
+ GET / 200 in 41ms (next.js: 9ms, proxy.ts: 13ms, application-code: 19ms)
+ GET / 200 in 33ms (next.js: 5ms, proxy.ts: 9ms, application-code: 20ms)
+ POST /dashboard 200 in 1129ms (next.js: 6ms, proxy.ts: 16ms, application-code: 1107ms)
+  └─ ƒ invalidateCacheAction() in 12ms node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js
+ GET / 200 in 144ms (next.js: 5ms, proxy.ts: 8ms, application-code: 131ms)
+ GET / 200 in 109ms (next.js: 6ms, proxy.ts: 8ms, application-code: 94ms)

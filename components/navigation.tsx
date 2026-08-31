@@ -17,6 +17,7 @@ function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
   const { isSignedIn } = useUser();
 
   useEffect(() => {
@@ -33,16 +34,25 @@ function Navigation() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeMenu();
     };
+    // Close the mobile menu when tapping outside the header.
+    const onPointerDown = (e: MouseEvent | TouchEvent) => {
+      if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
+        closeMenu();
+      }
+    };
     document.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = "hidden";
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("touchstart", onPointerDown, { passive: true });
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("touchstart", onPointerDown);
     };
   }, [open, closeMenu]);
 
   return (
     <motion.header
+      ref={headerRef}
       initial={{ y: -80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -121,7 +131,7 @@ function Navigation() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className="md:hidden overflow-hidden bg-[#f8f8f8] backdrop-blur-xl border-t border-black"
+            className="md:hidden pointer-events-auto absolute left-1/2 top-full mt-3 w-full max-w-3xl -translate-x-1/2 overflow-hidden rounded-2xl border border-black/10 bg-[#f8f8f8] shadow-xl backdrop-blur-xl"
           >
             <div className="px-5 py-4 flex flex-col gap-3">
               {NAV_LINKS.map((l) => (

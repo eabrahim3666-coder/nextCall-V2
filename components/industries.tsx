@@ -40,6 +40,11 @@ const INDUSTRIES_CSS = `
     0 18px 44px -16px rgba(255, 75, 0, 0.22),
     0 10px 26px -14px rgba(0, 0, 0, 0.85);
 }
+@media (max-width: 640px) {
+  .ind-card {
+    background-image: linear-gradient(180deg, #0a0604 0%, #000000 55%) !important;
+  }
+}
 
 /* ---- Sheen bar rests off-screen left, clipped by its wrapper ---- */
 .ind-sheen-bar {

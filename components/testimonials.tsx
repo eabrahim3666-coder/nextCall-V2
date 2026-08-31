@@ -19,6 +19,11 @@ const TESTIMONIAL_INTRO_CSS = `
   filter: brightness(1.15);
   box-shadow: 0 18px 44px -16px rgba(255, 75, 0, 0.22), 0 10px 26px -14px rgba(0, 0, 0, 0.85);
 }
+@media (max-width: 640px) {
+  .feat-box {
+    background-image: linear-gradient(180deg, #0a0604 0%, #000000 55%) !important;
+  }
+}
 @media (hover: none) {
   .feat-box:active {
     transform: translateY(-4px);

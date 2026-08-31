@@ -8,6 +8,19 @@ interface Scene { id?: string; bg: string; children: ReactNode; }
 export function SceneStack({ scenes }: { scenes: Scene[] }) {
   const ref = useRef<HTMLDivElement>(null);
   const [sceneSpaces, setSceneSpaces] = useState<number[]>(scenes.map(() => 1));
+  const [isTouch, setIsTouch] = useState(false);
+
+  // On touch devices (Android/iOS) native scrolling is used, so the custom
+  // transform-based slide system is skipped entirely. This fixes "can't scroll
+  // up" on Android and keeps scrolling 1:1 and buttery on phones.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(pointer: coarse)");
+    const apply = () => setIsTouch(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
 
   // Measure each scene's content → allocate scroll space (tall scenes get 2+ viewports)
   useEffect(() => {
@@ -35,9 +48,28 @@ export function SceneStack({ scenes }: { scenes: Scene[] }) {
   const totalSpaces = sceneSpaces.reduce((sum, s) => sum + s, 0);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
 
+  // Mobile / touch: render scenes as a normal stacked document so the browser's
+  // native touch scroll works flawlessly (no transforms, no sticky tricks).
+  if (isTouch) {
+    return (
+      <div className="relative w-full">
+        {scenes.map((scene, i) => (
+          <div
+            key={i}
+            id={scene.id}
+            className="relative w-full"
+            style={{ background: scene.bg }}
+          >
+            {scene.children}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div ref={ref} style={{ height: `${totalSpaces * 100}vh` }} className="relative">
-      <div className="sticky top-0 h-screen w-full overflow-hidden">
+    <div ref={ref} style={{ height: `${totalSpaces * 100}svh` }} className="relative">
+      <div className="sticky top-0 h-[100svh] w-full overflow-hidden">
         {scenes.map((scene, i) => (
           <SceneSlide key={i} index={i} sceneSpaces={sceneSpaces} totalSpaces={totalSpaces}
             scrollYProgress={scrollYProgress} bg={scene.bg} id={scene.id}>

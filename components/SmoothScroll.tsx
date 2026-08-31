@@ -6,6 +6,9 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // Touch devices use native scrolling — let the browser handle it 1:1.
+    // Lenis on Android/iOS hijacks touch scroll and breaks "scroll back up".
+    if (window.matchMedia("(pointer: coarse)").matches) return;
 
     // LERP (exponential damping) mode instead of duration/easing. In duration
     // mode every wheel notch restarts a fresh eased animation that travels only

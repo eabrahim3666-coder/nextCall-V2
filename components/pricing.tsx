@@ -19,6 +19,11 @@ const PRICING_INTRO_CSS = `
   filter: brightness(1.15);
   box-shadow: 0 18px 44px -16px rgba(255, 75, 0, 0.22), 0 10px 26px -14px rgba(0, 0, 0, 0.85);
 }
+@media (max-width: 640px) {
+  .pricing-box {
+    background-image: linear-gradient(180deg, #0a0604 0%, #000000 55%) !important;
+  }
+}
 @media (hover: none) {
   .pricing-box:active {
     transform: translateY(-4px);
@@ -37,7 +42,7 @@ const PRICING_INTRO_CSS = `
   will-change: transform;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .pricing-section:not(.pricing-play) :is(.pricing-box, .pricing-kicker, .pricing-sub, .pricing-sheen) {
+  .pricing-section:not(.pricing-play) :is(.pricing-box, .pricing-box-item, .pricing-feature, .pricing-kicker, .pricing-sub, .pricing-sheen) {
     opacity: 0;
   }
   .pricing-section:not(.pricing-play) .pricing-word {
@@ -59,12 +64,25 @@ const PRICING_INTRO_CSS = `
   .pricing-play .pricing-grid {
     animation: pricing-grid 2.0s cubic-bezier(0.22, 1, 0.36, 1) 500ms backwards;
   }
+  /* Stage 1 — the box/shell itself loads first (clean, quick settle). */
   .pricing-play .pricing-box {
-    animation: pricing-card 1.2s cubic-bezier(0.22, 1, 0.36, 1) var(--fd) backwards;
+    animation: pricing-card 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--fd) backwards;
     will-change: transform, opacity, filter;
   }
+  /* Stage 2 — content rises into the landed box, block by block. */
+  .pricing-play .pricing-box-item {
+    animation: pricing-item 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--id) backwards;
+    will-change: transform, opacity;
+  }
+  .pricing-play .pricing-divider {
+    animation: pricing-divider 0.6s cubic-bezier(0.22, 1, 0.36, 1) var(--id) backwards;
+    transform-origin: left center;
+  }
+  .pricing-play .pricing-feature {
+    animation: pricing-feature 0.5s cubic-bezier(0.22, 1, 0.36, 1) var(--id) backwards;
+  }
   .pricing-play .pricing-sheen-bar {
-    animation: pricing-sheen-bar 1.3s cubic-bezier(0.22, 1, 0.36, 1) 2400ms backwards;
+    animation: pricing-sheen-bar 1.3s cubic-bezier(0.22, 1, 0.36, 1) 2550ms backwards;
   }
 }
 @keyframes pricing-kicker {
@@ -84,9 +102,21 @@ const PRICING_INTRO_CSS = `
   to { opacity: 1; transform: none; filter: blur(0); }
 }
 @keyframes pricing-card {
-  0% { opacity: 0; transform: translate(var(--fx), var(--fy)) rotate(var(--fr)) scale(var(--fs)); filter: blur(9px); }
-  55% { opacity: 1; filter: blur(0); }
+  0% { opacity: 0; transform: translate(var(--fx), var(--fy)) rotate(var(--fr)) scale(var(--fs)); filter: blur(6px); }
+  30% { opacity: 1; filter: blur(0); }
   100% { opacity: 1; transform: translate(0,0) rotate(0deg) scale(1); filter: blur(0); }
+}
+@keyframes pricing-item {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pricing-divider {
+  from { opacity: 0; transform: scaleX(0); }
+  to { opacity: 1; transform: scaleX(1); }
+}
+@keyframes pricing-feature {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 @keyframes pricing-sheen-bar {
   from { transform: translateX(-150%) skewX(-14deg); }
@@ -184,6 +214,12 @@ const PLANS = [
 const TITLE_WORDS = ["Simple,", "transparent", "pricing"] as const;
 const CARD_BASE = 700;
 const CARD_STAGGER = 130;
+// Stage-2 content timing (ms). Content starts after the box shell has mostly
+// landed, then each block rises in and each feature row slips into place.
+const CONTENT_START = 520; // ms after the box begins its entrance
+const CONTENT_STAGGER = 100; // ms between major content blocks
+const FEATURE_STAGGER = 55; // ms between feature rows
+const CTA_GAP = 80; // ms after the last feature row
 
 function Pricing({ refCode = "" }: { refCode?: string }) {
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -215,7 +251,7 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
       <noscript
         dangerouslySetInnerHTML={{
           __html:
-            "<style>.pricing-section:not(.pricing-play) :is(.pricing-box,.pricing-kicker,.pricing-sub,.pricing-word){opacity:1!important;transform:none!important}</style>",
+            "<style>.pricing-section:not(.pricing-play) :is(.pricing-box,.pricing-box-item,.pricing-feature,.pricing-kicker,.pricing-sub,.pricing-word){opacity:1!important;transform:none!important}</style>",
         }}
       />
       {/* Ambient background — STATIC */}
@@ -265,13 +301,20 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
 
         {/* Pricing cards */}
         <div className="pricing-grid relative grid gap-6 lg:grid-cols-3 max-w-6xl mx-auto items-stretch">
-          {PLANS.map((plan, idx) => (
+          {PLANS.map((plan, idx) => {
+            const cardDelay = CARD_BASE + idx * CARD_STAGGER;
+            const featOffset = plan.label ? 1 : 0;
+            const contentBase = cardDelay + CONTENT_START;
+            const featBase = contentBase + CONTENT_STAGGER * 3;
+            const ctaDelay =
+              featBase + (featOffset + plan.features.length) * FEATURE_STAGGER + CTA_GAP;
+            return (
             <div
               key={plan.name}
               style={
                 {
                   "--ga": plan.ga,
-                  "--fd": `${CARD_BASE + idx * CARD_STAGGER}ms`,
+                  "--fd": `${cardDelay}ms`,
                   "--fx": `${plan.fx}px`,
                   "--fy": `${plan.fy}px`,
                   "--fr": `${plan.fr}deg`,
@@ -292,7 +335,10 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
 
               <div className="relative z-10 flex flex-col flex-1">
                 {/* Header */}
-                <div className="flex items-start justify-between gap-3">
+                <div
+                  className="pricing-box-item flex items-start justify-between gap-3"
+                  style={{ "--id": `${contentBase}ms` } as CSSProperties}
+                >
                   <div>
                     <h3 className="text-2xl font-semibold text-white">
                       {plan.name}
@@ -318,7 +364,10 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
                 </div>
 
                 {/* Price */}
-                <div className="mt-2.5">
+                <div
+                  className="pricing-box-item mt-2.5"
+                  style={{ "--id": `${contentBase + CONTENT_STAGGER}ms` } as CSSProperties}
+                >
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-5xl font-semibold tracking-tight text-white">
                       {plan.price}
@@ -329,12 +378,21 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
                 </div>
 
                 {/* Divider */}
-                <div className="my-3 h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+                <div
+                  className="pricing-box-item pricing-divider my-3 h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent"
+                  style={{ "--id": `${contentBase + CONTENT_STAGGER * 2}ms` } as CSSProperties}
+                />
 
                 {/* Features */}
-                <ul className="flex-1 space-y-1.5">
+                <ul
+                  className="pricing-box-item flex-1 space-y-1.5"
+                  style={{ "--id": `${featBase}ms` } as CSSProperties}
+                >
                   {plan.label && (
-                    <li className="flex items-start gap-3 pb-1.5">
+                    <li
+                      className="pricing-feature flex items-start gap-3 pb-1.5"
+                      style={{ "--id": `${featBase}ms` } as CSSProperties}
+                    >
                       <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#ff4b00]/15 text-[#ff4b00]">
                         <Check className="w-3 h-3" />
                       </span>
@@ -344,7 +402,15 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
                     </li>
                   )}
                   {plan.features.map((item, i) => (
-                    <li key={i} className="flex items-start gap-3">
+                    <li
+                      key={i}
+                      className="pricing-feature flex items-start gap-3"
+                      style={
+                        {
+                          "--id": `${featBase + (featOffset + i) * FEATURE_STAGGER}ms`,
+                        } as CSSProperties
+                      }
+                    >
                       <span
                         className={cn(
                           "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full",
@@ -366,18 +432,20 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
                 <a
                   href={`/dashboard${refCode ? `?ref=${refCode}` : ""}`}
                   className={cn(
-                    "mt-3.5 flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.03]",
+                    "pricing-box-item mt-3.5 flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.03]",
                     plan.free
                       ? "border border-emerald-500/25 bg-emerald-500/5 text-white hover:bg-emerald-500/10 hover:border-emerald-400/50"
                       : "border border-white/15 bg-white/5 text-white hover:bg-white/10 hover:border-white/30 hover:shadow-[0_16px_40px_-12px_rgba(255,255,255,0.15)]"
                   )}
+                  style={{ "--id": `${ctaDelay}ms` } as CSSProperties}
                 >
                   {plan.ctaText}
                 </a>
               </div>
               </PerspectiveCard>
             </div>
-          ))}
+            );
+          })}
           <div aria-hidden="true" className="pricing-sheen pointer-events-none absolute inset-0 z-20 overflow-hidden rounded-2xl">
             <div className="pricing-sheen-bar" />
           </div>

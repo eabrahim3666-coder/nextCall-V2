@@ -5,6 +5,18 @@ import { ArrowDown } from "lucide-react";
 import AINetworkAnimation from "./AINetworkAnimation";
 
 const HERO_INTRO_CSS = `
+.hero-anim-inner {
+  aspect-ratio: 20 / 8.2;
+  mask-image: radial-gradient(ellipse 72% 80% at 50% 42%, black 55%, transparent 98%);
+  -webkit-mask-image: radial-gradient(ellipse 72% 80% at 50% 42%, black 55%, transparent 98%);
+  clip-path: inset(36px 0 12px 0);
+}
+@media (max-width: 640px) {
+  .hero-anim-inner {
+    aspect-ratio: 20 / 11;
+    clip-path: inset(20px 0 8px 0) !important;
+  }
+}
 .hero-section:not(.hero-play) :is(.hero-kicker, .hero-sub, .hero-cta, .hero-anim, .hero-scroll) {
   opacity: 0;
 }
@@ -124,8 +136,8 @@ function Hero() {
             24/7 AI Receptionist · Instant Setup
           </div>
 
-          {/* Main heading — word-by-word rise */}
-          <h1 className="hero-headline-shine w-max max-w-full mx-auto text-[clamp(2rem,6vw,4.5rem)] leading-[1.08] font-semibold tracking-tight text-white sm:whitespace-nowrap">
+          {/* Main heading — word-by-word rise — responsive wrap */}
+          <h1 className="hero-headline-shine w-full max-w-full mx-auto text-[clamp(2rem,6vw,4.5rem)] leading-[1.08] font-semibold tracking-tight text-white sm:w-max sm:whitespace-nowrap px-2 sm:px-0">
             <span className="block">
               {HERO_TITLE_WORDS.map((word, i) => (
                 <span key={word} className="-mb-2 inline-block overflow-hidden pb-2 align-bottom">
@@ -168,17 +180,9 @@ function Hero() {
 
       {/* AI Network Animation v2 - bottom middle — gap minimized, top box fully visible */}
       <div className="hero-anim relative z-10 w-full flex justify-center items-start -mt-1 sm:-mt-2 mb-0 overflow-hidden">
-        <div
-          className="relative flex w-full max-w-[min(100%,1400px)] items-start"
-          style={{
-            aspectRatio: "20 / 8.2",
-            maskImage: "radial-gradient(ellipse 72% 80% at 50% 42%, black 55%, transparent 98%)",
-            WebkitMaskImage: "radial-gradient(ellipse 72% 80% at 50% 42%, black 55%, transparent 98%)",
-            clipPath: "inset(36px 0 12px 0)",
-          }}
-        >
-          <AINetworkAnimation />
-        </div>
+      <div className="hero-anim-inner relative flex w-full max-w-[min(100%,1400px)] items-start">
+        <AINetworkAnimation />
+      </div>
       </div>
 
       {/* Scroll hint — at wire ends, bg ends there */}
