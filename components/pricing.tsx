@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 const PRICING_INTRO_CSS = `
 .pricing-box {
-  background-image: linear-gradient(var(--ga, 135deg), #0a0604 0%, #000000 62%);
+  background-image: linear-gradient(var(--ga, 135deg), #141417 0%, #000000 62%);
   border-radius: 16px;
   border: none;
   transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, filter 0.35s ease;
@@ -21,7 +21,7 @@ const PRICING_INTRO_CSS = `
 }
 @media (max-width: 640px) {
   .pricing-box {
-    background-image: linear-gradient(180deg, #0a0604 0%, #000000 55%) !important;
+    background-image: linear-gradient(180deg, #161619 0%, #000000 55%) !important;
   }
 }
 @media (hover: none) {
@@ -64,12 +64,12 @@ const PRICING_INTRO_CSS = `
   .pricing-play .pricing-grid {
     animation: pricing-grid 2.0s cubic-bezier(0.22, 1, 0.36, 1) 500ms backwards;
   }
-  /* Stage 1 — the box/shell itself loads first (clean, quick settle). */
+  /* Stage 1 â€” the box/shell itself loads first (clean, quick settle). */
   .pricing-play .pricing-box {
     animation: pricing-card 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--fd) backwards;
     will-change: transform, opacity, filter;
   }
-  /* Stage 2 — content rises into the landed box, block by block. */
+  /* Stage 2 â€” content rises into the landed box, block by block. */
   .pricing-play .pricing-box-item {
     animation: pricing-item 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--id) backwards;
     will-change: transform, opacity;
@@ -154,7 +154,7 @@ const PLANS = [
     subtitle: "For small businesses getting started with AI",
     price: "$299",
     period: "/month",
-    minutes: "200 minutes included · $0.50/min overage",
+    minutes: "200 minutes included Â· $0.50/min overage",
     badge: "Best Value",
     free: false,
     highlight: true,
@@ -162,7 +162,7 @@ const PLANS = [
     ctaText: "Get Standard",
     features: [
       "AI answers calls 24/7",
-      "AI text-back — customers can text your number",
+      "AI text-back â€” customers can text your number",
       "Follow-up emails after every call",
       "Appointment booking + email reminders",
       "1 phone number",
@@ -185,14 +185,14 @@ const PLANS = [
     subtitle: "For growing businesses\nthat want to win every call",
     price: "$399",
     period: "/month",
-    minutes: "500 minutes included · $0.40/min overage",
+    minutes: "500 minutes included Â· $0.40/min overage",
     badge: "Most Popular",
     free: false,
     highlight: false,
     label: "Includes everything in Standard, plus:",
     ctaText: "Get Premium",
     features: [
-      "500 minutes — 2.5× more call handling",
+      "500 minutes â€” 2.5Ã— more call handling",
       "3 phone numbers (+ buy more anytime)",
       "Hot-lead instant alerts",
       "Missed-call auto-SMS",
@@ -254,13 +254,13 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
             "<style>.pricing-section:not(.pricing-play) :is(.pricing-box,.pricing-box-item,.pricing-feature,.pricing-kicker,.pricing-sub,.pricing-word){opacity:1!important;transform:none!important}</style>",
         }}
       />
-      {/* Ambient background — STATIC */}
+      {/* Ambient background â€” STATIC */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(8,5,4,0.45)_0%,transparent_60%)] opacity-30" />
-        <div className="absolute inset-0 bg-[linear-gradient(315deg,rgba(8,5,4,0.4)_0%,transparent_60%)] opacity-30" />
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(12,12,14,0.45)_0%,transparent_60%)] opacity-30" />
+        <div className="absolute inset-0 bg-[linear-gradient(315deg,rgba(12,12,14,0.4)_0%,transparent_60%)] opacity-30" />
       </div>
 
-      {/* Grid lines backdrop — STATIC */}
+      {/* Grid lines backdrop â€” STATIC */}
       <div
         className="absolute inset-0 opacity-[0.07] pointer-events-none"
         style={{
@@ -295,7 +295,7 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
           </h2>
           <p className="pricing-sub mt-5 text-base sm:text-lg text-zinc-400">
             No hidden fees. No contracts. Cancel anytime. Start with a free
-            3-day trial — no credit card required.
+            3-day trial â€” no credit card required.
           </p>
         </div>
 
