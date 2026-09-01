@@ -80,8 +80,8 @@ export async function POST(request: Request) {
             content: content || "📷 Photo",
             hasPhoto: Boolean(photo),
         });
-        if (!adminPing.ok) {
-            console.error("Admin Telegram ping failed for chat message:", adminPing.error);
+        if (!adminPing) {
+            console.error("Admin Telegram ping failed for chat message from business", userId);
         }
         const { notifyChatAdmins } = await import("@/lib/pusher");
         await notifyChatAdmins({

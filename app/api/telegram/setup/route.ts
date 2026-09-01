@@ -18,14 +18,20 @@ export async function GET(request: Request) {
 
     const probeOnly = url.searchParams.get("probe") === "1";
 
+    // Telegram echoes this back on every webhook update; the webhook route
+    // rejects anything without it. Must be 1-256 chars of A-Z a-z 0-9 _ -
+    const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+
     let setData: unknown = { skipped: probeOnly };
     if (!probeOnly) {
         const host = String(appUrl).replace(/^https?:\/\//, "").replace(/\/.*$/, "");
         const wwwHost = host.startsWith("www.") ? host : `www.${host}`;
         const webhookUrl = `https://${wwwHost}/api/webhooks/telegram`;
-        const setRes = await fetch(
-            `https://api.telegram.org/bot${token}/setWebhook?url=${encodeURIComponent(webhookUrl)}&drop_pending_updates=true`
-        );
+        let setUrl = `https://api.telegram.org/bot${token}/setWebhook?url=${encodeURIComponent(webhookUrl)}&drop_pending_updates=true`;
+        if (webhookSecret) {
+            setUrl += `&secret_token=${encodeURIComponent(webhookSecret)}`;
+        }
+        const setRes = await fetch(setUrl);
         setData = await setRes.json();
     }
 

@@ -75,13 +75,19 @@ function getMemoryCollection(name: string) {
       items.push(inserted);
       return { insertedId: inserted._id };
     },
-    updateOne: async (filter: any, update: any) => {
+    updateOne: async (filter?: any, update?: any) => {
       const target = items.find((d) => matchesFilter(d, filter));
       if (target && update?.$set) {
         Object.assign(target, update.$set);
         return { matchedCount: 1, modifiedCount: 1 };
       }
       return { matchedCount: 0, modifiedCount: 0 };
+    },
+    deleteOne: async (filter?: any) => {
+      const idx = items.findIndex((d) => matchesFilter(d, filter));
+      if (idx === -1) return { deletedCount: 0 };
+      items.splice(idx, 1);
+      return { deletedCount: 1 };
     },
     countDocuments: async (filter?: any) => {
       return items.filter((d) => matchesFilter(d, filter)).length;
@@ -225,6 +231,7 @@ export const webhookEventsCollection = {
   findOne: (filter: JsonDoc) => webhookOp(() => _webhookEventsCollection.findOne(filter)),
   insertOne: (doc: JsonDoc) => webhookOp(() => _webhookEventsCollection.insertOne(doc)),
   updateOne: (filter: JsonDoc, update: JsonDoc) => webhookOp(() => _webhookEventsCollection.updateOne(filter, update)),
+  deleteOne: (filter: JsonDoc) => webhookOp(() => _webhookEventsCollection.deleteOne(filter)),
 };
 
 const db = realDb || {

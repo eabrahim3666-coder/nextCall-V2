@@ -178,10 +178,14 @@ export default function IntegrationsSection() {
 
   // Once visible, pulse the first icon after the entrance has settled so the
   // animation feels alive the first time the user scrolls to this section.
+  // Skipped if the user has already picked another icon by then.
   useEffect(() => {
     if (!visible) return;
     const t = window.setTimeout(() => {
-      selectKey(DEFAULT_KEY);
+      setActiveKey((current) => {
+        if (current === DEFAULT_KEY) selectKey(DEFAULT_KEY);
+        return current;
+      });
     }, 3550);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -289,9 +293,9 @@ export default function IntegrationsSection() {
         <div className="pill">Integrations</div>
 
         {/* Headline */}
-        <h1 className="headline">
+        <h2 className="headline">
           Works with <span className="accent">your stack</span>
-        </h1>
+        </h2>
 
         {/* Subheadline */}
         <p className="subheadline">

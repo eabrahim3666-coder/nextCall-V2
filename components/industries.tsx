@@ -13,7 +13,6 @@ import {
   Briefcase,
   ShoppingCart,
   Globe,
-  RotateCcw,
   type LucideIcon,
 } from "lucide-react";
 
@@ -406,7 +405,6 @@ const CARD_STAGGER = 75;
 
 export default function IndustriesSection() {
   const sectionRef = useRef<HTMLElement | null>(null);
-  const replayTimer = useRef<number | undefined>(undefined);
   const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
@@ -428,20 +426,11 @@ export default function IndustriesSection() {
 
     return () => {
       io.disconnect();
-      window.clearTimeout(replayTimer.current);
     };
   }, []);
 
-  const replay = () => {
-    // Remove the play class so every piece resets to its hidden/scattered
-    // state, then re-add it to restart the whole choreography.
-    setPlaying(false);
-    window.clearTimeout(replayTimer.current);
-    replayTimer.current = window.setTimeout(() => setPlaying(true), 90);
-  };
-
   return (
-    <main className="overflow-clip bg-black">
+    <div className="overflow-clip bg-black">
       {/* Embedded stylesheet — self-contained, no globals.css changes needed */}
       <style dangerouslySetInnerHTML={{ __html: INDUSTRIES_CSS }} />
       <noscript
@@ -539,7 +528,7 @@ export default function IndustriesSection() {
 
         </div>
       </section>
-      </main>
+    </div>
   );
 }
 export { IndustriesSection as Industries };
