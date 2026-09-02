@@ -88,6 +88,13 @@ async function activateBusinessFromPaddleData(data: PaddleEventData) {
 
   const { minutesLimit, overageRate } = getPlanLimits(planType);
 
+  // Only reset minutes_limit to the plan default when the plan CHANGED (or
+  // this is a brand-new business). Monthly renewals re-fire
+  // transaction.completed with the original custom_data — an unconditional
+  // $set there silently confiscated top-up minutes the customer paid for.
+  const isNewBusiness = !existingBusiness;
+  const planChanged = !existingBusiness?.plan_type || existingBusiness.plan_type !== planType;
+
   const trialStart = planType === 'trial'
     ? (existingBusiness?.trial_started_at || new Date().toISOString())
     : undefined;
@@ -109,8 +116,9 @@ async function activateBusinessFromPaddleData(data: PaddleEventData) {
         paddle_customer_id: data.customer_id,
         status: "active",
         plan_type: planType,
-        minutes_limit: minutesLimit,
-        overage_rate: overageRate,
+        ...(isNewBusiness || planChanged
+          ? { minutes_limit: minutesLimit, overage_rate: overageRate }
+          : {}),
         ...(trialStart && trialEnd
           ? { trial_started_at: trialStart, trial_ends_at: trialEnd }
           : {}),
@@ -256,6 +264,57 @@ export async function POST(request: Request) {
         // instead of hitting the "processing: true" short-circuit below.
         await webhookEventsCollection.deleteOne({ _id: eventKey });
         return NextResponse.json({ error: "Activation failed; retry pending" }, { status: 500 });
+      }
+    } else if (eventName === 'subscription.updated') {
+      // Plan upgrades/downgrades arrive here — previously unhandled, so a
+      // standard→premium upgrade left premium features locked until renewal.
+      try {
+        const sub = payload.data || {};
+        const priceId = sub.items?.[0]?.price?.id || sub.items?.[0]?.price_id;
+        let planFromPrice: string | undefined;
+        if (priceId === process.env.NEXT_PUBLIC_PADDLE_PREMIUM_PRICE_ID) planFromPrice = 'premium';
+        else if (priceId === process.env.NEXT_PUBLIC_PADDLE_STANDARD_PRICE_ID) planFromPrice = 'standard';
+        else if (priceId === process.env.NEXT_PUBLIC_PADDLE_TRIAL_PRICE_ID) planFromPrice = 'trial';
+
+        const clerkId = sub.custom_data?.clerk_user_id;
+        if (!clerkId) {
+          console.error("subscription.updated missing clerk_user_id in custom_data:", eventId);
+        } else {
+          const business = await businessesCollection.findOne({ business_id: clerkId });
+          if (business) {
+            const newPlan = planFromPrice || sub.custom_data?.plan || business.plan_type || 'standard';
+            const planChangedTo = newPlan !== (business.plan_type || 'standard');
+            const { minutesLimit, overageRate } = getPlanLimits(newPlan);
+            const updates: Record<string, unknown> = {
+              plan_type: newPlan,
+              paddle_subscription_id: sub.id,
+              paddle_customer_id: sub.customer_id,
+              updated_at: new Date().toISOString(),
+            };
+            if (planChangedTo) {
+              updates.minutes_limit = minutesLimit;
+              updates.overage_rate = overageRate;
+            }
+            await businessesCollection.updateOne({ business_id: clerkId }, { $set: updates });
+            console.log(`Plan reconciled for ${clerkId}: ${business.plan_type || 'standard'} → ${newPlan}${planChangedTo ? '' : ' (unchanged)'}`);
+          } else {
+            // Business not onboarded yet (event raced ahead of activation) —
+            // run full activation with the plan derived from the price id.
+            await activateBusinessFromPaddleData({
+              ...sub,
+              custom_data: { ...sub.custom_data, plan: planFromPrice || sub.custom_data?.plan },
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error reconciling subscription update:", error);
+        await sendTelegramMessage(
+          `🚨 <b>Paddle subscription.updated failed</b>\n` +
+          `<b>Event:</b> ${escapeHtml(eventId)}\n` +
+          `<b>Error:</b> ${escapeHtml(error instanceof Error ? error.message : String(error)).slice(0, 300)}`
+        );
+        await webhookEventsCollection.deleteOne({ _id: eventKey });
+        return NextResponse.json({ error: "Subscription update failed; retry pending" }, { status: 500 });
       }
     }
 
