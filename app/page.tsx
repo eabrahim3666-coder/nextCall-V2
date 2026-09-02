@@ -178,7 +178,8 @@ export default function Home() {
                 ),
               },
               {
-                id: "pricing",
+                // No wrapper id — the Pricing section itself is #pricing
+                // (duplicate ids break getElementById + anchor semantics).
                 bg: BG_PITCH,
                 children: (
                   <Section3D intensity="medium" bg={BG_PITCH}>
@@ -187,7 +188,7 @@ export default function Home() {
                 ),
               },
               {
-                id: "faq",
+                // No wrapper id — the Faq section itself is #faq
                 bg: BG_PITCH,
                 children: (
                   <Section3D intensity="medium" bg={BG_PITCH}>
@@ -196,7 +197,7 @@ export default function Home() {
                 ),
               },
               {
-                id: "ask",
+                // No wrapper id — the Contact section itself is #ask
                 bg: BG_PITCH,
                 children: (
                   <Section3D intensity="subtle" bg={BG_PITCH} preserveOpacity>
