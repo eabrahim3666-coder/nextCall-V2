@@ -169,7 +169,7 @@ async function activateBusinessFromPaddleData(data: PaddleEventData) {
   console.log(`Business ${businessName} onboarded on ${planType} plan via Paddle!`);
 
   if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
-    const teleMsg = `<b>New Paid User (Paddle)</b>\n\nBusiness: <b>${businessName}</b>\nPlan: ${planType}\nPhone: ${ownerPhone}`;
+    const teleMsg = `<b>New Paid User (Paddle)</b>\n\nBusiness: <b>${escapeHtml(businessName)}</b>\nPlan: ${escapeHtml(planType)}\nPhone: ${escapeHtml(ownerPhone || "")}`;
     fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
