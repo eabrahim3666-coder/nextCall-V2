@@ -108,11 +108,14 @@ export async function POST(request: Request) {
             }
         }
 
-        const existing = Array.isArray(conv.messages) ? conv.messages : [];
-        const messages = [...existing.slice(-99), replyMessage];
+        // Append via $push so a concurrent user message or admin-panel reply
+        // can't be overwritten by this webhook write.
         await conversationsCollection.updateOne(
             { _id: conv._id },
-            { $set: { messages, last_activity: replyMessage.at } }
+            {
+                $set: { last_activity: replyMessage.at },
+                $push: { messages: replyMessage },
+            }
         );
 
         if (conv.business_id) {

@@ -128,13 +128,16 @@ async function handleMessage(event: MetaMessagingEvent) {
 
         // 3. Fetch or Create Conversation Memory + State
         let conversation = await conversationsCollection.findOne({ sender_id: senderId, page_id: String(pageId) });
-        
+
         // If no conversation exists, or it's older than 24 hours (Meta limit), start fresh
-        if (!conversation || (Date.now() - new Date(conversation.last_activity).getTime() > 24 * 60 * 60 * 1000)) {
+        const staleReset =
+            !conversation ||
+            Date.now() - new Date((conversation as { last_activity?: string }).last_activity || 0).getTime() > 24 * 60 * 60 * 1000;
+        if (staleReset) {
             conversation = {
                 sender_id: senderId,
                 page_id: String(pageId),
-                messages: [], 
+                messages: [],
                 last_activity: new Date().toISOString(),
                 customerName: null,
                 phoneNumber: null,
@@ -145,16 +148,24 @@ async function handleMessage(event: MetaMessagingEvent) {
 
         if (!conversation) return;
 
-        // 4. Add user's message to memory and save immediately
-        conversation.messages.push({ role: "user", content: messageText });
-        if (conversation.messages.length > 10) {
-            conversation.messages = conversation.messages.slice(-10);
-        }
-        
+        // 4. Add user's message to memory. Live conversations append atomically
+        // ($push) so a whole-array $set can't drop a concurrent message from
+        // the same user — routine given the 3s human buffer below. Stale
+        // (>24h) conversations are intentionally reset instead.
         const currentTimestamp = new Date().toISOString();
         await conversationsCollection.updateOne(
             { sender_id: senderId, page_id: String(pageId) },
-            { $set: { messages: conversation.messages, last_activity: currentTimestamp } },
+            staleReset
+                ? {
+                      $set: {
+                          messages: [{ role: "user", content: messageText }],
+                          last_activity: currentTimestamp,
+                      },
+                  }
+                : {
+                      $set: { last_activity: currentTimestamp },
+                      $push: { messages: { role: "user", content: messageText } },
+                  },
             { upsert: true }
         );
 
@@ -166,6 +177,15 @@ async function handleMessage(event: MetaMessagingEvent) {
         if (latestConv && latestConv.last_activity !== currentTimestamp) {
             console.log("User is still typing, pausing this reply...");
             return; // Exit. The newer webhook will handle the full reply.
+        }
+        // Adopt the freshest messages for prompt context — but keep the
+        // locally-reset state for stale conversations (a stale doc still holds
+        // pre-reset state fields in the DB, matching the original behavior).
+        if (latestConv && !staleReset) conversation = latestConv;
+        // Keep the in-memory copy bounded for the prompt context (Astra's
+        // $push has no $slice; the cap lives here instead).
+        if (Array.isArray(conversation.messages) && conversation.messages.length > 10) {
+            conversation.messages = conversation.messages.slice(-10);
         }
 
         // 5. Enterprise Brain: Analyze, Extract State, and Reply in ONE call
@@ -258,21 +278,19 @@ STRICT RULES:
         else if (aiData.leadStage === "HOT" || aiData.intent === "booking") newLeadStage = "HOT";
         else if (aiData.leadStage === "INTERESTED" || aiData.intent === "pricing" || aiData.intent === "availability") newLeadStage = "INTERESTED";
 
-        // 6. Add AI's reply to memory and Save State + Memory to AstraDB
-        conversation.messages.push({ role: "assistant", content: finalReply });
-
+        // 6. Add AI's reply to memory ($push — same race protection) and Save State
         await conversationsCollection.updateOne(
             { sender_id: senderId, page_id: String(pageId) },
-            { $set: { 
-                messages: conversation.messages, 
+            { $set: {
                 last_activity: new Date().toISOString(),
-                customerName: extractedName, 
-                phoneNumber: extractedPhone, 
-                lastAction: finalAction,       
-                leadStage: newLeadStage,        
-                lastIntent: aiData.intent,      
-                lastSentiment: aiData.sentiment 
-            }},
+                customerName: extractedName,
+                phoneNumber: extractedPhone,
+                lastAction: finalAction,
+                leadStage: newLeadStage,
+                lastIntent: aiData.intent,
+                lastSentiment: aiData.sentiment
+            },
+            $push: { messages: { role: "assistant", content: finalReply } }},
             { upsert: true }
         );
 

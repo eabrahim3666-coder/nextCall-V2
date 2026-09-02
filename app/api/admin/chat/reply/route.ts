@@ -18,7 +18,6 @@ export async function POST(request: Request) {
         }
 
         const filter = { business_id, kind: "support" };
-        const conv = await conversationsCollection.findOne(filter);
 
         const reply: ChatMessage = {
             id: `a_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -28,21 +27,26 @@ export async function POST(request: Request) {
             at: new Date().toISOString(),
         };
 
-        const existing = Array.isArray(conv?.messages) ? conv.messages : [];
-        const messages = [...existing.slice(-99), reply];
-
-        await conversationsCollection.updateOne(
+        // Append via $push so concurrent writers (user message + admin reply
+        // in flight together) can't overwrite each other's messages.
+        const result = await conversationsCollection.updateOne(
             filter,
             {
                 $set: {
                     kind: "support",
-                    messages,
                     last_activity: reply.at,
                     read_by_admin_at: reply.at,
+                },
+                $push: {
+                    messages: reply,
                 },
             },
             { upsert: true }
         );
+
+        if (!result || (result as { matchedCount?: number }).matchedCount === 0) {
+            return NextResponse.json({ error: "Failed to save reply" }, { status: 500 });
+        }
 
         // Push the reply live to the business owner's chat widget
         await notifyChat(business_id, reply);
