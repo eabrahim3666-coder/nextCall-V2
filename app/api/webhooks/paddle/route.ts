@@ -95,21 +95,6 @@ async function activateBusinessFromPaddleData(data: PaddleEventData) {
     ? new Date(new Date(trialStart).getTime() + TRIAL_DURATION_MS).toISOString()
     : undefined;
 
-  if (refCode && !existingBusiness?.referral_applied_at) {
-    const referrer = await businessesCollection.findOne({ referral_code: refCode });
-    if (referrer && planType !== 'trial') {
-      const referralBonus = planType === 'premium' ? 70 : 40;
-      await businessesCollection.updateOne(
-        { _id: referrer._id },
-        {
-          $inc: { minutes_limit: referralBonus, bonus_minutes: referralBonus },
-          $set: { updated_at: new Date().toISOString() }
-        }
-      );
-      console.log(`${referrer.business_name} earned ${referralBonus} bonus minutes from ${planType} referral!`);
-    }
-  }
-
   await businessesCollection.updateOne(
     { business_id: clerkId },
     {
@@ -129,7 +114,6 @@ async function activateBusinessFromPaddleData(data: PaddleEventData) {
         ...(trialStart && trialEnd
           ? { trial_started_at: trialStart, trial_ends_at: trialEnd }
           : {}),
-        ...(refCode ? { referral_applied_at: new Date().toISOString() } : {}),
         updated_at: new Date().toISOString()
       },
       $setOnInsert: {
@@ -144,6 +128,35 @@ async function activateBusinessFromPaddleData(data: PaddleEventData) {
     },
     { upsert: true }
   );
+
+  // Referral bonus — runs AFTER the upsert so the buyer doc is guaranteed to
+  // exist. ATOMIC CLAIM: only the request that wins the claim credits the
+  // referrer; two concurrent Paddle events (subscription.created +
+  // transaction.completed) both reading "no referral_applied_at" would
+  // otherwise double-credit, and a mid-activation retry would re-credit.
+  if (refCode && planType !== 'trial') {
+    const referrer = await businessesCollection.findOne({ referral_code: refCode });
+    // Self-referral guard: a buyer must not credit their own account.
+    if (referrer && referrer.business_id !== clerkId) {
+      const claim = await businessesCollection.updateOne(
+        { business_id: clerkId, referral_applied_at: { $exists: false } },
+        { $set: { referral_applied_at: new Date().toISOString() } }
+      );
+      if (claim && (claim as { matchedCount?: number }).matchedCount === 1) {
+        const referralBonus = planType === 'premium' ? 70 : 40;
+        await businessesCollection.updateOne(
+          { _id: referrer._id },
+          {
+            $inc: { minutes_limit: referralBonus, bonus_minutes: referralBonus },
+            $set: { updated_at: new Date().toISOString() }
+          }
+        );
+        console.log(`${referrer.business_name} earned ${referralBonus} bonus minutes from ${planType} referral!`);
+      } else {
+        console.log(`Referral bonus skipped for ${clerkId} — already claimed by a concurrent activation.`);
+      }
+    }
+  }
 
   console.log(`Business ${businessName} onboarded on ${planType} plan via Paddle!`);
 
