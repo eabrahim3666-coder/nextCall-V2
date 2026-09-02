@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import StyledJsxRegistry from "./registry";
 import "./globals.css";
 import "./design.css";
 
@@ -33,7 +34,9 @@ export default function RootLayout({
             rel="stylesheet"
           />
         </head>
-        <body className="antialiased font-sans overflow-x-clip">{children}</body>
+        <body className="antialiased font-sans overflow-x-clip">
+          <StyledJsxRegistry>{children}</StyledJsxRegistry>
+        </body>
       </html>
     </ClerkProvider>
   );
