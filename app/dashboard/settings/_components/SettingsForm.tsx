@@ -121,7 +121,12 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
         needsReferralCode ? "N/A" : data.referral_code
     );
     const [generatingCode, setGeneratingCode] = useState(needsReferralCode);
-    const referralLink = typeof window !== 'undefined' ? `${window.location.origin}/?ref=${referralCode}` : '';
+    // Build the referral link AFTER mount so SSR and first client render
+    // match (window.location.origin during render caused a hydration
+    // mismatch on the readOnly input below).
+    const [origin, setOrigin] = useState("");
+    useEffect(() => { setOrigin(window.location.origin); }, []);
+    const referralLink = origin ? `${origin}/?ref=${referralCode}` : '';
 
     const handleCopyReferral = () => {
         navigator.clipboard.writeText(referralLink);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 
 import { SmoothScroll } from "@/components/SmoothScroll";
@@ -25,6 +25,9 @@ const BG_PITCH = "#000000";
 const BG_LIGHT = "#ffffff";
 
 export default function Home() {
+  const toastTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  // Clear any pending toast timers if the page unmounts mid-countdown.
+  useEffect(() => () => { toastTimers.current.forEach(clearTimeout); }, []);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -43,11 +46,13 @@ export default function Home() {
       status: string;
     }>
   >([]);
-  const searchParams =
-    typeof window !== "undefined"
-      ? new URLSearchParams(window.location.search)
-      : null;
-  const refCode = searchParams?.get("ref") || "";
+  // Read ?ref= AFTER mount so SSR and the first client render match (reading
+  // window during render caused a hydration mismatch on ref links).
+  const [refCode, setRefCode] = useState("");
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("ref");
+    if (ref) setRefCode(ref);
+  }, []);
   const [showPanel, setShowPanel] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toasts, setToasts] = useState<
@@ -60,9 +65,10 @@ export default function Home() {
   ) => {
     const id = Date.now() + Math.random();
     setToasts((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 4000);
+    toastTimers.current.push(timer);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
