@@ -38,7 +38,13 @@ export default function DashboardCharts({ volumeData, sentimentData }: { volumeD
     const totalCalls = volumeData.reduce((sum, day) => sum + day.calls, 0);
     const displayVolume = totalCalls === 0 ? defaultVolumeData : volumeData;
     const displaySentiment = totalCalls === 0 ? defaultSentimentData : sentimentData;
-    const sentimentTotal = displaySentiment.reduce((sum, entry) => sum + entry.value, 0);
+    // Positive-share % of classified calls — the raw sum of call counts is NOT
+    // a percentage (a user with 7 calls used to see "7% Quality").
+    const sentimentCalls = displaySentiment.reduce((sum, entry) => sum + entry.value, 0);
+    const positiveShare = sentimentCalls > 0
+        ? Math.round((displaySentiment[0]?.value ?? 0) / sentimentCalls * 100)
+        : 0;
+    const qualityLabel = totalCalls === 0 ? "100%" : (sentimentCalls > 0 ? `${positiveShare}%` : "—");
 
     return (
         <div className="bg-black border border-white/5 rounded-2xl p-8">
@@ -82,21 +88,24 @@ export default function DashboardCharts({ volumeData, sentimentData }: { volumeD
                             <PieChart>
                                 <Pie data={displaySentiment} cx="50%" cy="50%" innerRadius={75} outerRadius={105} paddingAngle={3} dataKey="value" stroke="none">
                                     {displaySentiment.map((_, index) => (
-                                        <Cell key={`cell-${index}`} fill={totalCalls === 0 ? "#334155" : COLORS[index % COLORS.length]} />
+                                        // Always color per sentiment so the pie matches
+                                        // the legend below (demo mode used to render all
+                                        // slices gray while the legend showed colors).
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>
                                 <Tooltip contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }} itemStyle={{ color: '#94a3b8', fontSize: '12px' }} labelStyle={{ color: '#fff', fontWeight: 'bold' }} />
                             </PieChart>
                         </ResponsiveContainer>
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <p className="text-3xl font-bold text-white">{sentimentTotal}%</p>
-                            <p className="text-[10px] text-[#A7ADBB] uppercase tracking-widest mt-1">Quality</p>
+                            <p className="text-3xl font-bold text-white">{qualityLabel}</p>
+                            <p className="text-[10px] text-[#A7ADBB] uppercase tracking-widest mt-1">Positive</p>
                         </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-center mt-4">
-                        <div><span className="block h-1.5 w-full rounded-full bg-cyan-400 mb-2" /><p className="text-xs text-[#A7ADBB]">Pos</p></div>
-                        <div><span className="block h-1.5 w-full rounded-full bg-slate-400 mb-2" /><p className="text-xs text-[#A7ADBB]">Neu</p></div>
-                        <div><span className="block h-1.5 w-full rounded-full bg-red-400 mb-2" /><p className="text-xs text-[#A7ADBB]">Neg</p></div>
+                        <div><span className="block h-1.5 w-full rounded-full mb-2" style={{ background: COLORS[0] }} /><p className="text-xs text-[#A7ADBB]">Pos</p></div>
+                        <div><span className="block h-1.5 w-full rounded-full mb-2" style={{ background: COLORS[1] }} /><p className="text-xs text-[#A7ADBB]">Neu</p></div>
+                        <div><span className="block h-1.5 w-full rounded-full mb-2" style={{ background: COLORS[2] }} /><p className="text-xs text-[#A7ADBB]">Neg</p></div>
                     </div>
                 </div>
             </div>
