@@ -206,6 +206,10 @@ Output ONLY valid JSON.`
       business_name: metadata.business_name,
       quote_given: quote_given,
       quote_amount: quote_amount,
+      // Astra's Data API does not equate missing fields with null, so the
+      // job-done-followup cron's {job_status: {$in: [null, "pending"]}} filter
+      // never matched calls created without this field.
+      job_status: "pending",
       created_at: new Date(endTime).toISOString()
     };
 

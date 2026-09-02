@@ -179,6 +179,9 @@ export async function handleSmsMessage(options: HandleSmsOptions): Promise<{ rep
                         appointment_booked: true,
                         appointment_date_time: args.date_time,
                         appointment_duration_minutes: 60,
+                        // Required for the job-done-followup cron's filter
+                        // (Astra doesn't match missing fields against null).
+                        job_status: "pending",
                         call_source: "SMS",
                         channel: "sms",
                         sentiment: "Positive",
