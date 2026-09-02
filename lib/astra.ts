@@ -176,6 +176,15 @@ if (process.env.ASTRA_DB_APPLICATION_TOKEN && process.env.ASTRA_DB_ID) {
   } catch (err) {
     console.warn('[AstraDB] Initialization deferred or fallback used:', err);
   }
+} else if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_MEMORY_DB) {
+  // The in-memory fallback silently discards every write per serverless
+  // instance while the app LOOKS healthy — catastrophic data loss in prod.
+  // Crash loudly at boot instead (Vercel marks the deployment unhealthy).
+  throw new Error(
+    '[AstraDB] FATAL: ASTRA_DB_APPLICATION_TOKEN / ASTRA_DB_ID are not set in production. ' +
+    'Refusing to start on the in-memory fallback store (it silently loses all data). ' +
+    'Set the Astra env vars, or set ALLOW_MEMORY_DB=1 to explicitly acknowledge this.'
+  );
 }
 
 function getCollection(name: string): any {
