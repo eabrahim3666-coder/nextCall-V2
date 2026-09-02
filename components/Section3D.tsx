@@ -6,6 +6,7 @@ import {
   useScroll,
   useTransform,
   useSpring,
+  useReducedMotion,
 } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -46,6 +47,10 @@ export function Section3D({
   minHeight = "100vh",
 }: Section3DProps) {
   const ref = useRef<HTMLDivElement>(null);
+  // Respect prefers-reduced-motion: render flat, no 3D tilt/scale/blur on
+  // scroll (WCAG 2.3.3). Hooks must still run unconditionally for
+  // rules-of-hooks, so the transforms get neutralized instead of skipped.
+  const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],
@@ -56,22 +61,22 @@ export function Section3D({
   const rotateXRaw = useTransform(
     scrollYProgress,
     [0, 0.5, 1],
-    [cfg.rotate, 0, -cfg.rotate]
+    reduceMotion ? [0, 0, 0] : [cfg.rotate, 0, -cfg.rotate]
   );
   const scaleRaw = useTransform(
     scrollYProgress,
     [0, 0.5, 1],
-    [cfg.scale, 1, cfg.scale]
+    reduceMotion ? [1, 1, 1] : [cfg.scale, 1, cfg.scale]
   );
   const opacityRaw = useTransform(
     scrollYProgress,
     [0, 0.15, 0.85, 1],
-    preserveOpacity ? [1, 1, 1, 1] : [cfg.opacityFloor, 1, 1, cfg.opacityFloor]
+    preserveOpacity || reduceMotion ? [1, 1, 1, 1] : [cfg.opacityFloor, 1, 1, cfg.opacityFloor]
   );
   const yRaw = useTransform(
     scrollYProgress,
     [0, 0.5, 1],
-    [10, 0, -10]
+    reduceMotion ? [0, 0, 0] : [10, 0, -10]
   );
 
   const springCfg = { stiffness: 130, damping: 40, mass: 0.5 };

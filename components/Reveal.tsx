@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, ReactNode } from "react";
-import { motion, useInView, Variants } from "framer-motion";
+import { motion, useInView, useReducedMotion, Variants } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type Direction = "up" | "down" | "left" | "right" | "scale" | "fade" | "tilt";
@@ -29,6 +29,8 @@ export function Reveal({
 }: RevealProps) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once, amount });
+  // Respect prefers-reduced-motion: fade without movement (WCAG 2.3.3).
+  const reduceMotion = useReducedMotion();
 
   const offsets: Record<
     Direction,
@@ -43,7 +45,7 @@ export function Reveal({
     tilt: { x: 0, y: 22, scale: 0.98, rotate: -1 },
   };
 
-  const off = offsets[direction];
+  const off = reduceMotion ? offsets.fade : offsets[direction];
 
   return (
     <motion.div
@@ -67,8 +69,8 @@ export function Reveal({
           : undefined
       }
       transition={{
-        duration,
-        delay: delay + 0.05,
+        duration: reduceMotion ? 0.2 : duration,
+        delay: reduceMotion ? 0 : delay + 0.05,
         ease: EXPO_OUT,
       }}
       className={cn(className)}
