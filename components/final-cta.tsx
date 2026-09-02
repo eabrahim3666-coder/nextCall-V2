@@ -78,7 +78,7 @@ function FinalCta() {
       <div
         className="absolute inset-0 pointer-events-none bg-no-repeat bg-cover bg-center"
         style={{
-          backgroundImage: "url('/cta-bg.png')",
+          backgroundImage: "url('/cta-bg.webp')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}

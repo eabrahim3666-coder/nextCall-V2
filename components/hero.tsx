@@ -106,7 +106,7 @@ function Hero() {
       <div
         className="absolute inset-0 z-0 pointer-events-none bg-no-repeat bg-cover bg-center"
         style={{
-          backgroundImage: "url('/hero-bg-v2.png')",
+          backgroundImage: "url('/hero-bg-v2.webp')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}

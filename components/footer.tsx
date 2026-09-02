@@ -56,7 +56,7 @@ function Footer() {
       <div
         className="absolute inset-0 pointer-events-none bg-no-repeat bg-cover bg-center"
         style={{
-          backgroundImage: "url('/footer-bg.png')",
+          backgroundImage: "url('/footer-bg.webp')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
