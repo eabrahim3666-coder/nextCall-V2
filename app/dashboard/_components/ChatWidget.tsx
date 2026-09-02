@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ImagePlus, MessageCircle, Send, X } from "lucide-react";
 import { getPusherClient } from "@/lib/pusher-client";
+import { playBeep } from "@/lib/beep";
 
 type ChatMessage = {
     id: string;
@@ -54,20 +55,7 @@ export default function ChatWidget({ businessId }: { businessId: string }) {
         } catch {
             /* notifications unavailable */
         }
-        try {
-            const ctx = new AudioContext();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.frequency.value = 740;
-            gain.gain.setValueAtTime(0.08, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.3);
-        } catch {
-            /* audio unavailable */
-        }
+        playBeep();
     };
 
     useEffect(() => {

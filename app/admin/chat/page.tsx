@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Send, MessageCircle, Search } from "lucide-react";
 import { getPusherClient } from "@/lib/pusher-client";
+import { playBeep } from "@/lib/beep";
 
 type ChatMessage = {
     id: string;
@@ -34,20 +35,7 @@ const timeAgo = (iso: string | null) => {
 };
 
 function beep() {
-    try {
-        const ctx = new AudioContext();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.frequency.value = 880;
-        gain.gain.setValueAtTime(0.12, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.4);
-    } catch {
-        /* audio not available */
-    }
+    playBeep(880, 0.12, 0.4);
 }
 
 export default function AdminChatPage() {

@@ -25,7 +25,10 @@ export default function NotificationBell() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [open, setOpen] = useState(false);
-    const [now, setNow] = useState(0);
+    // Real clock for time-ago stamps — starts at mount (was 0, so every
+    // notification showed "Just now" for the first minute) and ticks hourly
+    // updates at 60s.
+    const [now, setNow] = useState(() => Date.now());
     const [selectedNotif, setSelectedNotif] = useState<Notification | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -58,7 +61,7 @@ export default function NotificationBell() {
             startTransition(() => { fetchNotifications(); });
         }, 120000);
 
-        // 3. Update time-ago stamps every minute
+        // 3. Update time-ago stamps every minute (plus one immediate tick)
         const tick = () => setNow(Date.now());
         const timeInterval = setInterval(tick, 60000);
 

@@ -319,6 +319,8 @@ export default function IntegrationsSection() {
                   data-label={meta.label}
                   role="button"
                   tabIndex={0}
+                  aria-pressed={activeKey === key}
+                  aria-label={`Show details for ${meta.label}`}
                   onClick={() => selectKey(key)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -338,6 +340,7 @@ export default function IntegrationsSection() {
           ref={cardRef}
           className="glass-card"
           data-color={displayMeta.color}
+          aria-live="polite"
         >
           <div className="glass-card__head">
             <div

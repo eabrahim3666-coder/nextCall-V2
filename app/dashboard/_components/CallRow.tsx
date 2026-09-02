@@ -19,7 +19,22 @@ export default function CallRow({ call, isTrial }: CallRowProps) {
 
     return (
         <>
-            <tr className="border-b border-white/[0.04] hover:bg-black transition-colors cursor-pointer" onClick={() => setExpanded(!expanded)}>
+            <tr
+                className="border-b border-white/[0.04] hover:bg-black transition-colors cursor-pointer"
+                onClick={() => setExpanded(!expanded)}
+                onKeyDown={(e) => {
+                    // Keyboard equivalent of the row click so transcripts and
+                    // recordings are reachable without a mouse.
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setExpanded(!expanded);
+                    }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-expanded={expanded}
+                aria-label={`Call from ${call.customer_name || "Unknown"}, ${call.customer_phone || "no number"}. Press to ${expanded ? "collapse" : "expand"} details.`}
+            >
                 <td className="py-4 px-6 align-top">
                     <p className="text-sm font-medium text-white">{call.customer_name || "Unknown"}</p>
                     <p className="text-xs text-[#A7ADBB]">{call.customer_phone || "No number"}</p>
