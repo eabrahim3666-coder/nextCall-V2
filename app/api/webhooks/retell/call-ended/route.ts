@@ -8,6 +8,7 @@ import { escapeHtml, isSafeWebhookUrl, verifyHmacSignature } from '@/lib/securit
 import { notifyActivity, type Activity } from '@/lib/pusher';
 import { executeWithRecovery } from '@/lib/recovery/engine';
 import { registerOperationExecutor, registerRecoveryActionExecutor } from '@/lib/recovery/registry';
+import { zonedTimeToUtc, businessTimezone } from '@/lib/timezone';
 
 // Recovery integration: a 401/403 from the Calendar API refreshes the OAuth
 // token explicitly (the business's refresh token is stored on the business doc)
@@ -138,7 +139,7 @@ export async function POST(request: Request) {
     let customerEmail = null;
     let customerName = null;
     let isEmergency = false;
-    let appointmentDateTimeStr = null;
+    let appointmentDateTimeStr: string | null = null;
     let appointmentDuration = 60;
     let quote_given = false;
     let quote_amount: string | null = null;
@@ -157,7 +158,7 @@ export async function POST(request: Request) {
 5. Customer email if mentioned, or null
 6. Customer name if mentioned, or null
 7. Is emergency: true if the caller mentioned emergency keywords, false otherwise
-8. Appointment date and time in ISO 8601 format (e.g., 2024-12-25T14:00:00) if mentioned, otherwise null. TODAY IS ${new Date().toISOString().split('T')[0]}. Interpret relative dates like "tomorrow", "next week", "this Friday" based on TODAY. NEVER use dates in the past or from training data.
+8. Appointment date and time in ISO 8601 format (e.g., 2024-12-25T14:00:00 — naive LOCAL time, no timezone offset) if mentioned, otherwise null. TODAY IS ${new Date().toISOString().split('T')[0]}. Interpret relative dates like "tomorrow", "next week", "this Friday" based on TODAY. NEVER use dates in the past or from training data.
 9. Appointment duration in minutes if mentioned, or 60 by default.
 10. Quote given: true if a price, estimate, or price range was discussed with the customer (e.g., "$89 diagnostic", "$150-300 depending on the part"), false otherwise
 11. Quote details: if a quote was given, a short string of the exact price or range discussed (e.g., "$150-300"), otherwise null
@@ -232,12 +233,28 @@ Output ONLY valid JSON.`
         await activity({ type: "appointment_confirmed", title: "Appointment confirmed", message: `${person(customerName, 'A customer')} • ${formatSlot(appointmentDateTimeStr)}`, icon: "lucide:calendar-check", status: "success", agent_state: "Scheduling Appointment", href: "/dashboard/calls" });
         await activity({ type: "creating_event", title: "Creating Google Calendar event...", message: `${person(customerName, 'A customer')} • ${formatSlot(appointmentDateTimeStr)}`, icon: "lucide:calendar-plus", status: "pending", agent_state: "Updating Calendar" });
 
-        let startDateTime;
+        // GPT returns the appointment as the BUSINESS'S LOCAL time (naive, no
+        // offset). `new Date(naive)` would parse it as UTC and create events
+        // 4-5 hours off for US businesses — convert with the business's
+        // timezone instead.
+        const bizTz = businessTimezone(business);
+        let startDateTime: Date;
         try {
-          startDateTime = appointmentDateTimeStr ? new Date(appointmentDateTimeStr) : new Date(Date.now() + 24 * 60 * 60 * 1000);
+          const apptStr: string | null = typeof appointmentDateTimeStr === "string" && appointmentDateTimeStr ? appointmentDateTimeStr : null;
+          if (apptStr && /[zZ]$|[+-]\d{2}:?\d{2}$/.test(apptStr)) {
+            // Already carries an offset — parse directly.
+            startDateTime = new Date(apptStr);
+          } else if (apptStr) {
+            // Midnight local usually means "no time stated" — default to 10am
+            // local. (The old getHours()===0 check ran on server-UTC midnight
+            // and wrongly bumped 8pm-ET appointments to 6am ET.)
+            const normalized: string = apptStr.replace(/[T ]00:00(?::00)?(\.\d+)?$/, "T10:00:00");
+            startDateTime = zonedTimeToUtc(normalized, bizTz) ?? new Date(Date.now() + 24 * 60 * 60 * 1000);
+          } else {
+            startDateTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+          }
           if (isNaN(startDateTime.getTime())) startDateTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
           if (startDateTime.getTime() < Date.now()) startDateTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
-          if (startDateTime.getHours() === 0) startDateTime.setHours(10, 0, 0);
         } catch {
             startDateTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
         }
@@ -248,8 +265,8 @@ Output ONLY valid JSON.`
           summary: `Appointment: ${customerName || 'New Customer'}`,
           location: business.business_name || 'Office',
           description: `Call Summary: ${summary}\n\nCustomer Phone: ${body.phone_number || 'Unknown'}\n\nTranscript Snippet: ${transcript.substring(0, 500)}...`,
-          start: { dateTime: startDateTime.toISOString(), timeZone: 'America/New_York' },
-          end: { dateTime: endDateTime.toISOString(), timeZone: 'America/New_York' },
+          start: { dateTime: startDateTime.toISOString(), timeZone: bizTz },
+          end: { dateTime: endDateTime.toISOString(), timeZone: bizTz },
         };
 
         // Wrapped in the recovery engine: 401/403 → refresh token + single retry

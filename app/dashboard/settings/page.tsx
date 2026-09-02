@@ -15,6 +15,7 @@ export default async function SettingsPage() {
         business_name: business?.business_name || "",
         business_type: business?.business_type || "",
         service_area: business?.service_area || "",
+        business_timezone: (business as Record<string, string | null | undefined> | null)?.business_timezone || "America/New_York",
         owner_phone: business?.owner_phone || "",
         hours: business?.hours || "",
         services: business?.services || "",

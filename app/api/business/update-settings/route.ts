@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { businessesCollection } from "@/lib/astra";
 import { isSafeWebhookUrl } from "@/lib/security";
+import { businessTimezone } from "@/lib/timezone";
 
 export async function POST(request: Request) {
     try {
@@ -14,6 +15,11 @@ export async function POST(request: Request) {
         }
         if (body.review_link && !/^https:\/\/[^\s]+$/.test(body.review_link)) {
             return NextResponse.json({ error: "Review link must be a valid https:// URL" }, { status: 400 });
+        }
+        // Validate the timezone against Intl before storing (rejects typos /
+        // arbitrary strings; businessTimezone falls back on invalid values).
+        if (body.business_timezone && businessTimezone({ business_timezone: body.business_timezone }) !== body.business_timezone) {
+            return NextResponse.json({ error: "Invalid timezone" }, { status: 400 });
         }
 
         const existing = await businessesCollection.findOne({ business_id: userId });
@@ -46,6 +52,7 @@ export async function POST(request: Request) {
                     business_type: body.business_type || "",
                     service_area: body.service_area || "",
                     owner_phone: body.owner_phone || "",
+                    business_timezone: body.business_timezone || "America/New_York",
                     // Structured knowledge fields
                     hours: body.hours || "",
                     services: body.services || "",

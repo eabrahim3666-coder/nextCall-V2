@@ -3,6 +3,7 @@ import { callsCollection, businessesCollection } from '@/lib/astra';
 import { sendBusinessSms, isSmsApproved } from '@/lib/sms-compliance';
 import { Resend } from 'resend';
 import { hasValidSecret, escapeHtml } from '@/lib/security';
+import { businessTimezone } from '@/lib/timezone';
 
 
 export async function GET(request: Request) {
@@ -43,8 +44,11 @@ export async function GET(request: Request) {
             const isTrial = (business.plan_type || 'standard') === 'trial';
 
             try {
-                // 3. Format the time nicely (e.g., "2:30 PM")
-                const apptTime = new Date(appt.appointment_date_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                // 3. Format the time in the BUSINESS'S timezone (the stored
+                // time is UTC; formatting it in UTC would be 3-5 hours wrong
+                // for US businesses).
+                const bizTz = businessTimezone(business);
+                const apptTime = new Date(appt.appointment_date_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: bizTz });
                 let sent = false;
 
                 // 4a. Email reminder (preferred — if customer email was captured)

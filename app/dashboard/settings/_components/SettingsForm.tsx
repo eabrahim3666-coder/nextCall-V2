@@ -5,6 +5,18 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { CreditCard, ExternalLink } from "lucide-react";
 import SmsComplianceTab from "./SmsComplianceTab";
 
+// US IANA timezones (the product's primary market) — used for calendar
+// events and appointment reminder formatting.
+const US_TIMEZONES = [
+    { value: "America/New_York", label: "Eastern Time (New York, Miami, Atlanta)" },
+    { value: "America/Chicago", label: "Central Time (Chicago, Dallas, Houston)" },
+    { value: "America/Denver", label: "Mountain Time (Denver, Phoenix*, Salt Lake)" },
+    { value: "America/Phoenix", label: "Arizona Time (no DST)" },
+    { value: "America/Los_Angeles", label: "Pacific Time (LA, SF, Seattle)" },
+    { value: "America/Anchorage", label: "Alaska Time" },
+    { value: "Pacific/Honolulu", label: "Hawaii Time" },
+] as const;
+
 type RoutingRules = {
     forward_emergency: boolean;
     notify_hot_lead: boolean;
@@ -21,6 +33,7 @@ type BusinessData = {
     business_name: string;
     business_type: string;
     service_area: string;
+    business_timezone: string;
     owner_phone: string;
     hours: string;
     services: string;
@@ -405,6 +418,19 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                             <div><label className={labelClass}>Business Name</label><input type="text" value={data.business_name} onChange={(e) => updateField("business_name", e.target.value)} placeholder="e.g. Mike's Plumbing" className={inputClass} /></div>
                             <div><label className={labelClass}>Business Type</label><input type="text" value={data.business_type} onChange={(e) => updateField("business_type", e.target.value)} placeholder="e.g. Plumbing, Dental, HVAC" className={inputClass} /></div>
                             <div><label className={labelClass}>Service Area</label><input type="text" value={data.service_area} onChange={(e) => updateField("service_area", e.target.value)} placeholder="e.g. Dallas, TX — 20 mile radius" className={inputClass} /></div>
+                            <div>
+                                <label className={labelClass}>Timezone</label>
+                                <select
+                                    value={data.business_timezone || "America/New_York"}
+                                    onChange={(e) => updateField("business_timezone", e.target.value)}
+                                    className={inputClass}
+                                >
+                                    {US_TIMEZONES.map((tz) => (
+                                        <option key={tz.value} value={tz.value} className="bg-black text-white">{tz.label}</option>
+                                    ))}
+                                </select>
+                                <p className="text-[10px] text-neutral-600 mt-1">Used for calendar events and appointment reminders</p>
+                            </div>
                             <div><label className={labelClass}>Owner Phone (Emergencies)</label><input type="tel" value={data.owner_phone} onChange={(e) => updateField("owner_phone", e.target.value)} placeholder="+1 555 123 4567" className={inputClass} /></div>
                         </div>
                     </div>
