@@ -22,6 +22,7 @@ export async function provisionTwilioNumber(business: ProvisionBusiness) {
   //    create a SECOND one — each billing monthly. Best-effort: on list
   //    failure we fall through to creating a fresh subaccount.
   let subaccountSid: string | null = null;
+  let createdFresh = false;
   try {
     const existingAccounts = await twilioClient.api.accounts.list({ status: 'active', limit: 1000 });
     const match = existingAccounts.find((a: { friendlyName?: string }) =>
@@ -56,33 +57,59 @@ export async function provisionTwilioNumber(business: ProvisionBusiness) {
       friendlyName: `nextCall ${business.business_id} - ${business.business_name}`,
     });
     subaccountSid = subaccount.sid;
+    createdFresh = true;
   }
 
   // 4. Find an available US TOLL-FREE number supporting Voice + SMS.
   //    Toll-free numbers are required for Toll-Free SMS Verification (TFV),
   //    which unlocks outbound business SMS without A2P 10DLC registration.
-  const availableNumbers = await twilioClient.availablePhoneNumbers('US').tollFree.list({
-    limit: 1,
-  });
+  let availableNumbers;
+  try {
+    availableNumbers = await twilioClient.availablePhoneNumbers('US').tollFree.list({ limit: 1 });
+  } catch (searchError) {
+    // Freshly created subaccount (this run) with no number yet — close it so a
+    // failed purchase doesn't leave an orphaned, monthly-billed subaccount.
+    if (createdFresh) await closeSubaccountQuietly(subaccountSid);
+    throw searchError;
+  }
   if (availableNumbers.length === 0) {
+    if (createdFresh) await closeSubaccountQuietly(subaccountSid);
     throw new Error("No available toll-free phone numbers to provision");
   }
 
-  // 5. Buy it under the subaccount with our webhooks wired up
-  const purchasedNumber = await twilioClient.api.accounts(subaccountSid).incomingPhoneNumbers.create({
-    phoneNumber: availableNumbers[0].phoneNumber,
-    friendlyName: `${business.business_name} - nextCall Main Line`,
-    voiceUrl: `${webhookBase}/api/webhooks/twilio/inbound`,
-    voiceMethod: 'POST',
-    smsUrl: `${webhookBase}/api/webhooks/twilio/sms-inbound`,
-    smsMethod: 'POST',
-  });
+  // 5. Buy it under the subaccount with our webhooks wired up. On failure,
+  //    close a freshly created subaccount (reuse-lookups keep existing ones —
+  //    the business may retry later and we want the same subaccount back).
+  let purchasedNumber;
+  try {
+    purchasedNumber = await twilioClient.api.accounts(subaccountSid).incomingPhoneNumbers.create({
+      phoneNumber: availableNumbers[0].phoneNumber,
+      friendlyName: `${business.business_name} - nextCall Main Line`,
+      voiceUrl: `${webhookBase}/api/webhooks/twilio/inbound`,
+      voiceMethod: 'POST',
+      smsUrl: `${webhookBase}/api/webhooks/twilio/sms-inbound`,
+      smsMethod: 'POST',
+    });
+  } catch (purchaseError) {
+    if (createdFresh) await closeSubaccountQuietly(subaccountSid);
+    throw purchaseError;
+  }
 
   return {
     subaccountSid,
     phoneNumber: purchasedNumber.phoneNumber,
     phoneNumberSid: purchasedNumber.sid,
   };
+}
+
+/** Best-effort close so failed provisioning doesn't leak a billed subaccount. */
+async function closeSubaccountQuietly(sid: string) {
+  try {
+    await twilioClient.api.accounts(sid).update({ status: 'closed' });
+    console.log(`[provision] Closed orphaned subaccount ${sid} after failed provisioning`);
+  } catch (closeError) {
+    console.warn(`[provision] Failed to close orphaned subaccount ${sid}:`, closeError);
+  }
 }
 
 export function isProvisioned(business: Record<string, unknown>) {
