@@ -3,11 +3,22 @@ import { businessesCollection } from '@/lib/astra';
 import { verifyTwilioRequest } from '@/lib/security';
 import { isTrialExpired } from '@/lib/business';
 import retellClient from '@/lib/retell';
+import { sendTelegramMessage } from '@/lib/telegram';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
   try {
+    // Fail-fast config guard: without an agent id every inbound call fails at
+    // the Retell registration step below with only a generic error TwiML —
+    // a production outage with zero diagnostics. Alert loudly instead.
+    if (!process.env.RETELL_AGENT_ID) {
+      console.error("FATAL: RETELL_AGENT_ID is not set — inbound calls cannot be registered with Retell");
+      await sendTelegramMessage("🚨 <b>RETELL_AGENT_ID is not set</b> — every inbound call is failing. Fix the env var and redeploy.");
+      const errorTwiml = `<Response><Say>We're sorry, all agents are busy. Please try again shortly.</Say></Response>`;
+      return new NextResponse(errorTwiml, { headers: { 'Content-Type': 'text/xml' } });
+    }
+
     const formData = await request.formData();
     const params = Object.fromEntries(formData.entries()) as Record<string, string>;
     if (!verifyTwilioRequest(request, params, request.headers.get('x-twilio-signature'))) {
