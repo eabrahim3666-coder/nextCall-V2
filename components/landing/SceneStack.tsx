@@ -2,8 +2,9 @@
 
 import { ReactNode, useRef, useState, useEffect } from "react";
 import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
+import { activeLenis } from "@/components/SmoothScroll";
 
-interface Scene { id?: string; bg: string; children: ReactNode; }
+interface Scene { id?: string; anchor?: string; bg: string; children: ReactNode; }
 
 export function SceneStack({ scenes }: { scenes: Scene[] }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -47,6 +48,41 @@ export function SceneStack({ scenes }: { scenes: Scene[] }) {
 
   const totalSpaces = sceneSpaces.reduce((sum, s) => sum + s, 0);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+
+  // Desktop anchor navigation: scenes live inside transformed containers, so
+  // native hash-jumps can't reach them. Navigation dispatches `nav-scroll`
+  // with the target hash; here we translate it into the pixel offset where
+  // that scene becomes the active viewport, and drive Lenis (or a native
+  // smooth scroll fallback) to it. Keep refs to the latest measurements so
+  // the listener never goes stale.
+  const spacesRef = useRef(sceneSpaces);
+  spacesRef.current = sceneSpaces;
+  useEffect(() => {
+    const onNavScroll = (e: Event) => {
+      const hash = (e as CustomEvent<{ hash?: string }>).detail?.hash;
+      if (!hash) return;
+      const idx = scenes.findIndex((s) => s.anchor === hash || `#${s.id}` === hash);
+      if (idx === -1) return;
+
+      const spaces = spacesRef.current;
+      const total = spaces.reduce((sum, s) => sum + s, 0);
+      const before = spaces.slice(0, idx).reduce((sum, s) => sum + s, 0);
+      const targetEl = document.getElementById(hash.slice(1));
+      const innerOffset = targetEl?.offsetTop ?? 0;
+      // Scroll a touch past the slide-up so the scene is fully in view, plus
+      // any offset of the anchor element inside the scene's content.
+      const progress = (before + Math.min(spaces[idx] || 1, 1) * 0.15) / total;
+      const y = progress * (ref.current?.offsetHeight ?? 0) + innerOffset;
+
+      if (activeLenis) {
+        activeLenis.scrollTo(y, { duration: 1.4 });
+      } else {
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
+    };
+    window.addEventListener("nav-scroll", onNavScroll as EventListener);
+    return () => window.removeEventListener("nav-scroll", onNavScroll as EventListener);
+  }, [scenes]);
 
   // Mobile / touch: render scenes as a normal stacked document so the browser's
   // native touch scroll works flawlessly (no transforms, no sticky tricks).

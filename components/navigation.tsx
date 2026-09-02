@@ -84,6 +84,18 @@ function Navigation() {
             <a
               key={link.href}
               href={link.href}
+              onClick={(e) => {
+                // SceneStack renders desktop scenes inside transformed
+                // containers, so native hash-jumps can't reach them. Ask the
+                // scene stack to scroll instead (mobile/touch keeps native
+                // behavior — its scenes are in normal document flow).
+                if (window.matchMedia("(pointer: fine)").matches) {
+                  e.preventDefault();
+                  window.dispatchEvent(
+                    new CustomEvent("nav-scroll", { detail: { hash: link.href } })
+                  );
+                }
+              }}
               className="nav-link text-sm text-[#1e1e1e] hover:text-black transition-colors px-4 py-2"
             >
               {link.label}

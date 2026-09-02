@@ -140,6 +140,8 @@ export default function Home() {
               },
               {
                 id: "features",
+                // nav target: #features (no inner-section id exists)
+                anchor: "#features",
                 bg: "#060606",
                 children: (
                   <Section3D intensity="medium" bg="#060606">
@@ -149,6 +151,7 @@ export default function Home() {
               },
               {
                 id: "how",
+                anchor: "#how-it-works", // matches HowItWorks's own section id
                 bg: BG_LIGHT,
                 children: (
                   <Section3D intensity="medium" bg={BG_LIGHT}>
@@ -158,6 +161,7 @@ export default function Home() {
               },
               {
                 id: "integrations",
+                anchor: "#built-on", // matches IntegrationsSection's own id
                 bg: BG_DARK,
                 children: <IntegrationsSection />,
               },
@@ -198,6 +202,7 @@ export default function Home() {
               },
               {
                 // No wrapper id — the Contact section itself is #ask
+                anchor: "#ask",
                 bg: BG_PITCH,
                 children: (
                   <Section3D intensity="subtle" bg={BG_PITCH} preserveOpacity>

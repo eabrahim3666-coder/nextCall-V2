@@ -2,6 +2,10 @@
 import { ReactNode, useEffect } from "react";
 import Lenis from "lenis";
 
+// The active Lenis instance (desktop smooth-scroll only), so other modules —
+// e.g. SceneStack's nav-scroll handling — can drive programmatic scrolling.
+export let activeLenis: Lenis | null = null;
+
 export function SmoothScroll({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -25,12 +29,13 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
       syncTouch: false,
       infinite: false,
     });
+    activeLenis = lenis;
 
     let rafId = 0;
     const raf = (time: number) => { lenis.raf(time); rafId = requestAnimationFrame(raf); };
     rafId = requestAnimationFrame(raf);
 
-    return () => { cancelAnimationFrame(rafId); lenis.destroy(); };
+    return () => { cancelAnimationFrame(rafId); lenis.destroy(); activeLenis = null; };
   }, []);
 
   return <>{children}</>;
