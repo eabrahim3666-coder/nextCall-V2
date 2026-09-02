@@ -49,29 +49,9 @@ export async function POST(request: Request) {
             if (!saved) return NextResponse.json({ error: "Failed to store photo. Try again." }, { status: 500 });
         }
 
-        const filter = { business_id: userId, kind: "support" };
-        const conv = await conversationsCollection.findOne(filter);
-        const existing = Array.isArray(conv?.messages) ? conv.messages : [];
-        const messages = [...existing.slice(-99), message];
-
-        await conversationsCollection.updateOne(
-            filter,
-            {
-                $set: {
-                    business_id: userId,
-                    kind: "support",
-                    messages,
-                    last_activity: message.at,
-                    // New business message = unread for the admin
-                    read_by_admin_at: null,
-                    // The business is actively chatting right now
-                    read_by_business_at: new Date().toISOString(),
-                },
-            },
-            { upsert: true }
-        );
-
-        // Notify the admin (admin panel realtime + Telegram pinger, pluggable)
+        // Ping the admin FIRST so we get the Telegram message_id back —
+        // persisting it on the message lets the Telegram webhook route the
+        // admin's reply to THIS message (see webhooks/telegram).
         const senderName = String(business.owner_name || business.business_name || business.owner_email || "Dashboard user").trim();
         const businessName = String(business.business_name || "Your business");
         const adminPing = await notifyAdminChat({
@@ -80,9 +60,33 @@ export async function POST(request: Request) {
             content: content || "📷 Photo",
             hasPhoto: Boolean(photo),
         });
-        if (!adminPing) {
-            console.error("Admin Telegram ping failed for chat message from business", userId);
+        if (!adminPing.ok) {
+            console.error("Admin Telegram ping failed for chat message from business", userId, adminPing.error);
         }
+        if (adminPing.ok && adminPing.messageId) {
+            message.telegram_message_id = adminPing.messageId;
+        }
+
+        const filter = { business_id: userId, kind: "support" };
+        await conversationsCollection.updateOne(
+            filter,
+            {
+                $set: {
+                    business_id: userId,
+                    kind: "support",
+                    last_activity: message.at,
+                    // New business message = unread for the admin
+                    read_by_admin_at: null,
+                    // The business is actively chatting right now
+                    read_by_business_at: new Date().toISOString(),
+                },
+                $push: {
+                    messages: message,
+                },
+            },
+            { upsert: true }
+        );
+
         const { notifyChatAdmins } = await import("@/lib/pusher");
         await notifyChatAdmins({
             message: photoForReply ? { ...message, photo: photoForReply } : message,

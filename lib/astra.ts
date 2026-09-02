@@ -31,9 +31,24 @@ function getMemoryCollection(name: string) {
   const matchesFilter = (doc: any, filter?: any): boolean => {
     if (!filter || Object.keys(filter).length === 0) return true;
     for (const [key, val] of Object.entries(filter)) {
-      if (val && typeof val === 'object' && '$in' in (val as any)) {
-        const inArr = (val as any).$in;
-        if (Array.isArray(inArr) && !inArr.includes(doc[key])) return false;
+      if (val && typeof val === 'object') {
+        if ('$in' in (val as any)) {
+          const inArr = (val as any).$in;
+          if (Array.isArray(inArr) && !inArr.includes(doc[key])) return false;
+        } else if ('$nin' in (val as any)) {
+          const ninArr = (val as any).$nin;
+          if (Array.isArray(ninArr) && ninArr.includes(doc[key])) return false;
+        } else if ('$exists' in (val as any)) {
+          const shouldExist = Boolean((val as any).$exists);
+          const fieldVal = (key as string).includes('.')
+            ? (key as string).split('.').reduce((o: any, k) => (o == null ? o : o[k]), doc)
+            : doc[key];
+          if (shouldExist ? fieldVal === undefined : fieldVal !== undefined) return false;
+        } else if ('$ne' in (val as any)) {
+          if (doc[key] === (val as any).$ne) return false;
+        }
+        // Unrecognized operator object — treat as equality (best effort).
+        else if (doc[key] !== val) return false;
       } else if (doc[key] !== val) {
         return false;
       }
@@ -75,13 +90,60 @@ function getMemoryCollection(name: string) {
       items.push(inserted);
       return { insertedId: inserted._id };
     },
-    updateOne: async (filter?: any, update?: any) => {
-      const target = items.find((d) => matchesFilter(d, filter));
-      if (target && update?.$set) {
-        Object.assign(target, update.$set);
-        return { matchedCount: 1, modifiedCount: 1 };
+    updateOne: async (filter?: any, update?: any, options?: any) => {
+      // Find an existing doc, or synthesize one when upsert was requested.
+      let target = items.find((d) => matchesFilter(d, filter));
+      let justInserted = false;
+      if (!target && options?.upsert) {
+        const seeded: any = { _id: `id_${Date.now()}_${Math.random().toString(36).slice(2)}` };
+        // Seed identity fields from equality predicates in the filter so the
+        // upserted doc matches the caller's intent (e.g. business_id + kind).
+        if (filter && typeof filter === 'object') {
+          for (const [k, v] of Object.entries(filter)) {
+            if (v && typeof v === 'object') continue; // operator object — skip
+            seeded[k] = v;
+          }
+        }
+        items.push(seeded);
+        target = seeded;
+        justInserted = true;
       }
-      return { matchedCount: 0, modifiedCount: 0 };
+      if (!target) return { matchedCount: 0, modifiedCount: 0 };
+
+      let modified = false;
+      if (update?.$set) {
+        Object.assign(target, update.$set);
+        modified = true;
+      }
+      if (update?.$setOnInsert && justInserted) {
+        Object.assign(target, update.$setOnInsert);
+        modified = true;
+      }
+      if (update?.$inc) {
+        for (const [k, v] of Object.entries(update.$inc)) {
+          if (typeof v === 'number') {
+            target[k] = (typeof target[k] === 'number' ? target[k] : 0) + v;
+            modified = true;
+          }
+        }
+      }
+      if (update?.$push) {
+        for (const [k, v] of Object.entries(update.$push)) {
+          if (Array.isArray(v) && '$each' in (v as any)) {
+            const each = (v as any).$each;
+            if (Array.isArray(each)) {
+              if (!Array.isArray(target[k])) target[k] = [];
+              target[k].push(...each);
+              modified = true;
+            }
+          } else if (v !== undefined) {
+            if (!Array.isArray(target[k])) target[k] = [];
+            target[k].push(v);
+            modified = true;
+          }
+        }
+      }
+      return { matchedCount: 1, modifiedCount: modified ? 1 : 0 };
     },
     deleteOne: async (filter?: any) => {
       const idx = items.findIndex((d) => matchesFilter(d, filter));
