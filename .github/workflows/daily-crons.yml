@@ -13,12 +13,12 @@ jobs:
     steps:
       - name: Cleanup cancelled calls
         if: github.event.schedule == '0 0 * * *' || github.event_name == 'workflow_dispatch'
-        run: curl -sS -f --max-time 90 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/cleanup-cancelled"
+        run: 'curl -sS -f --max-time 90 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/cleanup-cancelled"'
 
       - name: Daily summary
         if: github.event.schedule == '0 3 * * *' || github.event_name == 'workflow_dispatch'
-        run: curl -sS -f --max-time 90 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/daily-summary"
+        run: 'curl -sS -f --max-time 90 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/daily-summary"'
 
       - name: Weekly summary
         if: github.event.schedule == '30 6 * * 1' || github.event_name == 'workflow_dispatch'
-        run: curl -sS -f --max-time 120 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/weekly-summary"
+        run: 'curl -sS -f --max-time 120 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/weekly-summary"'
