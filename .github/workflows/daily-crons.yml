@@ -2,26 +2,23 @@ name: Daily Cron Jobs
 
 on:
   schedule:
-    - cron: "0 0 * * *" # cleanup-cancelled
-    - cron: "0 3 * * *" # daily-summary
-    - cron: "30 6 * * 1" # weekly-summary (Mondays)
+    - cron: "0 0 * * *"   # cleanup-cancelled
+    - cron: "0 3 * * *"   # daily-summary
+    - cron: "30 6 * * 1"  # weekly-summary (Mondays)
   workflow_dispatch:
-
-env:
-  SCHEDULE: ${{ github.event.schedule }}
 
 jobs:
   daily:
     runs-on: ubuntu-latest
     steps:
       - name: Cleanup cancelled calls
-        if: env.SCHEDULE == '0 0 * * *' || github.event_name == 'workflow_dispatch'
+        if: github.event.schedule == '0 0 * * *' || github.event_name == 'workflow_dispatch'
         run: curl -sS -f --max-time 90 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/cleanup-cancelled"
 
       - name: Daily summary
-        if: env.SCHEDULE == '0 3 * * *' || github.event_name == 'workflow_dispatch'
+        if: github.event.schedule == '0 3 * * *' || github.event_name == 'workflow_dispatch'
         run: curl -sS -f --max-time 90 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/daily-summary"
 
       - name: Weekly summary
-        if: env.SCHEDULE == '30 6 * * 1' || github.event_name == 'workflow_dispatch'
+        if: github.event.schedule == '30 6 * * 1' || github.event_name == 'workflow_dispatch'
         run: curl -sS -f --max-time 120 -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" "https://www.getnextcall.com/api/cron/weekly-summary"
