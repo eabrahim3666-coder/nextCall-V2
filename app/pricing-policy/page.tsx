@@ -32,7 +32,7 @@ export default function PricingPolicyPage() {
                                 <h3 className="text-base font-medium text-white mb-2">Standard Plan ($299 / Month)</h3>
                                 <ul className="list-disc list-inside space-y-1 text-neutral-400">
                                     <li>200 minutes included per month.</li>
-                                    <li>Overage rate: $0.50 per additional minute.</li>
+                                    <li>Need more? Buy additional minute packs anytime.</li>
                                     <li>Follow-up emails, Google Calendar sync, Appointment reminders.</li>
                                     <li>Custom greeting & tone, Emergency call routing, Email support.</li>
                                 </ul>
@@ -42,7 +42,7 @@ export default function PricingPolicyPage() {
                                 <h3 className="text-base font-medium text-white mb-2">Premium Plan ($399 / Month)</h3>
                                 <ul className="list-disc list-inside space-y-1 text-neutral-400">
                                     <li>500 minutes included per month.</li>
-                                    <li>Overage rate: $0.40 per additional minute.</li>
+                                    <li>Need more? Buy additional minute packs anytime.</li>
                                     <li>3 phone numbers, Priority call routing, Advanced analytics.</li>
                                     <li>Zapier / Webhooks integrations, Lead value tracking, Priority support chat.</li>
                                 </ul>
@@ -62,8 +62,8 @@ export default function PricingPolicyPage() {
                     </section>
 
                     <section>
-                        <h2 className="text-lg font-medium text-white mb-3">4. Metered Usage & Overage Fees</h2>
-                        <p>NextCall incurs real-time telephony and AI processing costs from our infrastructure providers. If your usage exceeds the monthly minute limit included in your plan, you will be automatically charged an overage rate per additional minute. Overage fees are billed on your next monthly renewal date. All overage fees are strictly non-refundable once incurred. Unused minutes do not roll over to the next billing cycle.</p>
+                        <h2 className="text-lg font-medium text-white mb-3">4. Minute Limits & Additional Minutes</h2>
+                        <p>NextCall incurs real-time telephony and AI processing costs from our infrastructure providers. Each plan includes a set number of minutes per billing cycle. If you reach your plan&apos;s minute limit, the Service is temporarily paused — you will never be charged beyond your plan price without an explicit purchase. To keep the Service running, you can buy additional minute packs (billed immediately at the rates shown in Settings → Billing) or upgrade your plan. Additional minute packs are strictly non-refundable once purchased. Unused minutes do not roll over to the next billing cycle.</p>
                     </section>
 
                     <section>
@@ -78,12 +78,12 @@ export default function PricingPolicyPage() {
 
                     <section>
                         <h2 className="text-lg font-medium text-white mb-3">7. Price Changes</h2>
-                        <p>We reserve the right to modify our subscription pricing or overage rates. We will provide you with reasonable advance notice (at least 30 days) via email or in-app notification before any price changes take effect. Continued use of the Service after the effective date of a price change constitutes your agreement to the new pricing.</p>
+                        <p>We reserve the right to modify our subscription pricing or the pricing of additional minute packs. We will provide you with reasonable advance notice (at least 30 days) via email or in-app notification before any price changes take effect. Continued use of the Service after the effective date of a price change constitutes your agreement to the new pricing.</p>
                     </section>
 
                     <section className="border border-white/[0.06] rounded-2xl p-6 bg-white/[0.02]">
                         <h2 className="text-lg font-medium text-white mb-3">8. Refunds</h2>
-                        <p>All billing is handled in accordance with our Refund Policy, which is outlined in Section 5 of our Terms of Service. Refunds are only issued within the first 7 days of an initial paid subscription and do not cover overage fees or active renewals. <Link href="/terms#refund-policy" className="text-indigo-400 hover:text-indigo-300">View full Refund Policy</Link>.</p>
+                        <p>All billing is handled in accordance with our Refund Policy, which is outlined in Section 5 of our Terms of Service. Refunds are only issued within the first 7 days of an initial paid subscription and do not cover additional minute packs or active renewals. <Link href="/terms#refund-policy" className="text-indigo-400 hover:text-indigo-300">View full Refund Policy</Link>.</p>
                     </section>
 
                     <section>

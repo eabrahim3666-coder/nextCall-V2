@@ -84,7 +84,7 @@ export default function DocsPage() {
                                 <li><strong className="text-white">Buy extra minutes</strong> — purchase additional minutes anytime from Settings → Billing.</li>
                                 <li><strong className="text-white">Email support</strong> — 24/7 support from the nextCall team.</li>
                             </ul>
-                            <p className="text-[#A7ADBB] italic">200 minutes included per month. Overage: $0.50/min. Unused minutes do not roll over.</p>
+                            <p className="text-[#A7ADBB] italic">200 minutes included per month. Need more? Buy extra minutes anytime. Unused minutes do not roll over.</p>
                         </AccordionContent>
                     </AccordionItem>
 
@@ -102,7 +102,7 @@ export default function DocsPage() {
                                 <li><strong className="text-white">Zapier / Make / n8n webhooks</strong> — send call data to 5,000+ apps.</li>
                                 <li><strong className="text-white">Priority support chat</strong> — the in-app chat bubble, bridged to the nextCall team over Telegram, with photo support.</li>
                             </ul>
-                            <p className="text-[#A7ADBB] italic">500 minutes included per month. Overage: $0.40/min.</p>
+                            <p className="text-[#A7ADBB] italic">500 minutes included per month. Need more? Buy extra minutes anytime.</p>
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
@@ -429,7 +429,7 @@ export default function DocsPage() {
                                 <li>Your plan includes a set number of minutes per billing cycle: Trial 50, Standard 200, Premium 500.</li>
                                 <li>Minutes are calculated as total call duration across all calls, in 1-minute increments.</li>
                                 <li>When you reach 80%, 90%, and 100% usage, you&apos;ll receive in-app notifications and email alerts.</li>
-                                <li>If you exceed your limit, overage rates apply ($0.50/min Standard, $0.40/min Premium).</li>
+                                <li>When you hit your limit, calls pause until you buy extra minutes or upgrade your plan — so you&apos;re never billed by surprise.</li>
                                 <li><strong className="text-white">Buy extra minutes</strong> <Badge tier="standard" /> — need more time before your cycle resets? Purchase additional minutes from Settings → Billing.</li>
                                 <li><strong className="text-white">Referral bonus</strong> — share your referral code (Settings → Billing) with other businesses; you earn bonus minutes when they sign up.</li>
                                 <li>You can upgrade or downgrade your plan anytime from the Settings → Billing page.</li>

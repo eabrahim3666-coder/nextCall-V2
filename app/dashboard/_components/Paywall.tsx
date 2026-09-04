@@ -159,7 +159,7 @@ export default function Paywall({ refCode, allowTrial = true }: { refCode?: stri
                                 <span className="text-4xl font-semibold text-white">$299</span>
                                 <span className="text-sm text-[#A7ADBB]">/mo</span>
                             </div>
-                            <p className="text-[10px] text-neutral-600 mt-1">200 minutes + $0.50/min overage</p>
+                            <p className="text-[10px] text-neutral-600 mt-1">200 minutes/month · add more anytime</p>
                         </div>
 
                         <div className="space-y-2.5 mb-8 text-left inline-block">
@@ -207,7 +207,7 @@ export default function Paywall({ refCode, allowTrial = true }: { refCode?: stri
                                     <span className="text-4xl font-semibold text-white">$399</span>
                                     <span className="text-sm text-[#A7ADBB]">/mo</span>
                                 </div>
-                                <p className="text-[10px] text-neutral-600 mt-1">500 minutes + $0.40/min overage</p>
+                                <p className="text-[10px] text-neutral-600 mt-1">500 minutes/month · add more anytime</p>
                             </div>
 
                             <div className="space-y-2.5 mb-8 text-left inline-block">

@@ -581,7 +581,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                 />
                             </div>
                             {minutesPercent > 80 && (
-                                <p className="mt-2 text-xs text-amber-400">You're approaching your limit. Consider upgrading your plan to avoid overages.</p>
+                                <p className="mt-2 text-xs text-amber-400">You're approaching your limit. Buy extra minutes or upgrade your plan so calls keep getting answered.</p>
                             )}
                         </div>
 
@@ -592,7 +592,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                 <p className="text-sm font-semibold text-white">Buy Additional Minutes</p>
                                 <span className="text-[10px] text-[#ff4b00] bg-[#ff4b00]/10 px-2 py-0.5 rounded-full">{data.plan === "premium" ? "$0.30/min" : "$0.40/min"}</span>
                             </div>
-                            <p className="text-xs text-[#A7ADBB] mb-4">Add minutes to your plan. Save vs overage rates — minimum 50, up to your plan limit.</p>
+                            <p className="text-xs text-[#A7ADBB] mb-4">Add minutes to your plan — minimum 50, up to your plan limit. Active immediately.</p>
                             <div className="flex items-center gap-3">
                                 <select
                                     value={minutesToBuy}

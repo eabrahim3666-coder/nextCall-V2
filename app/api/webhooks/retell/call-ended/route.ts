@@ -128,7 +128,6 @@ export async function POST(request: Request) {
     const currentMinutes = business?.total_minutes_used || 0;
     const newTotalMinutes = currentMinutes + callDurationMin;
     const plan = business?.plan_type || business?.plan || 'standard';
-    const overageRate = plan === 'premium' ? 0.40 : 0.50;
 
     // 2. Ask GPT for Summary, Sentiment, Lead Quality, Appointment status, and Date/Time
     await activity({ type: "understanding", title: "Understanding customer request", message: "Reading the transcript and checking for appointments", icon: "lucide:file-search", status: "pending", agent_state: "Processing Call" });
@@ -446,11 +445,14 @@ from: "Next Call Chat <support@getnextcall.com>",
     const usagePercent = (newTotalMinutes / minutesLimit) * 100;
 
     if (usagePercent >= 100 && business) {
+      // Honest limit messaging: calls pause at the limit (no overage billing
+      // exists) — the customer can buy minutes or upgrade.
+      const limitReachedMsg = `You've used ${newTotalMinutes}/${minutesLimit} minutes. Calls pause until you buy extra minutes (Settings → Billing) or upgrade your plan.`;
       try {
-         if (resend) await resend.emails.send({ from: "Next Call Chat <support@getnextcall.com>", to: [process.env.SUPPORT_EMAIL || "owner@business.com"], subject: `Minutes Exceeded — ${business.business_name}`, html: `<div style="background:#0a0a0a;padding:32px;border-radius:16px;font-family:Inter,sans-serif;color:#fff;max-width:500px;"><h2 style="margin:0 0 16px;font-size:18px;color:#f43f5e;">Minutes Limit Exceeded</h2><p style="margin:0 0 16px;color:#a3a3a3;font-size:14px;">${escapeHtml(business.business_name)} has used <strong style="color:#fff;">${newTotalMinutes} of ${minutesLimit} minutes</strong>. Overages at $${overageRate}/min.</p></div>` });
-        await notificationsCollection.insertOne({ business_id: businessId, type: "minutes_100", title: "Minutes Exceeded", message: `You've used ${newTotalMinutes}/${minutesLimit} minutes. Overage rate: $${overageRate}/min.`, read: false, created_at: new Date().toISOString() });
+         if (resend) await resend.emails.send({ from: "Next Call Chat <support@getnextcall.com>", to: [process.env.SUPPORT_EMAIL || "owner@business.com"], subject: `Minutes Exceeded — ${business.business_name}`, html: `<div style="background:#0a0a0a;padding:32px;border-radius:16px;font-family:Inter,sans-serif;color:#fff;max-width:500px;"><h2 style="margin:0 0 16px;font-size:18px;color:#f43f5e;">Minutes Limit Exceeded</h2><p style="margin:0 0 16px;color:#a3a3a3;font-size:14px;">${escapeHtml(business.business_name)} has used <strong style="color:#fff;">${newTotalMinutes} of ${minutesLimit} minutes</strong>. Calls are paused — buy extra minutes (Settings &rarr; Billing) or upgrade your plan to keep answering every call.</p></div>` });
+        await notificationsCollection.insertOne({ business_id: businessId, type: "minutes_100", title: "Minutes Exceeded", message: limitReachedMsg, read: false, created_at: new Date().toISOString() });
       } catch (e) { console.error(e); }
-      await activity({ type: "minutes_100", title: "Minutes limit exceeded", message: `You've used ${newTotalMinutes} of ${minutesLimit} minutes. Overage: $${overageRate}/min.`, icon: "lucide:gauge", status: "error" });
+      await activity({ type: "minutes_100", title: "Minutes limit exceeded", message: `You've used ${newTotalMinutes} of ${minutesLimit} minutes. Buy extra minutes or upgrade to keep answering calls.`, icon: "lucide:gauge", status: "error" });
     } else if (usagePercent >= 90 && business) {
       try { await notificationsCollection.insertOne({ business_id: businessId, type: "minutes_90", title: "90% Minutes Used", message: `You've used ${newTotalMinutes}/${minutesLimit} minutes. Only ${minutesLimit - newTotalMinutes} remaining.`, read: false, created_at: new Date().toISOString() }); } catch (e) { console.error(e); }
       await activity({ type: "minutes_90", title: "90% of minutes used", message: `Only ${minutesLimit - newTotalMinutes} minutes remaining this month.`, icon: "lucide:gauge", status: "info" });
