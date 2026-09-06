@@ -15,7 +15,7 @@ export default async function SettingsPage() {
         business_name: business?.business_name || "",
         business_type: business?.business_type || "",
         service_area: business?.service_area || "",
-        business_timezone: (business as Record<string, string | null | undefined> | null)?.business_timezone || "America/New_York",
+        business_timezone: business?.business_timezone || "America/New_York",
         owner_phone: business?.owner_phone || "",
         hours: business?.hours || "",
         services: business?.services || "",
@@ -27,7 +27,9 @@ export default async function SettingsPage() {
         greeting_text: business?.greeting_text || "",
         ai_name: business?.ai_name || "",
         emergency_definition: business?.emergency_definition || "",
-        routing_rules: business?.routing_rules || {
+        // Spread defaults first so records with a partial routing_rules object
+        // still render every toggle with a sane value.
+        routing_rules: {
             forward_emergency: true,
             notify_hot_lead: true,
             sms_missed_call: true,
@@ -35,6 +37,7 @@ export default async function SettingsPage() {
             daily_summary: true,
             appointment_reminders: true,
             review_followup: true,
+            ...(business?.routing_rules || {}),
         },
         knowledge_base_text: business?.knowledge_base_text || "",
         referral_code: business?.referral_code || "N/A",

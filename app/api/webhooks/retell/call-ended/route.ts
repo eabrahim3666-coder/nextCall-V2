@@ -4,7 +4,7 @@ import openai from '@/lib/openai';
 import { sendBusinessSms, isSmsApproved } from '@/lib/sms-compliance';
 import { Resend } from 'resend';
 import { google } from 'googleapis';
-import { escapeHtml, isSafeWebhookUrl, verifyHmacSignature } from '@/lib/security';
+import { escapeHtml, isSafeWebhookUrl, verifyRetellSignature } from '@/lib/security';
 import { notifyActivity, type Activity } from '@/lib/pusher';
 import { executeWithRecovery } from '@/lib/recovery/engine';
 import { registerOperationExecutor, registerRecoveryActionExecutor } from '@/lib/recovery/registry';
@@ -50,10 +50,11 @@ registerOperationExecutor("google", "calendar_insert_event", async (ctx) => {
 
 export async function POST(request: Request) {
   try {
-    // SECURITY: Verify Retell Signature
+    // SECURITY: Verify Retell Signature (v={ts},d={hmac(body+ts)} with the
+    // webhook-badge API key — matches Retell's SDK and docs)
     const rawBody = await request.text();
     const retellSignature = request.headers.get('retell-signature');
-    if (!verifyHmacSignature(rawBody, retellSignature, process.env.RETELL_WEBHOOK_SECRET)) {
+    if (!verifyRetellSignature(rawBody, retellSignature, [process.env.RETELL_WEBHOOK_SECRET, process.env.RETELL_API_KEY])) {
       console.error("Invalid Retell Signature");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

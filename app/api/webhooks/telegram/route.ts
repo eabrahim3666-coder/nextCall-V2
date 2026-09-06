@@ -67,7 +67,7 @@ export async function POST(request: Request) {
         const replyId = reply.message_id;
         const replyText = typeof reply.text === "string" ? reply.text : "";
 
-        let conv = null;
+        let conv: Record<string, any> | null = null;
         try {
             conv = await conversationsCollection.findOne({ "messages.telegram_message_id": replyId });
         } catch (e) {

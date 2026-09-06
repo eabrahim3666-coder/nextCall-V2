@@ -1,6 +1,6 @@
 import Twilio from "twilio";
 import twilioClient from "@/lib/twilio";
-import { smsComplianceCollection, businessesCollection } from "@/lib/astra";
+import { smsComplianceCollection, smsOptoutsCollection, businessesCollection } from "@/lib/astra";
 import { TollfreeVerificationStatus } from "twilio/lib/rest/messaging/v1/tollfreeVerification";
 import { executeWithRecovery } from "@/lib/recovery/engine";
 import { registerOperationExecutor, registerRecoveryActionExecutor } from "@/lib/recovery/registry";
@@ -61,6 +61,11 @@ async function ensureComplianceCollection(): Promise<boolean> {
 async function db_create(): Promise<void> {
   const db = (await import("@/lib/astra")).default;
   await db.createCollection("sms_compliance");
+}
+
+async function db_createCollection(name: string): Promise<void> {
+  const db = (await import("@/lib/astra")).default;
+  await db.createCollection(name);
 }
 
 // ---------------------------------------------------------------------------
@@ -231,9 +236,130 @@ export async function isSmsApproved(business: Record<string, any>): Promise<bool
   return record?.status === "approved";
 }
 
+// ---------------------------------------------------------------------------
+// Per-recipient opt-out (TCPA / carrier A2P compliance)
+// ---------------------------------------------------------------------------
+// Twilio blocks sends to numbers that texted STOP on its own toll-free
+// blacklist, but the AI chat would still generate replies, reminders would
+// error with 21610, and nothing in-app honored the opt-out. This makes
+// opt-out a first-class, enforced state at the sendBusinessSms choke point.
+
+// Deliberately narrow: an AI chat where customers book/cancel appointments
+// means ambiguous words like CANCEL/END/QUIT would opt out customers who were
+// just trying to cancel an appointment. Only unambiguous opt-out words.
+const OPT_OUT_KEYWORDS = ["stop", "stopall", "unsubscribe"];
+const OPT_IN_KEYWORDS = ["start", "unstop"];
+
+export function classifyOptOutKeyword(body: string): "opt_out" | "opt_in" | null {
+  const normalized = body.trim().toLowerCase().replace(/[^\w]/g, "");
+  if (!normalized) return null;
+  if (OPT_OUT_KEYWORDS.includes(normalized)) return "opt_out";
+  if (OPT_IN_KEYWORDS.includes(normalized)) return "opt_in";
+  return null;
+}
+
+// The sms_optouts collection may not exist yet on an established database —
+// create it lazily on first miss (same pattern as ensureComplianceCollection).
+async function ensureOptoutsCollection(): Promise<void> {
+  try {
+    await db_createCollection("sms_optouts");
+  } catch {
+    // Already exists or creation raced — either way the next write/read works.
+  }
+}
+
+function isMissingCollectionError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return msg.includes("does not exist") || msg.includes("COLLECTION") || msg.includes("collection");
+}
+
+export async function isCustomerOptedOut(businessId: string, phone: string): Promise<boolean> {
+  if (!businessId || !phone) return false;
+  try {
+    const doc = await smsOptoutsCollection.findOne({ business_id: businessId, customer_phone: phone });
+    return Boolean(doc?.opted_out && !doc?.opted_in_at);
+  } catch (err) {
+    // A missing collection simply means no opt-outs have ever been recorded
+    // (fail open, then create it so the next call succeeds). Any other storage
+    // error fails CLOSED — never text a possibly opted-out customer.
+    if (isMissingCollectionError(err)) {
+      await ensureOptoutsCollection();
+      return false;
+    }
+    console.error("[sms-compliance] opt-out lookup failed:", err);
+    return true;
+  }
+}
+
+export async function setCustomerOptedOut(businessId: string, phone: string): Promise<void> {
+  if (!businessId || !phone) return;
+  try {
+    await smsOptoutsCollection.updateOne(
+      { business_id: businessId, customer_phone: phone },
+      {
+        $set: {
+          opted_out: true,
+          opted_out_at: new Date().toISOString(),
+          opted_in_at: null,
+        },
+      },
+      { upsert: true }
+    );
+  } catch (err) {
+    if (isMissingCollectionError(err)) {
+      await ensureOptoutsCollection();
+      await smsOptoutsCollection.updateOne(
+        { business_id: businessId, customer_phone: phone },
+        {
+          $set: {
+            opted_out: true,
+            opted_out_at: new Date().toISOString(),
+            opted_in_at: null,
+          },
+        },
+        { upsert: true }
+      );
+      return;
+    }
+    throw err;
+  }
+}
+
+export async function clearCustomerOptOut(businessId: string, phone: string): Promise<void> {
+  if (!businessId || !phone) return;
+  try {
+    await smsOptoutsCollection.updateOne(
+      { business_id: businessId, customer_phone: phone },
+      {
+        $set: {
+          opted_out: false,
+          opted_in_at: new Date().toISOString(),
+        },
+      },
+      { upsert: true }
+    );
+  } catch (err) {
+    if (isMissingCollectionError(err)) {
+      await ensureOptoutsCollection();
+      await smsOptoutsCollection.updateOne(
+        { business_id: businessId, customer_phone: phone },
+        {
+          $set: {
+            opted_out: false,
+            opted_in_at: new Date().toISOString(),
+          },
+        },
+        { upsert: true }
+      );
+      return;
+    }
+    throw err;
+  }
+}
+
 export type SendSmsResult =
   | { ok: true; sid: string }
-  | { ok: false; reason: "not_approved" | "no_number" | "error"; detail?: string };
+  | { ok: false; reason: "not_approved" | "opted_out" | "no_number" | "error"; detail?: string };
 
 export async function sendBusinessSms(
   business: Record<string, any>,
@@ -242,6 +368,15 @@ export async function sendBusinessSms(
   try {
     const businessId = business?.business_id;
     if (!businessId) return { ok: false, reason: "no_number" };
+
+    const phone = opts.to.replace("whatsapp:", "");
+
+    // TCPA: never text a customer who replied STOP — applies to every
+    // outbound path (AI replies, reminders, review requests, missed-call SMS).
+    if (await isCustomerOptedOut(businessId, phone)) {
+      console.log(`[sms-compliance] blocked outbound SMS for ${businessId} — ${phone} opted out`);
+      return { ok: false, reason: "opted_out" };
+    }
 
     const record = await getComplianceRecord(businessId);
     if (record?.status !== "approved") {

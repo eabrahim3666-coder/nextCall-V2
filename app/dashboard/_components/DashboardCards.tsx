@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Reveal } from "@/components/Reveal";
+import AnimatedNumber from "./AnimatedNumber";
 import { Pencil, ArrowLeft, Save, Trash2, Phone, Clock, Smartphone } from "lucide-react";
 
 type Call = {
@@ -83,7 +85,9 @@ export default function DashboardCards({ calls, minutesUsed, totalCalls, activeN
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
             {/* Card 1: Total Calls */}
-            <div className="bg-black border border-white/5 p-6 rounded-2xl hover:border-white/5 transition-colors">
+            <Reveal direction="up" delay={0.08}>
+            <div className="relative overflow-hidden h-full bg-black border border-white/5 p-6 rounded-2xl hover:border-[#ff4b00]/20 transition-colors">
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#ff4b00]/40 to-transparent pointer-events-none" />
                 <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#ff4b00]/10 border border-[#ff4b00]/20">
                         <Phone className="h-5 w-5 text-[#ff4b00]" />
@@ -116,11 +120,14 @@ export default function DashboardCards({ calls, minutesUsed, totalCalls, activeN
                     </Dialog>
                 </div>
                 <h3 className="text-sm font-medium text-[#A7ADBB] uppercase tracking-wider">Total Calls</h3>
-                <p className="text-3xl font-bold text-white mt-1">{totalCalls}</p>
+                <p className="text-3xl font-bold text-white mt-1"><AnimatedNumber value={totalCalls} /></p>
             </div>
+            </Reveal>
 
             {/* Card 2: Minutes Used */}
-            <div className="bg-black border border-white/5 p-6 rounded-2xl hover:border-white/5 transition-colors">
+            <Reveal direction="up" delay={0.16}>
+            <div className="relative overflow-hidden h-full bg-black border border-white/5 p-6 rounded-2xl hover:border-[#ff4b00]/20 transition-colors">
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#ff4b00]/40 to-transparent pointer-events-none" />
                 <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                         <Clock className="h-5 w-5 text-emerald-400" />
@@ -147,11 +154,14 @@ export default function DashboardCards({ calls, minutesUsed, totalCalls, activeN
                     </Dialog>
                 </div>
                 <h3 className="text-sm font-medium text-[#A7ADBB] uppercase tracking-wider">Minutes Used</h3>
-                <p className="text-3xl font-bold text-white mt-1">{Number(minutesUsed || 0).toFixed(1)} <span className="text-lg font-normal text-[#A7ADBB]">min</span></p>
+                <p className="text-3xl font-bold text-white mt-1"><AnimatedNumber value={Math.round(Number(minutesUsed || 0) * 10)} format={(n) => (n / 10).toFixed(1)} /> <span className="text-lg font-normal text-[#A7ADBB]">min</span></p>
             </div>
+            </Reveal>
 
             {/* Card 3: Active Number Management */}
-            <div className="bg-black border border-white/5 p-6 rounded-2xl hover:border-white/5 transition-colors">
+            <Reveal direction="up" delay={0.24}>
+            <div className="relative overflow-hidden h-full bg-black border border-white/5 p-6 rounded-2xl hover:border-[#ff4b00]/20 transition-colors">
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#ff4b00]/40 to-transparent pointer-events-none" />
                 <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#ff4b00]/10 border border-[#ff4b00]/20">
                         <Smartphone className="h-5 w-5 text-[#ff4b00]" />
@@ -272,8 +282,9 @@ export default function DashboardCards({ calls, minutesUsed, totalCalls, activeN
                     </Dialog>
                 </div>
                 <h3 className="text-sm font-medium text-[#A7ADBB] uppercase tracking-wider">Active Numbers</h3>
-                <p className="text-3xl font-bold text-white mt-1">{localNumbers.length}</p>
+                <p className="text-3xl font-bold text-white mt-1"><AnimatedNumber value={localNumbers.length} /></p>
             </div>
+            </Reveal>
 
         </div>
     );

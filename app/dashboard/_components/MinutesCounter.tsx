@@ -64,7 +64,7 @@ export default function MinutesCounter({
             </button>
 
             {open && (
-                <div className="absolute right-0 top-full mt-2 w-72 bg-[#0c0c0c] border border-white/5 rounded-2xl p-5 shadow-2xl z-50">
+                <div className="absolute right-0 top-full mt-2 w-72 max-w-[calc(100vw-1.5rem)] bg-[#0c0c0c] border border-white/5 rounded-2xl p-5 shadow-2xl z-50">
                     <p className="text-sm font-semibold text-white mb-1">Minutes</p>
                     <p className="text-xs text-[#A7ADBB] mb-4">
                         {used} of {limit} min used ({percent}%)

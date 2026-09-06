@@ -33,7 +33,9 @@ export async function POST(request: Request) {
 
   if (channelName === "private-admin-chat") {
     const user = await currentUser();
-    const isAdminByRole = user?.publicMetadata?.role === "admin" || user?.privateMetadata?.role === "admin";
+    // Backend-controlled signals only — publicMetadata is client-readable and
+    // potentially client-updatable in Clerk, so it must never grant admin.
+    const isAdminByRole = user?.privateMetadata?.role === "admin";
     const bossEmails = process.env.ADMIN_EMAILS?.split(",").map((e) => e.trim().toLowerCase()) || [];
     const currentEmail = user?.emailAddresses?.[0]?.emailAddress?.toLowerCase();
     if (!isAdminByRole && !bossEmails.includes(currentEmail || "")) {

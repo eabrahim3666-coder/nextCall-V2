@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import twilioClient from '@/lib/twilio';
 import { businessesCollection } from '@/lib/astra';
-import { verifyHmacSignature, escapeHtml } from '@/lib/security';
+import { verifyRetellSignature, escapeHtml } from '@/lib/security';
 import { notifyActivity } from '@/lib/pusher';
 import { sendBusinessSms, isSmsApproved, getBusinessClient } from '@/lib/sms-compliance';
 import { sendTelegramMessage } from '@/lib/telegram';
@@ -9,7 +9,7 @@ import { sendTelegramMessage } from '@/lib/telegram';
 export async function POST(request: Request) {
   try {
     const rawBody = await request.text();
-    if (!verifyHmacSignature(rawBody, request.headers.get('retell-signature'), process.env.RETELL_WEBHOOK_SECRET)) {
+    if (!verifyRetellSignature(rawBody, request.headers.get('retell-signature'), [process.env.RETELL_WEBHOOK_SECRET, process.env.RETELL_API_KEY])) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const body = JSON.parse(rawBody);

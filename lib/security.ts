@@ -8,18 +8,35 @@ export function hasValidSecret(value: string | null, expected: string | undefine
   return provided.length === actual.length && crypto.timingSafeEqual(provided, actual);
 }
 
-export function verifyHmacSignature(
+/**
+ * Verify a Retell webhook signature (X-Retell-Signature). Retell signs
+ * `${rawBody}${timestamp}` with the API key carrying the webhook badge and
+ * sends the header as `v={timestamp_ms},d={hex_digest}` — see
+ * node_modules/retell-sdk/src/lib/webhook_auth.ts. The 5-minute timestamp
+ * window rejects replayed deliveries. Multiple candidate secrets are tried
+ * in order (RETELL_WEBHOOK_SECRET first, RETELL_API_KEY as fallback) since
+ * either may be the webhook-badge key depending on configuration.
+ */
+export function verifyRetellSignature(
   rawBody: string,
   signature: string | null,
-  secret: string | undefined,
-  payloadPrefix = ""
+  secrets: Array<string | undefined>
 ): boolean {
-  if (!signature || !secret) return false;
-  const expected = crypto
-    .createHmac("sha256", secret)
-    .update(`${payloadPrefix}${rawBody}`)
-    .digest("hex");
-  return hasValidSecret(signature, expected);
+  if (!signature || !secrets.length) return false;
+  const match = /v=(\d+),d=(.*)/.exec(signature);
+  if (!match) return false;
+  const timestamp = Number(match[1]);
+  if (!Number.isFinite(timestamp) || Math.abs(Date.now() - timestamp) > 5 * 60 * 1000) {
+    return false;
+  }
+  return secrets.some((secret) => {
+    if (!secret) return false;
+    const expected = crypto
+      .createHmac("sha256", secret)
+      .update(`${rawBody}${timestamp}`)
+      .digest("hex");
+    return hasValidSecret(match[2], expected);
+  });
 }
 
 export function verifyTwilioRequest(

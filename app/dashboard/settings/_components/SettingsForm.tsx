@@ -793,7 +793,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                             className="w-full bg-black border border-white/5 rounded-lg px-3 py-2.5 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#ff4b00]/50 transition-all"
                                         />
                                         <p className="text-[10px] text-[#A7ADBB] mt-1.5 leading-relaxed">
-                                            Used in your review-request emails & SMS. Get it from Google Business Profile → Profile → "Share review form".
+                                            Used in review-request emails & SMS. To copy it: search your business on Google → click <span className="text-white font-medium">"Share review form"</span> (in your profile's buttons row) → copy the link. It should look like <span className="text-neutral-300">g.page/r/…/review</span>.
                                         </p>
                                     </div>
                                 )}

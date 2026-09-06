@@ -1,6 +1,10 @@
 "use client";
 
+import { useRef } from "react";
+import { useInView } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import CinematicChartCard from "./CinematicChartCard";
+import AnimatedNumber from "./AnimatedNumber";
 
 type VolumeData = { name: string; calls: number };
 type SentimentData = { name: string; value: number };
@@ -25,7 +29,7 @@ type TooltipProps = {
 const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-[#0a0a0a] border border-white/5 px-4 py-3 shadow-xl rounded-lg">
+            <div className="bg-[#0a0a0a]/95 backdrop-blur-sm border border-[#ff4b00]/25 px-4 py-3 rounded-lg shadow-[0_0_30px_rgba(255,75,0,0.12)]">
                 <p className="text-xs text-[#A7ADBB] mb-1">{label}</p>
                 <p className="text-sm font-bold text-white">{payload[0].value} <span className="text-[#ff4b00] text-xs font-medium">CALLS</span></p>
             </div>
@@ -35,6 +39,14 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
 };
 
 export default function DashboardCharts({ volumeData, sentimentData }: { volumeData: VolumeData[], sentimentData: SentimentData[] }) {
+    // Charts mount only when scrolled into view so recharts' draw-in animation
+    // plays at the moment of arrival, not on page load. The fixed-height
+    // containers below prevent any layout shift in the meantime.
+    const volumeRef = useRef<HTMLDivElement>(null);
+    const sentimentRef = useRef<HTMLDivElement>(null);
+    const volumeInView = useInView(volumeRef, { once: true, amount: 0.3 });
+    const sentimentInView = useInView(sentimentRef, { once: true, amount: 0.3 });
+
     const totalCalls = volumeData.reduce((sum, day) => sum + day.calls, 0);
     const displayVolume = totalCalls === 0 ? defaultVolumeData : volumeData;
     const displaySentiment = totalCalls === 0 ? defaultSentimentData : sentimentData;
@@ -44,61 +56,82 @@ export default function DashboardCharts({ volumeData, sentimentData }: { volumeD
     const positiveShare = sentimentCalls > 0
         ? Math.round((displaySentiment[0]?.value ?? 0) / sentimentCalls * 100)
         : 0;
-    const qualityLabel = totalCalls === 0 ? "100%" : (sentimentCalls > 0 ? `${positiveShare}%` : "—");
+    const qualityLabel = totalCalls === 0 ? 100 : (sentimentCalls > 0 ? positiveShare : 0);
 
     return (
-        <div className="bg-black border border-white/5 rounded-2xl p-8">
+        <CinematicChartCard padding="lg">
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h2 className="text-lg font-bold text-white">Performance Analytics</h2>
                     <p className="text-sm text-[#A7ADBB] mt-1">Real-time call volume and lead classification.</p>
                 </div>
                 {totalCalls === 0 && (
-                    <span className="text-xs font-semibold text-[#ff4b00] bg-[#ff4b00]/10 px-3 py-1 rounded-full border border-[#ff4b00]/30">DEMO MODE</span>
+                    <span className="text-xs font-semibold text-[#ff4b00] bg-[#ff4b00]/10 px-3 py-1 rounded-full border border-[#ff4b00]/30 animate-pulse">DEMO MODE</span>
                 )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 h-[320px]">
+                <div ref={volumeRef} className="lg:col-span-2 h-[320px]">
                     <div className="flex justify-between items-end mb-4">
                         <h3 className="text-sm font-semibold text-[#A7ADBB] uppercase tracking-wider">Call Volume (7D)</h3>
                         <p className="text-2xl font-bold text-white">{totalCalls === 0 ? '54' : totalCalls} <span className="text-xs text-[#A7ADBB] font-normal">total</span></p>
                     </div>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={displayVolume} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                            <defs>
-                                <linearGradient id="colorCalls" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#ff4b00" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#ff4b00" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)" />
-                            <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#525252' }} />
-                            <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#525252' }} allowDecimals={false} />
-                            <Tooltip content={<CustomTooltip />} />
-                            <Area type="monotone" dataKey="calls" stroke="#ff4b00" strokeWidth={3} fillOpacity={1} fill="url(#colorCalls)" />
-                        </AreaChart>
-                    </ResponsiveContainer>
+                    {volumeInView && (
+                        <ResponsiveContainer width="100%" height="86%">
+                            <AreaChart data={displayVolume} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="colorCalls" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#ff4b00" stopOpacity={0.4} />
+                                        <stop offset="95%" stopColor="#ff4b00" stopOpacity={0.02} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,75,0,0.06)" />
+                                <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#525252' }} />
+                                <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#525252' }} allowDecimals={false} />
+                                <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,75,0,0.2)', strokeDasharray: '4 4' }} />
+                                <Area
+                                    type="monotone"
+                                    dataKey="calls"
+                                    stroke="#ff4b00"
+                                    strokeWidth={3.5}
+                                    fillOpacity={1}
+                                    fill="url(#colorCalls)"
+                                    style={{ filter: 'drop-shadow(0 0 6px rgba(255,75,0,0.4))' }}
+                                    activeDot={{ r: 5, fill: '#ff4b00', stroke: '#0a0a0a', strokeWidth: 2 }}
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    )}
                 </div>
 
-                <div className="h-[320px] flex flex-col">
+                <div ref={sentimentRef} className="h-[320px] flex flex-col">
                     <h3 className="text-sm font-semibold text-[#A7ADBB] uppercase tracking-wider mb-4">Lead Sentiment</h3>
                     <div className="flex-1 flex items-center justify-center relative">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie data={displaySentiment} cx="50%" cy="50%" innerRadius={75} outerRadius={105} paddingAngle={3} dataKey="value" stroke="none">
-                                    {displaySentiment.map((_, index) => (
-                                        // Always color per sentiment so the pie matches
-                                        // the legend below (demo mode used to render all
-                                        // slices gray while the legend showed colors).
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }} itemStyle={{ color: '#94a3b8', fontSize: '12px' }} labelStyle={{ color: '#fff', fontWeight: 'bold' }} />
-                            </PieChart>
-                        </ResponsiveContainer>
+                        {sentimentInView && (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={displaySentiment}
+                                        cx="50%" cy="50%"
+                                        innerRadius={75} outerRadius={105}
+                                        paddingAngle={3}
+                                        dataKey="value"
+                                        stroke="none"
+                                        style={{ filter: 'drop-shadow(0 0 10px rgba(255,138,77,0.15))' }}
+                                    >
+                                        {displaySentiment.map((_, index) => (
+                                            // Always color per sentiment so the pie matches
+                                            // the legend below (demo mode used to render all
+                                            // slices gray while the legend showed colors).
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid rgba(255,75,0,0.25)', borderRadius: '8px', boxShadow: '0 0 30px rgba(255,75,0,0.12)' }} itemStyle={{ color: '#94a3b8', fontSize: '12px' }} labelStyle={{ color: '#fff', fontWeight: 'bold' }} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        )}
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <p className="text-3xl font-bold text-white">{qualityLabel}</p>
+                            <AnimatedNumber value={qualityLabel} format={(n) => `${n}%`} className="text-3xl font-bold text-white" />
                             <p className="text-[10px] text-[#A7ADBB] uppercase tracking-widest mt-1">Positive</p>
                         </div>
                     </div>
@@ -109,6 +142,6 @@ export default function DashboardCharts({ volumeData, sentimentData }: { volumeD
                     </div>
                 </div>
             </div>
-        </div>
+        </CinematicChartCard>
     );
 }

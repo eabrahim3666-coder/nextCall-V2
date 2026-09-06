@@ -34,6 +34,11 @@ const SECRET_PATTERNS: { name: string; re: RegExp }[] = [
   { name: "Paddle key", re: /\bpdl_(test_)?[a-z0-9]{24,}\b/i },
   // Telegram bot tokens
   { name: "Telegram token", re: /\b\d{6,12}:[a-zA-Z0-9_-]{30,}\b/g },
+  // Customer PII: E.164 and NANP phone numbers (US-focused product)
+  { name: "E.164 phone", re: /(?<!\w)\+[1-9]\d{7,14}(?!\w)/g },
+  { name: "NANP phone", re: /(?<!\w)(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}(?!\w)/g },
+  // Email addresses
+  { name: "Email", re: /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/g },
   // Google / OAuth tokens (long base64url strings after a label already handled;
   // also catch bare ya29-style tokens)
   { name: "Google token", re: /\bya29\.[a-zA-Z0-9_-]{10,}\b/g },

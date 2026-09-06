@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { callsCollection, withRetry } from "@/lib/astra";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { Reveal } from "@/components/Reveal";
 import DashboardCards from "./_components/DashboardCards";
 import DashboardCharts from "./_components/DashboardCharts";
 import { findBusinessByUserId } from "@/lib/business";
@@ -51,8 +52,8 @@ export default async function DashboardHome() {
     const smsStatus = smsCompliance?.status || null;
 
     const activeNumbers = (Array.isArray(business?.twilio_numbers) ? business.twilio_numbers : [business?.twilio_number])
-        .filter((num: string) => num && num !== "PROVISIONING_FAILED")
-        .map((num: string) => ({ number: num, label: "Main Line" }));
+        .filter((num): num is string => Boolean(num) && num !== "PROVISIONING_FAILED")
+        .map((num) => ({ number: num, label: "Main Line" }));
 
     const recentCalls = formattedCalls.slice(0, 5);
 
@@ -160,32 +161,35 @@ export default async function DashboardHome() {
             )}
 
             {isAIActive && (
-                <div className="bg-black border border-white/5 rounded-2xl p-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
-                        <div className="flex items-center gap-3">
-                            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#ff4b00]/10 border border-[#ff4b00]/20">
-                                <svg className="w-5 h-5 text-[#ff4b00]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <Reveal direction="up" delay={0.05}>
+                    <div className="relative overflow-hidden bg-black border border-white/5 rounded-2xl p-6 shadow-[0_0_50px_-20px_rgba(255,75,0,0.2)]">
+                        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#ff4b00]/40 to-transparent pointer-events-none" />
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[#ff4b00]/10 border border-[#ff4b00]/20">
+                                    <svg className="w-5 h-5 text-[#ff4b00]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-semibold text-white">Minutes Usage</p>
+                                    <p className="text-xs text-[#A7ADBB]">{minutesUsed} of {minutesLimit} minutes used this month</p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-sm font-semibold text-white">Minutes Usage</p>
-                                <p className="text-xs text-[#A7ADBB]">{minutesUsed} of {minutesLimit} minutes used this month</p>
+                            <div className="text-right">
+                                <p className="text-2xl font-bold text-white">{minutesRemaining}</p>
+                                <p className="text-xs text-[#A7ADBB]">minutes remaining</p>
                             </div>
                         </div>
-                        <div className="text-right">
-                            <p className="text-2xl font-bold text-white">{minutesRemaining}</p>
-                            <p className="text-xs text-[#A7ADBB]">minutes remaining</p>
+                        <div className="w-full bg-black rounded-full h-2.5 border border-white/5">
+                            <div
+                                className={`h-2.5 rounded-full transition-all duration-500 ${minutesPercent > 80 ? "bg-red-500" : minutesPercent > 50 ? "bg-amber-500" : "bg-[#ff4b00]"}`}
+                                style={{ width: `${minutesPercent}%`, boxShadow: minutesPercent <= 50 ? "0 0 10px rgba(255,75,0,0.35)" : undefined }}
+                            />
                         </div>
+                        {minutesPercent > 80 && (
+                            <p className="mt-2 text-xs text-red-400 font-medium">⚠ You&apos;re running low on minutes. Consider upgrading your plan.</p>
+                        )}
                     </div>
-                    <div className="w-full bg-black rounded-full h-2.5">
-                        <div
-                            className={`h-2.5 rounded-full transition-all duration-500 ${minutesPercent > 80 ? "bg-red-500" : minutesPercent > 50 ? "bg-amber-500" : "bg-[#ff4b00]"}`}
-                            style={{ width: `${minutesPercent}%` }}
-                        />
-                    </div>
-                    {minutesPercent > 80 && (
-                        <p className="mt-2 text-xs text-red-400 font-medium">⚠ You&apos;re running low on minutes. Consider upgrading your plan.</p>
-                    )}
-                </div>
+                </Reveal>
             )}
 
             <DashboardCards
@@ -197,65 +201,36 @@ export default async function DashboardHome() {
             />
 
             {isAIActive && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <Link
-                        href="/dashboard/settings?focus=step1"
-                        className="flex items-center gap-3 p-4 bg-black border border-white/5 rounded-xl hover:border-[#ff4b00]/30 hover:bg-black transition-all group"
-                    >
-                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#ff4b00]/10 border border-[#ff4b00]/20 group-hover:bg-[#ff4b00]/20 transition-colors">
-                            <svg className="w-5 h-5 text-[#ff4b00]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-white">Edit AI</p>
-                            <p className="text-xs text-[#A7ADBB]">Update knowledge</p>
-                        </div>
-                    </Link>
-
-                    <Link
-                        href="/dashboard/calls"
-                        className="flex items-center gap-3 p-4 bg-black border border-white/5 rounded-xl hover:border-emerald-500/30 hover:bg-black transition-all group"
-                    >
-                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 group-hover:bg-emerald-500/20 transition-colors">
-                            <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-white">Call Log</p>
-                            <p className="text-xs text-[#A7ADBB]">View all calls</p>
-                        </div>
-                    </Link>
-
-                    <Link
-                        href="/dashboard/settings"
-                        className="flex items-center gap-3 p-4 bg-black border border-white/5 rounded-xl hover:border-amber-500/30 hover:bg-black transition-all group"
-                    >
-                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 group-hover:bg-amber-500/20 transition-colors">
-                            <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-white">Settings</p>
-                            <p className="text-xs text-[#A7ADBB]">Configure</p>
-                        </div>
-                    </Link>
-
-                    <Link
-                        href="/dashboard/docs"
-                        className="flex items-center gap-3 p-4 bg-black border border-white/5 rounded-xl hover:border-[#ff4b00]/30 hover:bg-black transition-all group"
-                    >
-                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#ff4b00]/10 border border-[#ff4b00]/20 group-hover:bg-purple-500/20 transition-colors">
-                            <svg className="w-5 h-5 text-[#ff4b00]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-white">Docs</p>
-                            <p className="text-xs text-[#A7ADBB]">Guides & help</p>
-                        </div>
-                    </Link>
+                <div className="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                    {[
+                        { href: "/dashboard/settings?focus=step1", border: "hover:border-[#ff4b00]/30", chip: "bg-[#ff4b00]/10 border-[#ff4b00]/20 group-hover:bg-[#ff4b00]/20", iconColor: "text-[#ff4b00]", title: "Edit AI", sub: "Update knowledge", path: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" },
+                        { href: "/dashboard/calls", border: "hover:border-emerald-500/30", chip: "bg-emerald-500/10 border-emerald-500/20 group-hover:bg-emerald-500/20", iconColor: "text-emerald-400", title: "Call Log", sub: "View all calls", path: "M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" },
+                        { href: "/dashboard/settings", border: "hover:border-amber-500/30", chip: "bg-amber-500/10 border-amber-500/20 group-hover:bg-amber-500/20", iconColor: "text-amber-400", title: "Settings", sub: "Configure", path: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z" },
+                        { href: "/dashboard/docs", border: "hover:border-[#ff4b00]/30", chip: "bg-[#ff4b00]/10 border-[#ff4b00]/20 group-hover:bg-purple-500/20", iconColor: "text-[#ff4b00]", title: "Docs", sub: "Guides & help", path: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" },
+                    ].map((tile, i) => (
+                        <Reveal key={tile.title} direction="up" delay={0.05 + i * 0.05} className="h-full">
+                            <Link
+                                href={tile.href}
+                                className={`h-full flex items-center gap-3 p-4 bg-black border border-white/5 rounded-xl hover:bg-black transition-all group ${tile.border}`}
+                            >
+                                <div className={`flex items-center justify-center w-10 h-10 rounded-lg border transition-colors ${tile.chip}`}>
+                                    <svg className={`w-5 h-5 ${tile.iconColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={tile.path} /></svg>
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-white">{tile.title}</p>
+                                    <p className="text-xs text-[#A7ADBB]">{tile.sub}</p>
+                                </div>
+                            </Link>
+                        </Reveal>
+                    ))}
                 </div>
             )}
 
             {isAIActive && (
                 <>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-2 bg-black border border-white/5 rounded-2xl p-6">
+                        <Reveal direction="up" delay={0.1} className="lg:col-span-2">
+                        <div className="h-full bg-black border border-white/5 rounded-2xl p-6">
                             <div className="flex items-center justify-between mb-5">
                                 <div>
                                     <h2 className="text-base font-bold text-white">Recent Activity</h2>
@@ -300,7 +275,9 @@ export default async function DashboardHome() {
                                 </div>
                             )}
                         </div>
+                        </Reveal>
 
+                        <Reveal direction="up" delay={0.2}>
                         <div className="space-y-6">
                             {activeNumbers.length > 0 && (
                                 <div className="bg-black border border-white/5 rounded-2xl p-6">
@@ -331,6 +308,7 @@ export default async function DashboardHome() {
                                 </Link>
                             </div>
                         </div>
+                        </Reveal>
                     </div>
 
                     {business?.plan_type === "premium" || business?.plan === "premium" ? (

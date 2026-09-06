@@ -238,6 +238,14 @@ export const smsComplianceCollection = new Proxy({} as any, {
   },
 });
 
+export const smsOptoutsCollection = new Proxy({} as any, {
+  get: (_, prop) => {
+    const col = getCollection('sms_optouts');
+    const val = col[prop];
+    return typeof val === 'function' ? val.bind(col) : val;
+  },
+});
+
 export const incidentsCollection = new Proxy({} as any, {
   get: (_, prop) => {
     const col = getCollection('incidents');
@@ -299,7 +307,7 @@ async function webhookOp<T>(op: () => Promise<T>): Promise<T | null> {
 }
 
 export const webhookEventsCollection = {
-  findOne: (filter: JsonDoc) => webhookOp(() => _webhookEventsCollection.findOne(filter)),
+  findOne: (filter: JsonDoc) => webhookOp<Record<string, any>>(() => _webhookEventsCollection.findOne(filter)),
   insertOne: (doc: JsonDoc) => webhookOp(() => _webhookEventsCollection.insertOne(doc)),
   updateOne: (filter: JsonDoc, update: JsonDoc) => webhookOp(() => _webhookEventsCollection.updateOne(filter, update)),
   deleteOne: (filter: JsonDoc) => webhookOp(() => _webhookEventsCollection.deleteOne(filter)),

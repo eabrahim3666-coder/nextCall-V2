@@ -9,8 +9,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
     const user = await currentUser();
 
-    // Check both public and private metadata
-    const isAdmin = user?.publicMetadata?.role === "admin" || user?.privateMetadata?.role === "admin";
+    // Backend-controlled signals only — publicMetadata is client-readable and
+    // potentially client-updatable in Clerk, so it must never grant admin.
+    const isAdmin = user?.privateMetadata?.role === "admin";
 
     // SECURE BOSS BYPASS: Check against ADMIN_EMAILS environment variable
     const bossEmails = process.env.ADMIN_EMAILS?.split(",").map(e => e.trim().toLowerCase()) || [];

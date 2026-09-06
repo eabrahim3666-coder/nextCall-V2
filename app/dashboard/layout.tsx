@@ -11,6 +11,9 @@ import MobileNav from "./_components/MobileNav";
 import MinutesCounter from "./_components/MinutesCounter";
 import DashboardAccessGate from "./_components/DashboardAccessGate";
 import { findBusinessByUserId, isTrialExpired } from "@/lib/business";
+import { getComplianceRecord } from "@/lib/sms-compliance";
+import { computeSetupProgress, type SetupProgress } from "@/lib/setup-progress";
+import SetupProgressSidebar from "./_components/SetupProgressSidebar";
 import DisableLenis from "./_components/DisableLenis";
 
 export const dynamic = "force-dynamic";
@@ -28,23 +31,38 @@ export default async function DashboardLayout({
     const isActiveBusiness = business?.status === "active";
     const isAIActive = isActiveBusiness && Number(business?.total_minutes_used || 0) < Number(business?.minutes_limit || 200);
 
+    // Setup progression (sidebar widget) — hidden at 100%. `hasCalls` is false
+    // here and the total_calls_processed counter inside the business doc
+    // carries the signal, so no extra calls-collection query is needed.
+    let setup: SetupProgress | null = null;
+    if (isActiveBusiness && business) {
+        const smsRecord = await getComplianceRecord(userId).catch(() => null);
+        setup = computeSetupProgress(business, {
+            smsApproved: smsRecord?.status === "approved",
+            hasCalls: false,
+        });
+    }
+
     return (
         <div className="min-h-screen overflow-x-clip bg-black dashboard-root">
             <DisableLenis />
-            <nav className="bg-black/40 backdrop-blur-xl border-b border-white/10 px-6 py-3 flex justify-between items-center sticky top-0 z-50">
-                <div className="flex items-center gap-3">
-                    <Link href="/dashboard" className="flex items-center">
+            <nav className="bg-black/40 backdrop-blur-xl border-b border-white/10 px-3 sm:px-6 py-3 flex justify-between items-center gap-2 sticky top-0 z-50">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <Link href="/dashboard" className="flex items-center shrink-0">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src="/logo.png" alt="Next Call" className="h-7 w-auto" />
                     </Link>
                     <div className="md:hidden ml-2">
                         {isActiveBusiness && (
-                            <MobileNav planType={String(business?.plan_type || business?.plan || "standard")} />
+                            <MobileNav
+                                planType={String(business?.plan_type || business?.plan || "standard")}
+                                setup={setup}
+                            />
                         )}
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 sm:gap-4">
+                <div className="flex items-center gap-1.5 sm:gap-4 min-w-0">
                     {isActiveBusiness && <NotificationBell />}
                     {isActiveBusiness && business && (
                         <MinutesCounter
@@ -66,16 +84,19 @@ export default async function DashboardLayout({
 
             <div className="flex min-h-[calc(100vh-56px)]">
                 {/* Left sidebar — desktop */}
-                <aside className="hidden md:flex w-64 shrink-0 border-r border-white/5 bg-black/20 p-4 sticky top-[56px] h-[calc(100vh-56px)] flex-col">
+                <aside className="hidden md:flex w-64 shrink-0 border-r border-white/5 bg-black/20 p-4 sticky top-[56px] h-[calc(100vh-56px)] flex-col overflow-y-auto">
                     {isActiveBusiness && (
                         <NavLinks
                             vertical
                             planType={String(business?.plan_type || business?.plan || "standard")}
                         />
                     )}
+                    {setup && !setup.allDone && (
+                        <SetupProgressSidebar setup={setup} />
+                    )}
                 </aside>
 
-                <main className="flex-1 p-6 pb-0 flex flex-col min-w-0">
+                <main className="flex-1 p-3 sm:p-6 pb-0 flex flex-col min-w-0">
                     <div className="flex-1">
                         <DashboardAccessGate
                             hasBusiness={Boolean(business)}
