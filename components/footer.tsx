@@ -183,7 +183,7 @@ function Footer() {
         {/* Bottom bar */}
         <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-8 md:flex-row">
           <p className="footer-line text-xs text-zinc-500" style={{ "--fd": "1720ms" } as React.CSSProperties}>
-            &copy; 2026 Next Call Chat. All rights reserved.
+            &copy; 2026 NextCall. All rights reserved. NextCall (getnextcall.com) is operated under Trade License TRAD/BCC/30653/2026. Contact: support@getnextcall.com
           </p>
           <div className="flex items-center gap-4">
             <a

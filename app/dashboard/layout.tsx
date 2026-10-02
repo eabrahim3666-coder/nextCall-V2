@@ -110,7 +110,7 @@ export default async function DashboardLayout({
                 {isActiveBusiness && (
                     <div className="mt-12 pt-6 pb-4 border-t border-white/5">
                         <div className="flex flex-col md:flex-row justify-between items-center gap-2 text-xs text-neutral-600">
-                            <p>© {new Date().getFullYear()} nextCall. All rights reserved.</p>
+                            <p>© {new Date().getFullYear()} NextCall. All rights reserved. Trade License TRAD/BCC/30653/2026.</p>
                             <div className="flex gap-4">
                                 <Link href="/dashboard/docs" className="hover:text-white transition-colors">Documentation</Link>
                                 <Link href="/dashboard/terms" className="hover:text-white transition-colors">Terms of Service</Link>

@@ -15,7 +15,7 @@ export default function TermsPage() {
 
                     <section>
                         <h2 className="text-lg font-medium text-white mb-3">1. Agreement to Terms</h2>
-                        <p>These Terms of Service (&quot;Terms&quot;) constitute a legally binding agreement made between you, whether personally or on behalf of an entity (&quot;You&quot;) and NextCall Technologies (&quot;NextCall,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;), concerning your access to and use of the NextCall AI Receptionist platform and associated services (the &quot;Service&quot;). By accessing or using the Service, you agree that you have read, understood, and agreed to be bound by these Terms. IF YOU DO NOT AGREE WITH ALL OF THESE TERMS, DO NOT ACCESS OR USE THE SERVICE.</p>
+                        <p>These Terms of Service constitute a legally binding agreement made between you, whether personally or on behalf of an entity (&quot;you&quot;) and NextCall (Trade License No: TRAD/BCC/30653/2026), concerning your access to and use of the https://www.getnextcall.com website as well as any related application or service.</p>
                     </section>
 
                     <section>
@@ -141,10 +141,10 @@ export default function TermsPage() {
                     </section>
 
                     <section>
-                        <h2 className="text-lg font-medium text-white mb-3">20. Contact & Legal Notices</h2>
+                        <h2 className="text-lg font-medium text-white mb-3">20. Contact Information & Legal Notices</h2>
                         <p>If you have any questions, notices, or legal requests regarding these Terms or the Service, please contact us at:</p>
                         <p className="mt-3">
-                            NextCall Technologies — Email: <a href="mailto:support@getnextcall.com" className="text-indigo-400 hover:text-indigo-300">support@getnextcall.com</a>
+                            Legal Entity: NextCall<br />Registration Number: Trade License TRAD/BCC/30653/2026<br />Official Website: <a href="https://www.getnextcall.com" className="text-indigo-400 hover:text-indigo-300">https://www.getnextcall.com</a><br />Support Email: <a href="mailto:support@getnextcall.com" className="text-indigo-400 hover:text-indigo-300">support@getnextcall.com</a><br />Physical Business Address: Holding No 0042, Bhuyian Mansion, Fakirbari Road, Barishal Sadar, Barishal - 8200, Bangladesh
                         </p>
                     </section>
                 </div>

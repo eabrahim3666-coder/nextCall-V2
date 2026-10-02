@@ -90,7 +90,7 @@ export default function PricingPolicyPage() {
                         <h2 className="text-lg font-medium text-white mb-3">9. Contact & Support</h2>
                         <p>For any billing inquiries or support requests, please contact us:</p>
                         <p className="mt-3">
-                            NextCall Technologies<br />
+                            NextCall (Trade License TRAD/BCC/30653/2026)<br />
                             Email: <a href="mailto:support@getnextcall.com" className="text-indigo-400 hover:text-indigo-300">support@getnextcall.com</a><br />
                         </p>
                     </section>

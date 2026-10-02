@@ -15,7 +15,7 @@ export default function PrivacyPage() {
 
                     <section>
                         <h2 className="text-lg font-medium text-white mb-3">1. Introduction</h2>
-                        <p>Welcome to NextCall Technologies (&quot;NextCall,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;). We operate the NextCall AI Receptionist platform (the &quot;Service&quot;). This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Service in compliance with the General Data Protection Regulation (GDPR) and the California Consumer Privacy Act (CCPA). By using NextCall, you agree to the collection and use of information in accordance with this policy.</p>
+                        <p>NextCall is an officially registered business entity (Trade License No: TRAD/BCC/30653/2026), operating and offering AI voice agent and automated call handling services through https://www.getnextcall.com. We are committed to protecting your personal information and your right to privacy. If you have any questions or concerns about this privacy notice or our practices with regard to your personal information, please contact us at support@getnextcall.com.</p>
                     </section>
 
                     <section>
@@ -164,6 +164,18 @@ export default function PrivacyPage() {
                         <h2 className="text-lg font-medium text-white mb-3">13. Changes To This Policy</h2>
                         <p>We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new Privacy Policy on this page, updating the &quot;Last updated&quot; date, and, where practical, sending an email or in-app notification. You are advised to review this Privacy Policy periodically for any changes.</p>
                     </section>
+
+                    <section>
+                        <h2 className="text-lg font-medium text-white mb-3">14. Contact Information & Legal Entity</h2>
+                        <ul className="list-disc list-inside space-y-2 mt-3">
+                            <li><strong>Legal Business Name:</strong> NextCall</li>
+                            <li><strong>Trade License No:</strong> TRAD/BCC/30653/2026</li>
+                            <li><strong>Official Website:</strong> https://www.getnextcall.com</li>
+                            <li><strong>Official Contact Email:</strong> support@getnextcall.com</li>
+                            <li><strong>Business Address:</strong> Holding No 0042, Bhuyian Mansion, Fakirbari Road, Barishal Sadar, Barishal - 8200, Bangladesh</li>
+                        </ul>
+                    </section>
+
                 </div>
             </div>
         </div>
