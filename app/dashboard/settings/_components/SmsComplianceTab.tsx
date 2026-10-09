@@ -67,7 +67,7 @@ const emptyForm: FormState = {
     streetAddress: "", city: "", stateProvinceRegion: "", postalCode: "", country: "US",
     contactFirstName: "", contactLastName: "", contactEmail: "", contactPhone: "",
     notificationEmail: "", useCaseCategories: ["CUSTOMER_CARE", "ACCOUNT_NOTIFICATIONS"],
-    useCaseSummary: "", productionMessageSample: "", optInType: "VERBAL", optInImageUrls: "",
+    useCaseSummary: "", productionMessageSample: "", optInType: "VIA_TEXT", optInImageUrls: "",
     messageVolume: "100", privacyPolicyUrl: "", termsAndConditionsUrl: "",
     additionalInformation: "", editReason: "",
 };
@@ -524,7 +524,10 @@ function ComplianceForm({ form, update, toggleCategory, submitting, onSubmit, er
                         <p className="text-[11px] leading-relaxed text-amber-200">
                             <span className="font-semibold">⚠️ This link decides whether your verification is approved.</span>
                             <br />
-                            Reviewers open this link without logging in. It must show how customers give you permission to text them (e.g. a screenshot of your booking form with the SMS-consent checkbox, or a doc of your phone script).
+                            Reviewers open this link without logging in — so it must be publicly viewable.
+                            <br />
+                            <span className="font-semibold text-amber-300">Since your customers opt in by texting your AI number first (the default here), your proof is simply:</span>
+                            <span className="text-amber-200/90"> a screenshot or photo showing your AI number is publicly visible — e.g. your website&apos;s Contact page, your Google Business Profile, your invoice, or even your work truck with the number on it. You do NOT need a consent checkbox form.</span>
                             <br />
                             <span className="text-amber-300/90">✓ Google Drive → upload → Share → "Anyone with the link" → paste that link here.</span>
                             <span className="text-amber-300/90"> ✗ A private file, a login page, or a broken/404 link = automatic rejection + ~5 business days lost.</span>

@@ -40,6 +40,49 @@ export default function DocsPage() {
                 </div>
             </div>
 
+            {/* Opt-in Proof Guide */}
+            <div className="bg-black border border-white/5 rounded-2xl p-8">
+                <h2 className="text-lg font-semibold text-white mb-1">Business SMS: the opt-in proof (most important field)</h2>
+                <p className="text-xs text-[#A7ADBB] mb-6">One screenshot gets your SMS registration approved or rejected. Here is exactly what to do.</p>
+
+                <div className="space-y-4">
+                    <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+                        <h3 className="text-sm font-semibold text-white mb-2">What reviewers ask for</h3>
+                        <p className="text-xs text-[#A7ADBB] leading-relaxed">
+                            US carriers require proof that your customers <strong className="text-white">agree to receive your texts</strong>. Good news: with nextCall, your customers start the conversation by texting your AI number first — that already counts as opt-in (the "They text in first" option, pre-selected for you in the form). You do <strong className="text-white">not</strong> need a consent checkbox form. You only need to show <strong className="text-white">where customers can find your number</strong>.
+                        </p>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+                        <h3 className="text-sm font-semibold text-white mb-2">Any ONE of these works as proof</h3>
+                        <ul className="text-xs text-[#A7ADBB] space-y-2 list-disc list-inside ml-1">
+                            <li><strong className="text-white">Your website</strong> — a screenshot of the page showing your AI number (Contact, Home, or Booking page).</li>
+                            <li><strong className="text-white">Google Business Profile</strong> — a screenshot of your profile showing the phone number.</li>
+                            <li><strong className="text-white">Your invoice or estimate template</strong> — a screenshot showing the number printed on it.</li>
+                            <li><strong className="text-white">Your work truck, sign, or business card</strong> — a photo where the number is clearly readable.</li>
+                            <li><strong className="text-white">Social media page</strong> — Facebook/Instagram page header or bio showing the number.</li>
+                        </ul>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/[0.06]">
+                        <h3 className="text-sm font-semibold text-amber-300 mb-2">How to share it (2 minutes)</h3>
+                        <ol className="text-xs text-amber-200/80 space-y-1.5 list-decimal list-inside ml-1">
+                            <li>Take the screenshot or photo (make sure the number is clearly readable).</li>
+                            <li>Upload it to Google Drive.</li>
+                            <li>Right-click the file → Share → change to <strong className="text-amber-200">"Anyone with the link"</strong> → Copy link.</li>
+                            <li>Paste that link in the <strong className="text-amber-200">"Link to proof of opt-in"</strong> field in Settings → Business SMS.</li>
+                        </ol>
+                        <p className="text-xs text-amber-200/60 mt-2">
+                            The link must open <strong>without any login</strong>. A private file or a broken link = automatic rejection, and you wait ~5 more business days to reapply.
+                        </p>
+                    </div>
+
+                    <p className="text-xs text-[#A7ADBB] italic">
+                        Ready? Go to <a href="/dashboard/settings?focus=sms" className="text-[#ff4b00] underline underline-offset-2 hover:text-[#ff8a4d]">Settings → Business SMS</a> and submit your registration.
+                    </p>
+                </div>
+            </div>
+
             {/* Plans & Included Features */}
             <div className="bg-black border border-white/5 rounded-2xl p-8">
                 <h2 className="text-lg font-semibold text-white mb-1">Plans & Included Features</h2>
