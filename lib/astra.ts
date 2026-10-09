@@ -87,6 +87,13 @@ function getMemoryCollection(name: string) {
     },
     insertOne: async (doc: any) => {
       const inserted = { _id: doc._id || `id_${Date.now()}_${Math.random().toString(36).slice(2)}`, ...doc };
+      // Mirror Astra's unique-_id constraint so atomic dedupe behaves identically
+      // in the in-memory fallback (tests, local dev).
+      if (items.some((d) => d._id === inserted._id)) {
+        const err: any = new Error(`Document with _id "${inserted._id}" already exists (duplicate key)`);
+        err.name = "DataAPIResponseError";
+        throw err;
+      }
       items.push(inserted);
       return { insertedId: inserted._id };
     },
@@ -312,6 +319,40 @@ export const webhookEventsCollection = {
   updateOne: (filter: JsonDoc, update: JsonDoc) => webhookOp(() => _webhookEventsCollection.updateOne(filter, update)),
   deleteOne: (filter: JsonDoc) => webhookOp(() => _webhookEventsCollection.deleteOne(filter)),
 };
+
+/**
+ * Atomically claim a dedupe key. Returns true ONLY for the first caller.
+ *
+ * Relies on `_id` uniqueness: the insert either succeeds (this caller owns the
+ * event) or fails with a duplicate-key error (someone already claimed it). This
+ * is safe under CONCURRENT webhook deliveries, unlike a find-then-insert race.
+ *
+ * Fails OPEN (returns true) on an unrecognised storage error, so a database
+ * blip can never silently drop a customer message.
+ */
+export async function claimWebhookEventOnce(
+  eventKey: string,
+  doc: JsonDoc
+): Promise<boolean> {
+  try {
+    await _webhookEventsCollection.insertOne({ _id: eventKey, ...doc });
+    return true;
+  } catch (err: any) {
+    const msg = String(err?.message || '').toLowerCase();
+    const name = String(err?.name || '');
+    if (
+      msg.includes('already exists') ||
+      msg.includes('duplicate') ||
+      msg.includes('unique') ||
+      msg.includes('conflict') ||
+      name === 'DuplicateKeyError'
+    ) {
+      return false;
+    }
+    console.error('[astra] claimWebhookEventOnce failed (proceeding without dedupe):', err);
+    return true;
+  }
+}
 
 const db = realDb || {
   collection: (name: string) => getCollection(name),

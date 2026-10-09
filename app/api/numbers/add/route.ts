@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import twilioClient from '@/lib/twilio';
 import { businessesCollection } from '@/lib/astra';
-import { provisionTwilioNumber, isProvisioned } from '@/lib/twilio-provision';
+import { provisionTelnyxNumber, isProvisioned } from '@/lib/telnyx-provision';
+import telnyxClient from '@/lib/telnyx';
 
 export async function POST() {
   try {
@@ -17,10 +17,10 @@ export async function POST() {
       return NextResponse.json({ error: "Premium plan required to add multiple numbers" }, { status: 403 });
     }
 
-    // Defensive: if the business never got its subaccount/number (legacy or
-    // failed provisioning), provision the main line first.
+    // Defensive: if the business never got its number (legacy or failed
+    // provisioning), provision the main line first.
     if (!isProvisioned(business)) {
-      const provisioned = await provisionTwilioNumber({
+      const provisioned = await provisionTelnyxNumber({
         business_id: business.business_id,
         business_name: business.business_name || "Business",
         plan_type: business.plan_type,
@@ -29,9 +29,9 @@ export async function POST() {
         { business_id: userId },
         {
           $set: {
-            twilio_subaccount_sid: provisioned.subaccountSid,
-            twilio_number: provisioned.phoneNumber,
-            twilio_numbers: [provisioned.phoneNumber],
+            telnyx_number_id: provisioned.phoneNumberId,
+            telnyx_number: provisioned.phoneNumber,
+            telnyx_numbers: [provisioned.phoneNumber],
           }
         }
       );
@@ -39,36 +39,54 @@ export async function POST() {
       if (!business) return NextResponse.json({ error: "Business not found" }, { status: 404 });
     }
 
-    const currentNumbers = business.twilio_numbers || [];
+    // Read new and legacy number arrays.
+    const currentNumbers: string[] = Array.isArray(business.telnyx_numbers)
+      ? business.telnyx_numbers
+      : Array.isArray(business.twilio_numbers)
+        ? business.twilio_numbers
+        : [];
     if (currentNumbers.length >= 3) {
       return NextResponse.json({ error: "Maximum limit of 3 numbers reached" }, { status: 400 });
     }
 
-// 2. Find an available TOLL-FREE number that supports Voice and SMS
-    const availableNumbers = await twilioClient.availablePhoneNumbers('US').tollFree.list({ 
-      limit: 1, 
-    // Twilio's current SDK typings do not expose capability filtering here.
-    });
-    if (availableNumbers.length === 0) return NextResponse.json({ error: "No numbers available" }, { status: 400 });
+    // 2. Buy an available toll-free number with voice+SMS, routed like the
+    //    business's other lines (connection + messaging profile come from env).
+    const webhookBase = process.env.TELNYX_WEBHOOK_BASE_URL || "https://www.getnextcall.com";
+    const connectionId = process.env.TELNYX_CONNECTION_ID || "";
+    const messagingProfileId = process.env.TELNYX_MESSAGING_PROFILE_ID || "";
+    const reference = `nextCall ${business.business_id} - ${business.business_name || "Business"}`;
 
-    // 3. Buy it UNDER the business's Sub-Account and link webhooks
-    const webhookBase = process.env.TWILIO_WEBHOOK_BASE_URL || "https://www.getnextcall.com";
-    const purchasedNumber = await twilioClient.api.accounts(business.twilio_subaccount_sid).incomingPhoneNumbers.create({
-      phoneNumber: availableNumbers[0].phoneNumber,
-      friendlyName: `${business.business_name} - nextCall Line ${currentNumbers.length + 1}`,
-      voiceUrl: `${webhookBase}/api/webhooks/twilio/inbound`, 
-      voiceMethod: 'POST',
-      smsUrl: `${webhookBase}/api/webhooks/twilio/sms-inbound`,
-      smsMethod: 'POST'
-    });
+    const search = (await telnyxClient.availablePhoneNumbers.list({
+      filter: {
+        country_code: "US",
+        phone_number_type: "toll_free",
+        features: ["sms", "voice"],
+        limit: 1,
+      },
+    } as never)) as unknown as { data?: Array<{ phone_number?: string }> };
+    const candidate = (search.data || [])[0];
+    if (!candidate?.phone_number) return NextResponse.json({ error: "No numbers available" }, { status: 400 });
 
-    // 3. Push to the array in AstraDB
+    const orderResponse = (await telnyxClient.numberOrders.create({
+      phone_numbers: [{ phone_number: candidate.phone_number }],
+      connection_id: connectionId || undefined,
+      messaging_profile_id: messagingProfileId || undefined,
+      customer_reference: `${reference} - extra ${currentNumbers.length + 1}`,
+    })) as unknown as { data?: { status?: string } };
+    const order = orderResponse?.data || {};
+    if (order.status && order.status !== "success") {
+      return NextResponse.json({ error: "Failed to buy number" }, { status: 500 });
+    }
+
+    // 3. Push to the array in AstraDB (new field, keeping legacy untouched).
     await businessesCollection.updateOne(
       { business_id: userId },
-      { $push: { twilio_numbers: purchasedNumber.phoneNumber } }
+      { $push: { telnyx_numbers: candidate.phone_number } as Record<string, unknown> }
     );
 
-    return NextResponse.json({ phoneNumber: purchasedNumber.phoneNumber });
+    console.log(`[numbers/add] provisioned ${candidate.phone_number} for ${userId} (webhook base ${webhookBase})`);
+
+    return NextResponse.json({ phoneNumber: candidate.phone_number });
 
   } catch (error) {
     console.error(" Error buying number:", error);

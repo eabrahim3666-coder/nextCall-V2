@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import twilioClient from '@/lib/twilio';
+import telnyxClient from '@/lib/telnyx';
 import { businessesCollection } from '@/lib/astra';
 import { verifyRetellSignature, escapeHtml } from '@/lib/security';
 import { notifyActivity } from '@/lib/pusher';
-import { sendBusinessSms, isSmsApproved, getBusinessClient } from '@/lib/sms-compliance';
+import { sendBusinessSms, isSmsApproved } from '@/lib/sms-compliance';
 import { sendTelegramMessage } from '@/lib/telegram';
 
 export async function POST(request: Request) {
@@ -14,29 +14,26 @@ export async function POST(request: Request) {
     }
     const body = JSON.parse(rawBody);
     console.log("Received transfer_call function request:", JSON.stringify(body, null, 2));
-    
+
     // 1. Get the target number dynamically from the AI's function arguments
     // (The AI passes {{owner_phone}} into this argument)
     const ownerPhone = body.metadata?.owner_phone;
     const emergencyType = body.args?.emergency_type || 'an urgent issue';
     const customerName = body.args?.customer_name || 'A caller';
-    
-    // Use the business's Twilio number (from metadata) as the caller ID for the SMS
-    const fromNumber = body.metadata?.call_source || process.env.TWILIO_PHONE_NUMBER;
+
+    // Use the business's Telnyx number (from metadata) as the caller ID for the SMS
+    const fromNumber = body.metadata?.call_source || process.env.TELNYX_PHONE_NUMBER;
 
     if (!ownerPhone || body.args?.target_number !== ownerPhone || !/^\+[1-9]\d{7,14}$/.test(ownerPhone)) {
       throw new Error("Missing target_number in function arguments");
     }
 
-    // The live call terminates on the business's own Twilio subaccount, so the
-    // bridge below MUST use a subaccount-scoped client — the master client
-    // cannot address a subaccount CallSid (Twilio 20404).
     const business = body.metadata?.business_id
       ? await businessesCollection.findOne({ business_id: body.metadata.business_id })
       : null;
 
-    // 2. Send the Urgent SMS via Twilio (Heads up to the owner before the call connects).
-    // Gated + subaccount-scoped — the transfer happens regardless.
+    // 2. Send the Urgent SMS via Telnyx (Heads up to the owner before the call connects).
+    // Gated — the transfer happens regardless.
     if (fromNumber) {
       try {
         const approved = business ? await isSmsApproved(business) : false;
@@ -73,26 +70,40 @@ export async function POST(request: Request) {
 
     // 4. CRITICAL: Bridge the live call to the owner.
     // With the dial-to-SIP method Retell cannot transfer calls natively
-    // (no forward_phone_number bridge), so we update the in-progress Twilio
-    // call's TwiML to dial the owner's phone directly.
-    const twilioCallSid = body.args?.twilio_call_sid || body.metadata?.twilio_call_sid;
-    if (!twilioCallSid) {
-      console.error("Missing twilio_call_sid - cannot bridge the live call");
-      return NextResponse.json({ error: "Missing twilio_call_sid" }, { status: 400 });
+    // (no forward_phone_number bridge), so we update the in-progress TeXML
+    // call's Texml to dial the owner's phone directly. The voice webhook
+    // stores the provider call sid under the legacy twilio_call_sid key for
+    // prompt continuity — accept both spellings.
+    const callSid = body.args?.twilio_call_sid || body.metadata?.twilio_call_sid
+      || body.args?.telnyx_call_sid || body.metadata?.telnyx_call_sid;
+    if (!callSid) {
+      console.error("Missing call sid - cannot bridge the live call");
+      return NextResponse.json({ error: "Missing call sid" }, { status: 400 });
+    }
+
+    const accountSid = process.env.TELNYX_ACCOUNT_SID || "";
+    if (!accountSid) {
+      console.error("TELNYX_ACCOUNT_SID is not set — cannot bridge the live call");
+      await sendTelegramMessage(
+        `🚨 <b>EMERGENCY TRANSFER FAILED</b>\n` +
+        `<b>Reason:</b> TELNYX_ACCOUNT_SID is not set — TeXML call update impossible.\n` +
+        `The caller was NOT connected — follow up immediately.`
+      );
+      return NextResponse.json({ error: "Bridge not configured" }, { status: 500 });
     }
 
     try {
-      const bridgeClient = getBusinessClient(business ?? {});
-      await bridgeClient.calls(twilioCallSid).update({
-        twiml: `<Response><Dial callerId="${fromNumber}">${ownerPhone}</Dial></Response>`,
-      });
-      console.log(`Bridged live call ${twilioCallSid} to owner ${ownerPhone}`);
+      await telnyxClient.texml.accounts.calls.update(callSid, {
+        account_sid: accountSid,
+        Texml: `<Response><Dial callerId="${fromNumber}">${ownerPhone}</Dial></Response>`,
+      } as never);
+      console.log(`Bridged live call ${callSid} to owner ${ownerPhone}`);
     } catch (bridgeError) {
       console.error("Failed to bridge the live call:", bridgeError);
       await sendTelegramMessage(
         `🚨 <b>EMERGENCY TRANSFER FAILED</b>\n` +
         `<b>Business:</b> ${escapeHtml(String(business?.business_name || body.metadata?.business_id || "unknown"))}\n` +
-        `<b>Call:</b> ${escapeHtml(String(twilioCallSid))}\n` +
+        `<b>Call:</b> ${escapeHtml(String(callSid))}\n` +
         `<b>Owner:</b> ${escapeHtml(String(ownerPhone))}\n` +
         `<b>Error:</b> ${escapeHtml(bridgeError instanceof Error ? bridgeError.message : String(bridgeError)).slice(0, 300)}\n` +
         `The caller was NOT connected — follow up immediately.`

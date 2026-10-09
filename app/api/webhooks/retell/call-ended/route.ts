@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { callsCollection, businessesCollection, notificationsCollection, webhookEventsCollection } from '@/lib/astra';
-import openai from '@/lib/openai';
+import { chatCompletion } from '@/lib/ai/client';
 import { sendBusinessSms, isSmsApproved } from '@/lib/sms-compliance';
 import { Resend } from 'resend';
 import { google } from 'googleapis';
@@ -145,8 +145,7 @@ export async function POST(request: Request) {
     let quote_amount: string | null = null;
 
     try {
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+      const { completion } = await chatCompletion({
         messages: [
           {
             role: "system",
@@ -419,14 +418,14 @@ from: "Next Call Chat <support@getnextcall.com>",
         });
 
         // 2. Send automatic SMS back to the customer — only if the business's
-        // toll-free number has passed Twilio Toll-Free Verification
+        // toll-free number has passed Telnyx Toll-Free Verification
         const customerPhone = body.phone_number;
 
         if (customerPhone && customerPhone !== 'unknown' && await isSmsApproved(business)) {
           await activity({ type: "sms_sending", title: "Sending SMS reminder", message: `"Sorry we missed you" - ${customerPhone}`, icon: "lucide:message-square", status: "pending", agent_state: "Sending SMS", href: "/dashboard/calls" });
           const smsResult = await sendBusinessSms(business, {
             to: customerPhone,
-            body: `Hi! Sorry we missed your call. We're here to help—reply to this text or call us back at ${business.twilio_number || business.twilio_numbers?.[0] || ""}. - ${business.business_name}`,
+            body: `Hi! Sorry we missed your call. We're here to help—reply to this text or call us back at ${business.telnyx_number || business.telnyx_numbers?.[0] || business.twilio_number || business.twilio_numbers?.[0] || ""}. - ${business.business_name}`,
           });
           if (smsResult.ok) {
             await activity({ type: "sms_sent", title: "SMS reminder sent", message: `Auto-follow-up sent to ${customerPhone}`, icon: "lucide:check-circle", status: "success" });

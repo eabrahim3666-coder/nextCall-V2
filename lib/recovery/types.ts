@@ -1,5 +1,6 @@
 export type Provider =
   | "twilio"
+  | "telnyx"
   | "google"
   | "paddle"
   | "retell"

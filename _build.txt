@@ -1,0 +1,97 @@
+﻿
+> nextcall@0.1.0 build
+> next build
+
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+Γû▓ Next.js 16.2.4 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 35.8s
+  Skipping validation of types
+  Finished TypeScript config validation in 201ms ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/48) ...
+  Generating static pages using 11 workers (12/48) 
+  Generating static pages using 11 workers (24/48) 
+  Generating static pages using 11 workers (36/48) 
+Γ£ô Generating static pages using 11 workers (48/48) in 1610ms
+  Finalizing page optimization ...
+
+Route (app)
+Γöî Γùï /
+Γö£ Γùï /_not-found
+Γö£ ╞Æ /admin
+Γö£ ╞Æ /admin/chat
+Γö£ ╞Æ /admin/incidents
+Γö£ ╞Æ /admin/incidents/[id]
+Γö£ ╞Æ /api/admin/chat/list
+Γö£ ╞Æ /api/admin/chat/messages
+Γö£ ╞Æ /api/admin/chat/reply
+Γö£ ╞Æ /api/admin/incidents
+Γö£ ╞Æ /api/admin/incidents/[id]
+Γö£ ╞Æ /api/billing/portal
+Γö£ ╞Æ /api/business/onboard
+Γö£ ╞Æ /api/business/referral-code
+Γö£ ╞Æ /api/business/status
+Γö£ ╞Æ /api/business/update-settings
+Γö£ ╞Æ /api/calls/mark-job
+Γö£ ╞Æ /api/calls/toggle-flag
+Γö£ ╞Æ /api/chat/history
+Γö£ ╞Æ /api/chat/read
+Γö£ ╞Æ /api/chat/send
+Γö£ ╞Æ /api/checkout/paddle
+Γö£ ╞Æ /api/checkout/paddle-minutes
+Γö£ ╞Æ /api/contact
+Γö£ ╞Æ /api/cron/appointment-reminders
+Γö£ ╞Æ /api/cron/cleanup-cancelled
+Γö£ ╞Æ /api/cron/daily-summary
+Γö£ ╞Æ /api/cron/expire-trials
+Γö£ ╞Æ /api/cron/job-done-followup
+Γö£ ╞Æ /api/cron/sync-reviews
+Γö£ ╞Æ /api/cron/weekly-summary
+Γö£ ╞Æ /api/feature-request
+Γö£ ╞Æ /api/health
+Γö£ ╞Æ /api/integrations/google-calendar/auth
+Γö£ ╞Æ /api/integrations/google-calendar/callback
+Γö£ ╞Æ /api/integrations/google-calendar/disconnect
+Γö£ ╞Æ /api/integrations/meta/auth
+Γö£ ╞Æ /api/integrations/meta/callback
+Γö£ ╞Æ /api/integrations/meta/disconnect
+Γö£ ╞Æ /api/notifications
+Γö£ ╞Æ /api/numbers/add
+Γö£ ╞Æ /api/numbers/remove
+Γö£ ╞Æ /api/pusher/auth
+Γö£ ╞Æ /api/reviews/generate-reply
+Γö£ ╞Æ /api/sms/compliance
+Γö£ ╞Æ /api/telegram/setup
+Γö£ ╞Æ /api/webhooks/meta/inbound
+Γö£ ╞Æ /api/webhooks/paddle
+Γö£ ╞Æ /api/webhooks/retell/call-ended
+Γö£ ╞Æ /api/webhooks/retell/emergency
+Γö£ ╞Æ /api/webhooks/telegram
+Γö£ ╞Æ /api/webhooks/twilio/inbound
+Γö£ ╞Æ /api/webhooks/twilio/sms-inbound
+Γö£ ╞Æ /api/webhooks/twilio/whatsapp
+Γö£ ╞Æ /dashboard
+Γö£ ╞Æ /dashboard/calls
+Γö£ ╞Æ /dashboard/docs
+Γö£ ╞Æ /dashboard/privacy
+Γö£ ╞Æ /dashboard/settings
+Γö£ ╞Æ /dashboard/support
+Γö£ ╞Æ /dashboard/terms
+Γö£ Γùï /google-user-data
+Γö£ Γùï /pricing-policy
+Γö£ Γùï /privacy
+Γöö Γùï /terms
+
+
+╞Æ Proxy (Middleware)
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+

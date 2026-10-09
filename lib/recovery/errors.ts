@@ -82,6 +82,7 @@ export function detectBusinessFailure(err: unknown): boolean {
 function pickProvider(err: unknown): Provider {
   const e = err as ProviderErrorShape;
   const msg = `${e?.message || ""} ${e?.name || ""} ${typeof e?.error === "string" ? e.error : ""}`.toLowerCase();
+  if (/telnyx/i.test(msg)) return "telnyx";
   if (e?.code !== undefined || /twilio/i.test(msg)) return "twilio";
   if (/gaxios|googleapis|google/i.test(msg)) return "google";
   if (/retell/i.test(msg)) return "retell";

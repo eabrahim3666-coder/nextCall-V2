@@ -1,0 +1,34 @@
+﻿
+> nextcall@0.1.0 test
+> vitest run
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mC:/projects/New folder/nextCall[39m
+
+ [32mΓ£ô[39m tests/setup-progress.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32mΓ£ô[39m tests/timezone.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 87[2mms[22m[39m
+ [32mΓ£ô[39m tests/chat-race.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+[90mstdout[2m | tests/recovery.test.ts[2m > [22m[2mfingerprints + admin retry[2m > [22m[2mmanual retry succeeds through a registered operation executor
+[22m[39m[recovery] {"event":"incident_resolved","incidentId":"mem-1","provider":"google","operation":"calendar_insert_event","result":"manual_retry_success","ts":"2026-10-02T17:10:03.951Z"}
+
+ [32mΓ£ô[39m tests/recovery.test.ts [2m([22m[2m37 tests[22m[2m)[22m[33m 3498[2mms[22m[39m
+     [33m[2mΓ£ô[22m[39m 5. DOES auto-retry a 500 for an idempotent operation, then fails closed [33m 3400[2mms[22m[39m
+ [32mΓ£ô[39m tests/security.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+[90mstdout[2m | tests/webhook-fixes.test.ts[2m > [22m[2mSMS opt-out (TCPA) enforcement[2m > [22m[2msetCustomerOptedOut blocks sends through sendBusinessSms and START clears it
+[22m[39m[sms-compliance] blocked outbound SMS for biz-optout-test ΓÇö +15551234567 opted out
+
+[90mstdout[2m | tests/webhook-fixes.test.ts[2m > [22m[2mSMS opt-out (TCPA) enforcement[2m > [22m[2msetCustomerOptedOut blocks sends through sendBusinessSms and START clears it
+[22m[39m[sms-compliance] blocked outbound SMS for biz-optout-test ΓÇö +15551234567 opted out
+
+ [32mΓ£ô[39m tests/webhook-fixes.test.ts [2m([22m[2m21 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+[90mstdout[2m | tests/recovery-hardening.test.ts[2m > [22m[2mhardening: admin retry + store[2m > [22m[2m30. racing manual retries execute the operation executor exactly once
+[22m[39m[recovery] {"event":"incident_resolved","incidentId":"mem-1","provider":"google","operation":"calendar_insert_event","result":"manual_retry_success","ts":"2026-10-02T17:10:04.287Z"}
+
+ [32mΓ£ô[39m tests/recovery-hardening.test.ts [2m([22m[2m44 tests[22m[2m)[22m[33m 3860[2mms[22m[39m
+     [33m[2mΓ£ô[22m[39m 20. a technical 500 on an idempotent operation still retries (failureKind TECHNICAL) [33m 3646[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m7 passed[39m[22m[90m (7)[39m
+[2m      Tests [22m [1m[32m138 passed[39m[22m[90m (138)[39m
+[2m   Start at [22m 23:09:57
+[2m   Duration [22m 6.81s[2m (transform 1.70s, setup 0ms, import 12.61s, tests 7.49s, environment 1ms)[22m
+

@@ -162,7 +162,7 @@ export default async function DashboardHome() {
 
             {isAIActive && (
                 <Reveal direction="up" delay={0.05}>
-                    <div className="relative overflow-hidden bg-black border border-white/5 rounded-2xl p-6 shadow-[0_0_50px_-20px_rgba(255,75,0,0.2)]">
+                    <div className="relative overflow-hidden bg-black border border-white/5 rounded-2xl p-6">
                         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#ff4b00]/40 to-transparent pointer-events-none" />
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-3">
                             <div className="flex items-center gap-3">

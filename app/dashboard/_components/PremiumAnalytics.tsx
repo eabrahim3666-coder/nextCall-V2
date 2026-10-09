@@ -258,8 +258,8 @@ export default function PremiumAnalytics({ calls, businessType, avgJobValue: use
                     {/* Centered funnel stack: label and count live INSIDE each bar,
                         so the trapezoids align perfectly down the middle. */}
                     <div className="relative max-w-md mx-auto space-y-1.5 py-1">
-                        {/* Soft glow backdrop behind the stack */}
-                        <div className="absolute inset-x-6 top-2 bottom-2 rounded-3xl bg-[#ff4b00]/[0.04] blur-xl pointer-events-none" />
+                        {/* Subtle backdrop behind the funnel stack */}
+                        <div className="absolute inset-x-6 top-2 bottom-2 rounded-3xl bg-[#ff4b00]/[0.04] pointer-events-none" />
                         {metrics.funnelData.map((step, i) => {
                             const maxVal = metrics.funnelData[0]?.value || 1;
                             const widthPct = Math.max((step.value / maxVal) * 100, 30);

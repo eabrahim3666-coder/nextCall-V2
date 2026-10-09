@@ -1,6 +1,7 @@
 import { AiAnalysisInput, AiDiagnosis, ErrorCategory, Severity } from "./types";
 import { getRecommendableActions } from "./registry";
 import { recoveryLogger } from "./logging";
+import { chatCompletion, type AiChatParams } from "@/lib/ai/client";
 
 /**
  * AI diagnostic component (GPT-4o-mini).
@@ -13,7 +14,8 @@ import { recoveryLogger } from "./logging";
  * failure path returns null (caller falls back to deterministic handling).
  */
 
-export const AI_DIAGNOSIS_MODEL = "gpt-4o-mini";
+// NOTE: the diagnosis model is no longer hardcoded — it is supplied by the
+// configured AI provider chain (lib/ai/config.ts) so the call can fail over.
 
 const DIAGNOSIS_SCHEMA_PROMPT = `You are a production SRE diagnosing a software failure. You are NOT authorized to execute anything and you cannot change any system state. You may ONLY recommend one recovery action from the exact list of allowed actions below, or NO_SAFE_RECOVERY.
 
@@ -110,16 +112,14 @@ export const conservativeAnalyzer: {
 
 export async function diagnoseWithGpt(
   input: AiAnalysisInput,
-  deps: { openai?: typeof import("@/lib/openai").default } = {}
+  deps: { chat?: typeof chatCompletion } = {}
 ): Promise<AiDiagnosis | null> {
   const allowedActions = input.allowedActions.length
     ? input.allowedActions
     : getRecommendableActions(input.provider, input.operation);
   const effectiveInput = { ...input, allowedActions };
 
-  const openai =
-    deps.openai ||
-    (await import("@/lib/openai")).default;
+  const chat = deps.chat || chatCompletion;
 
   recoveryLogger.log({
     event: "ai_diagnosis_requested",
@@ -129,18 +129,13 @@ export async function diagnoseWithGpt(
   });
 
   try {
-    const response = await openai.chat.completions.create(
-      {
-        model: AI_DIAGNOSIS_MODEL,
-        temperature: 0,
-        max_tokens: 400,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: buildPrompt(effectiveInput) },
-        ],
-      },
-      { timeout: 15_000 }
-    );
+    const params: AiChatParams = {
+      temperature: 0,
+      max_tokens: 400,
+      response_format: { type: "json_object" as const },
+      messages: [{ role: "system" as const, content: buildPrompt(effectiveInput) }],
+    };
+    const { completion: response } = await chat(params, { timeoutMs: 15_000 });
 
     const rawText = response.choices?.[0]?.message?.content || "";
     let parsed: unknown;

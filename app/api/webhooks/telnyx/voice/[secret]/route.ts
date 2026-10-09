@@ -1,45 +1,59 @@
 import { NextResponse } from 'next/server';
 import { businessesCollection } from '@/lib/astra';
-import { verifyTwilioRequest } from '@/lib/security';
+import { verifyTexmlFetchSecret } from '@/lib/security';
 import { isTrialExpired } from '@/lib/business';
 import retellClient from '@/lib/retell';
 import { sendTelegramMessage } from '@/lib/telegram';
 
 export const runtime = 'nodejs';
 
-export async function POST(request: Request) {
+// Telnyx TeXML instruction-fetch webhook for inbound voice calls. The TeXML
+// Application is configured (in the Telnyx portal) with a URL of the shape
+// .../api/webhooks/telnyx/voice/txs_<TELNYX_TEXML_WEBHOOK_SECRET> — TeXML
+// instruction fetches carry no signature headers, so the secret in the URL is
+// the authentication (verified in constant time).
+export async function POST(request: Request, ctx: RouteContext<'/api/webhooks/telnyx/voice/[secret]'>) {
   try {
     // Fail-fast config guard: without an agent id every inbound call fails at
-    // the Retell registration step below with only a generic error TwiML —
+    // the Retell registration step below with only a generic error message —
     // a production outage with zero diagnostics. Alert loudly instead.
     if (!process.env.RETELL_AGENT_ID) {
       console.error("FATAL: RETELL_AGENT_ID is not set — inbound calls cannot be registered with Retell");
       await sendTelegramMessage("🚨 <b>RETELL_AGENT_ID is not set</b> — every inbound call is failing. Fix the env var and redeploy.");
-      const errorTwiml = `<Response><Say>We're sorry, all agents are busy. Please try again shortly.</Say></Response>`;
-      return new NextResponse(errorTwiml, { headers: { 'Content-Type': 'text/xml' } });
+      const errorTexml = `<Response><Say>We're sorry, all agents are busy. Please try again shortly.</Say></Response>`;
+      return new NextResponse(errorTexml, { headers: { 'Content-Type': 'text/xml' } });
+    }
+
+    const { secret: secretSegment } = await ctx.params;
+    if (!verifyTexmlFetchSecret(secretSegment && secretSegment.startsWith('txs_') ? secretSegment.slice(4) : secretSegment)) {
+      return new NextResponse('<Response><Say>Unauthorized request.</Say></Response>', { status: 401, headers: { 'Content-Type': 'text/xml' } });
     }
 
     const formData = await request.formData();
-    const params = Object.fromEntries(formData.entries()) as Record<string, string>;
-    if (!verifyTwilioRequest(request, params, request.headers.get('x-twilio-signature'))) {
-      return new NextResponse('<Response><Say>Unauthorized request.</Say></Response>', { status: 401, headers: { 'Content-Type': 'text/xml' } });
-    }
-    const callerNumber = formData.get('From') as string;
-    const twilioNumber = formData.get('To') as string;
-    const twilioCallSid = formData.get('CallSid') as string;
+    const callerNumber = (formData.get('From') as string) || '';
+    const telnyxNumber = (formData.get('To') as string) || '';
+    const callSid = (formData.get('CallSid') as string) || (formData.get('CallUUID') as string) || '';
 
-    // Search for the dialed number in the new 'twilio_numbers' array OR the old 'twilio_number' string
+    if (!callerNumber || !telnyxNumber) {
+      return new NextResponse('<Response><Say>Invalid request.</Say></Response>', { status: 400, headers: { 'Content-Type': 'text/xml' } });
+    }
+
+    // Search for the dialed number in the new 'telnyx_numbers' array OR the
+    // legacy 'twilio_number'/'twilio_numbers' fields so pre-migration rows
+    // keep working.
     const business = await businessesCollection.findOne({
       $or: [
-        { twilio_numbers: twilioNumber },
-        { twilio_number: twilioNumber }
+        { telnyx_numbers: telnyxNumber },
+        { telnyx_number: telnyxNumber },
+        { twilio_numbers: telnyxNumber },
+        { twilio_number: telnyxNumber }
       ]
     });
-    
+
     if (!business) {
-      console.error("Business not found for number:", twilioNumber);
-      const errorTwiml = `<Response><Say>Sorry, this number is not configured.</Say></Response>`;
-      return new NextResponse(errorTwiml, { headers: { 'Content-Type': 'text/xml' } });
+      console.error("Business not found for number:", telnyxNumber);
+      const errorTexml = `<Response><Say>Sorry, this number is not configured.</Say></Response>`;
+      return new NextResponse(errorTexml, { headers: { 'Content-Type': 'text/xml' } });
     }
 
     // ============ TRIAL EXPIRY PROTECTION ============
@@ -60,8 +74,8 @@ export async function POST(request: Request) {
         } catch (e) { console.error("Failed to send trial-expired notification:", e); }
       }
 
-      const trialTwiml = `<Response><Say voice="alice">The party you are calling is currently unavailable. Please try again later.</Say><Hangup /></Response>`;
-      return new NextResponse(trialTwiml, { headers: { 'Content-Type': 'text/xml' } });
+      const trialTexml = `<Response><Say voice="alice">The party you are calling is currently unavailable. Please try again later.</Say><Hangup /></Response>`;
+      return new NextResponse(trialTexml, { headers: { 'Content-Type': 'text/xml' } });
     }
 
 
@@ -71,7 +85,7 @@ export async function POST(request: Request) {
 
     if (minutesUsed >= minutesLimit) {
       console.warn(`🛑 Call rejected for ${business.business_name}: Minute limit reached (${minutesUsed}/${minutesLimit})`);
-      
+
       // 1. Notify the business owner they missed a lead due to limits
       if (business.business_id) {
         try {
@@ -88,8 +102,8 @@ export async function POST(request: Request) {
       }
 
       // 2. Play a professional message to the caller and hang up
-      const limitTwiml = `<Response><Say voice="alice">The party you are calling is currently unavailable. Please try again later.</Say><Hangup /></Response>`;
-      return new NextResponse(limitTwiml, { headers: { 'Content-Type': 'text/xml' } });
+      const limitTexml = `<Response><Say voice="alice">The party you are calling is currently unavailable. Please try again later.</Say><Hangup /></Response>`;
+      return new NextResponse(limitTexml, { headers: { 'Content-Type': 'text/xml' } });
     }
 
     // ============ RETELL REGISTER CALL (dial-to-SIP method) ============
@@ -98,14 +112,14 @@ export async function POST(request: Request) {
     const phoneCallResponse = await retellClient.call.registerPhoneCall({
       agent_id: process.env.RETELL_AGENT_ID as string,
       from_number: callerNumber,
-      to_number: twilioNumber,
+      to_number: telnyxNumber,
       direction: 'inbound',
       metadata: {
         business_id: business.business_id,
         business_name: business.business_name,
-        call_source: twilioNumber,
+        call_source: telnyxNumber,
         owner_phone: business.owner_phone || "",
-        twilio_call_sid: twilioCallSid,
+        telnyx_call_sid: callSid,
       },
       retell_llm_dynamic_variables: {
         business_name: business.business_name || "",
@@ -118,30 +132,31 @@ export async function POST(request: Request) {
         greeting: business.greeting_text || "",
         greeting_tone: business.greeting_tone || "friendly",
         routing_rules: JSON.stringify(business.routing_rules || {}),
-        call_source: twilioNumber,
+        call_source: telnyxNumber,
         emergency_definition: business.emergency_definition || "a life-threatening situation or severe property damage",
-        twilio_call_sid: twilioCallSid,
+        // Kept as twilio_call_sid for Retell prompt/pattern continuity.
+        twilio_call_sid: callSid,
       },
     });
 
-    const twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
+    const texmlResponse = `<?xml version="1.0" encoding="UTF-8"?>
       <Response>
         <Dial>
           <Sip>sip:${phoneCallResponse.call_id}@sip.retellai.com</Sip>
         </Dial>
       </Response>`;
 
-    console.log(`Inbound call registered for ${business.business_name} (retell call ${phoneCallResponse.call_id}, twilio sid ${twilioCallSid})`);
+    console.log(`Inbound call registered for ${business.business_name} (retell call ${phoneCallResponse.call_id}, telnyx sid ${callSid})`);
 
-    return new NextResponse(twimlResponse, {
+    return new NextResponse(texmlResponse, {
       headers: { 'Content-Type': 'text/xml' },
     });
 
   } catch (error: unknown) {
     const err = error as { response?: { data?: unknown }; message?: string };
     console.error("EXACT INBOUND ERROR:", err?.response?.data || err?.message || error);
-    const errorTwiml = `<Response><Say>An error occurred. Please try again.</Say></Response>`;
-    return new NextResponse(errorTwiml, {
+    const errorTexml = `<Response><Say>An error occurred. Please try again.</Say></Response>`;
+    return new NextResponse(errorTexml, {
       headers: { 'Content-Type': 'text/xml' },
     });
   }

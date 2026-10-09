@@ -150,7 +150,7 @@ export async function GET() {
         suggestedUseCaseSummary:
           `We use an AI receptionist over text: booking and reminding customers about appointments, replying to their questions, following up after missed calls, and asking for reviews after completed work.`,
         suggestedSampleMessage:
-          `Reminder: You have an appointment with ${business.business_name || "us"} at 2:30 PM today. Reply 1 to confirm, 2 to reschedule, or 3 to cancel.`,
+          `Reminder: You have an appointment with ${business.business_name || "us"} at 2:30 PM today. Reply 1 to confirm, 2 to reschedule, or 3 to cancel. Reply STOP to opt out.`,
       },
     });
   } catch (error) {

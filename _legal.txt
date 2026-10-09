@@ -1,0 +1,6 @@
+﻿C:\projects\New folder\nextCall\app\dashboard\privacy\page.tsx
+C:\projects\New folder\nextCall\app\dashboard\terms\page.tsx
+C:\projects\New folder\nextCall\app\google-user-data\page.tsx
+C:\projects\New folder\nextCall\app\pricing-policy\page.tsx
+C:\projects\New folder\nextCall\app\privacy\page.tsx
+C:\projects\New folder\nextCall\app\terms\page.tsx

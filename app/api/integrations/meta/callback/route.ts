@@ -135,7 +135,23 @@ export async function GET(request: Request) {
             }
         );
 
-        // 7. Redirect back to settings with success message
+        // 7. Subscribe the Page to our webhooks so DMs start flowing. Done from
+        // code (not a manual click per tenant) so every connected Page works at
+        // once. Requires the pages_manage_metadata permission.
+        try {
+            const subRes = await fetch(
+                `https://graph.facebook.com/v19.0/${pageId}/subscribed_apps?subscribed_fields=messages,messaging_postbacks&access_token=${pageAccessToken}`,
+                { method: 'POST' }
+            );
+            const subData = await subRes.json();
+            if (subData.error) {
+                console.error("Meta Page subscription error:", subData.error);
+            }
+        } catch (err) {
+            console.error("Could not subscribe Page to Meta webhooks:", err);
+        }
+
+        // 8. Redirect back to settings with success message
         return NextResponse.redirect(new URL('/dashboard/settings?focus=integrations&meta_success=true', request.url));
 
     } catch (error: unknown) {

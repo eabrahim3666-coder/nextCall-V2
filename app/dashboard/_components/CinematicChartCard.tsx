@@ -15,8 +15,8 @@ type CinematicChartCardProps = {
 
 /**
  * Shared cinematic shell for dashboard analytics cards: the familiar black
- * card with an orange hairline glow rim, a soft ambient glow, and a scroll
- * rise-in entrance (respects prefers-reduced-motion via Reveal).
+ * card with a scroll rise-in entrance (respects prefers-reduced-motion via
+ * Reveal).
  */
 export default function CinematicChartCard({
     children,
@@ -29,7 +29,6 @@ export default function CinematicChartCard({
             <div
                 className={cn(
                     "relative overflow-hidden rounded-2xl border border-white/5 bg-black",
-                    "shadow-[0_0_60px_-20px_rgba(255,75,0,0.25)]",
                     padding === "lg" ? "p-8" : "p-6"
                 )}
             >

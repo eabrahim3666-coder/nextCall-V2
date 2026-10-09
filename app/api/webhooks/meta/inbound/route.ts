@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { businessesCollection, conversationsCollection, webhookEventsCollection } from '@/lib/astra';
-import openai from '@/lib/openai';
+import { chatCompletion } from '@/lib/ai/client';
 import crypto from 'crypto';
 import { hasValidSecret } from '@/lib/security';
 
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     const token = searchParams.get('hub.verify_token');
     const challenge = searchParams.get('hub.challenge');
 
-    if (mode === 'subscribe' && token === process.env.META_VERIFY_TOKEN) {
+    if (mode === 'subscribe' && hasValidSecret(token, process.env.META_VERIFY_TOKEN)) {
         console.log("Meta Webhook Verified!");
         return new NextResponse(challenge, { status: 200 });
     } else {
@@ -44,44 +44,41 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = JSON.parse(rawBody);
+    let body: MetaWebhookBody;
+    try {
+        body = JSON.parse(rawBody);
+    } catch {
+        return NextResponse.json({ error: "Bad Request" }, { status: 400 });
+    }
 
-    // Handle Facebook Messenger Webhooks
-    if (body.object === 'page') {
-        for (const entry of body.entry) {
-            if (entry.messaging) {
-                for (const event of entry.messaging) {
-                    if (event.message && !event.message.is_echo) {
-                        // Idempotency check: skip if this message was already processed
-                        const eventKey = `meta:${event.sender.id}:${event.timestamp ?? event.message.mid ?? Date.now()}`;
-                        const alreadyProcessed = await webhookEventsCollection.findOne({ _id: eventKey });
-                        if (alreadyProcessed) continue;
-                        await webhookEventsCollection.insertOne({ _id: eventKey, provider: "meta", event_id: eventKey, created_at: new Date().toISOString() });
-                        await handleMessage(event);
-                    }
-                }
+    const channel: MetaChannel | null =
+        body.object === 'page' ? 'messenger'
+        : body.object === 'instagram' ? 'instagram'
+        : null;
+
+    if (channel) {
+        for (const entry of body.entry ?? []) {
+            for (const event of entry.messaging ?? []) {
+                if (!event.message || event.message.is_echo) continue;
+
+                // Deterministic idempotency key: `mid` is the stable message id.
+                // Never fall back to Date.now() — a non-deterministic key defeats
+                // dedupe and can double-reply after a Meta retry.
+                const eventKey = `meta:${channel}:${event.message.mid ?? `${event.sender.id}:${event.timestamp ?? ''}`}`;
+
+                // Acknowledge Meta immediately and do the slow work (3s human
+                // buffer + OpenAI) AFTER the response, so we stay inside Meta's
+                // ~5 second webhook response budget.
+                after(async () => {
+                    const alreadyProcessed = await webhookEventsCollection.findOne({ _id: eventKey });
+                    if (alreadyProcessed) return;
+                    await webhookEventsCollection.insertOne({ _id: eventKey, provider: "meta", channel, event_id: eventKey, created_at: new Date().toISOString() });
+                    await handleMessage(event, channel);
+                });
             }
         }
     }
 
-    // Handle Instagram DM Webhooks
-    if (body.object === 'instagram') {
-        for (const entry of body.entry) {
-            if (entry.messaging) {
-                for (const event of entry.messaging) {
-                    if (event.message && !event.message.is_echo) {
-                        const eventKey = `meta:${event.sender.id}:${event.timestamp ?? event.message.mid ?? Date.now()}`;
-                        const alreadyProcessed = await webhookEventsCollection.findOne({ _id: eventKey });
-                        if (alreadyProcessed) continue;
-                        await webhookEventsCollection.insertOne({ _id: eventKey, provider: "meta", event_id: eventKey, created_at: new Date().toISOString() });
-                        await handleMessage(event);
-                    }
-                }
-            }
-        }
-    }
-
-    // Meta requires a 200 OK immediately
     return NextResponse.json({ status: "ok" }, { status: 200 });
 }
 
@@ -93,16 +90,24 @@ type MetaMessagingEvent = {
     timestamp?: number;
 };
 
-async function handleMessage(event: MetaMessagingEvent) {
-    const senderId = event.sender.id;         // The user's PSID
-    const pageId = event.recipient.id;        // The Business's Page ID
+// Messenger arrives as object "page"; Instagram DMs as object "instagram".
+type MetaChannel = 'messenger' | 'instagram';
+
+type MetaWebhookBody = {
+    object?: string;
+    entry?: Array<{ messaging?: MetaMessagingEvent[] }>;
+};
+
+async function handleMessage(event: MetaMessagingEvent, channel: MetaChannel) {
+    const senderId = event.sender.id;         // The user's PSID (Messenger) / IGSID (Instagram)
+    const assetId = event.recipient.id;       // Page id (Messenger) OR IG business account id (Instagram)
     const messageText = event.message.text;   // What the user said
 
     // Ignore stickers, attachments, and emoji-only messages silently
     if (!messageText || messageText.trim().length < 2) return; 
 
     try {
-        console.log(`Received message from ${senderId} on Page ${pageId}: "${messageText}"`);
+        console.log(`Received ${channel} message from ${senderId} to ${assetId}: "${messageText}"`);
 
         // 1. Fetch all businesses with a Meta Page ID connected
         // (Workaround for AstraDB findOne indexing issues)
@@ -110,11 +115,17 @@ async function handleMessage(event: MetaMessagingEvent) {
             meta_page_id: { $exists: true }
         }).toArray();
 
-        // 2. Find the exact match in Node.js (Type-safe string comparison)
-        const business = connectedBusinesses.find(b => String(b.meta_page_id) === pageId);
+        // 2. Match on the asset that RECEIVED the message. Meta sends the Page id
+        // as recipient for Messenger, but the Instagram business account id for
+        // Instagram DMs — matching only meta_page_id drops every IG message.
+        const business = connectedBusinesses.find((b) =>
+            channel === 'instagram'
+                ? String(b.meta_ig_business_id) === assetId
+                : String(b.meta_page_id) === assetId
+        );
 
         if (!business || !business.meta_page_access_token) {
-            console.error(`No business found for Page ID: ${pageId}`);
+            console.error(`No business found for ${channel} asset: ${assetId}`);
             return;
         }
 
@@ -127,7 +138,7 @@ async function handleMessage(event: MetaMessagingEvent) {
         console.log(`Business found: ${business.business_name}`);
 
         // 3. Fetch or Create Conversation Memory + State
-        let conversation = await conversationsCollection.findOne({ sender_id: senderId, page_id: String(pageId) });
+        let conversation = await conversationsCollection.findOne({ sender_id: senderId, page_id: String(assetId) });
 
         // If no conversation exists, or it's older than 24 hours (Meta limit), start fresh
         const staleReset =
@@ -136,7 +147,8 @@ async function handleMessage(event: MetaMessagingEvent) {
         if (staleReset) {
             conversation = {
                 sender_id: senderId,
-                page_id: String(pageId),
+                channel,
+                page_id: String(assetId),
                 messages: [],
                 last_activity: new Date().toISOString(),
                 customerName: null,
@@ -154,16 +166,17 @@ async function handleMessage(event: MetaMessagingEvent) {
         // (>24h) conversations are intentionally reset instead.
         const currentTimestamp = new Date().toISOString();
         await conversationsCollection.updateOne(
-            { sender_id: senderId, page_id: String(pageId) },
+            { sender_id: senderId, page_id: String(assetId) },
             staleReset
                 ? {
                       $set: {
+                          channel,
                           messages: [{ role: "user", content: messageText }],
                           last_activity: currentTimestamp,
                       },
                   }
                 : {
-                      $set: { last_activity: currentTimestamp },
+                      $set: { last_activity: currentTimestamp, channel },
                       $push: { messages: { role: "user", content: messageText } },
                   },
             { upsert: true }
@@ -173,7 +186,7 @@ async function handleMessage(event: MetaMessagingEvent) {
         await new Promise(resolve => setTimeout(resolve, 3000));
 
         // Check if a newer message came in while we were waiting
-        const latestConv = await conversationsCollection.findOne({ sender_id: senderId, page_id: String(pageId) });
+        const latestConv = await conversationsCollection.findOne({ sender_id: senderId, page_id: String(assetId) });
         if (latestConv && latestConv.last_activity !== currentTimestamp) {
             console.log("User is still typing, pausing this reply...");
             return; // Exit. The newer webhook will handle the full reply.
@@ -189,8 +202,7 @@ async function handleMessage(event: MetaMessagingEvent) {
         }
 
         // 5. Enterprise Brain: Analyze, Extract State, and Reply in ONE call
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
+        const { completion } = await chatCompletion({
             response_format: { type: "json_object" }, // Force JSON output
             messages: [
                 {
@@ -280,8 +292,9 @@ STRICT RULES:
 
         // 6. Add AI's reply to memory ($push — same race protection) and Save State
         await conversationsCollection.updateOne(
-            { sender_id: senderId, page_id: String(pageId) },
+            { sender_id: senderId, page_id: String(assetId) },
             { $set: {
+                channel,
                 last_activity: new Date().toISOString(),
                 customerName: extractedName,
                 phoneNumber: extractedPhone,

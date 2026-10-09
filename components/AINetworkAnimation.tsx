@@ -2,19 +2,6 @@
 
 import { useEffect, useRef } from 'react';
 
-/**
- * AINetworkAnimation — v2 (complete redesign, bulletproof edition)
- *
- * SINGLE-LAYER ARCHITECTURE: the entire animation is painted on ONE <canvas>.
- * No SVG. No presentation attributes. No CSS-dependent colors.
- * Every color lives in the COLORS object below and is painted by JavaScript,
- * which means no stylesheet, framework class, or cascade rule can ever
- * change a single color. The only way a color changes is by editing COLORS.
- *
- * Transparent background — sits on any hero color. Keeps a 20:8.2 aspect ratio
- * (drop-in replacement for v1).
- */
-
 const W = 2000;
 const H = 820;
 const BOX = 88;

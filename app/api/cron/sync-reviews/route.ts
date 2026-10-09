@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import { businessesCollection } from '@/lib/astra';
-import openai from '@/lib/openai';
+import { chatCompletion } from '@/lib/ai/client';
 import { hasValidSecret } from '@/lib/security';
 
 export async function GET(request: Request) {
@@ -65,8 +65,7 @@ export async function GET(request: Request) {
 
         for (const review of unrepliedReviews) {
           // 8. Generate the AI Reply (Bringing your existing logic in-house)
-          const completion = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
+          const { completion } = await chatCompletion({
             messages: [
               {
                 role: "system",

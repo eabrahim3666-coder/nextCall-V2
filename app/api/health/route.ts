@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { getProviderSummaries } from '@/lib/ai/config';
 
 // Inlined constant-time Bearer check — importing lib/security here would drag
-// the Twilio SDK into this lightweight endpoint's bundle.
+// the Telnyx SDK into this lightweight endpoint's bundle.
 function isTrustedCaller(request: Request): boolean {
   const expected = process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : undefined;
   const provided = request.headers.get('authorization');
@@ -20,12 +21,16 @@ export async function GET(request: Request) {
     'ASTRA_DB_KEYSPACE',
     'CLERK_SECRET_KEY',
     'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
-    'OPENAI_API_KEY',
-    'TWILIO_ACCOUNT_SID',
-    'TWILIO_AUTH_TOKEN',
+    'TELNYX_API_KEY',
   ] as const;
 
-  const allEssential = requiredVars.every(v => process.env[v]);
+  // AI runs on an ordered provider chain (OpenAI primary, Gemini fallback, …).
+  // "Configured" means credentials are present — it does NOT prove connectivity,
+  // and this endpoint never makes a model call.
+  const aiProviders = getProviderSummaries();
+  const aiConfigured = aiProviders.length > 0;
+
+  const allEssential = requiredVars.every(v => process.env[v]) && aiConfigured;
   const status = allEssential ? 'healthy' : 'degraded';
 
   // Only a trusted caller (uptime tool / ops, holding CRON_SECRET) gets the
@@ -52,6 +57,11 @@ export async function GET(request: Request) {
     'RETELL_WEBHOOK_SECRET',
     'META_APP_SECRET',
     'CRON_SECRET',
+    'TELNYX_PUBLIC_KEY',
+    'TELNYX_CONNECTION_ID',
+    'TELNYX_MESSAGING_PROFILE_ID',
+    'TELNYX_ACCOUNT_SID',
+    'TELNYX_TEXML_WEBHOOK_SECRET',
   ] as const;
 
   for (const v of optionalVars) {
@@ -59,7 +69,14 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.json(
-    { status, timestamp: new Date().toISOString(), checks },
+    {
+      status,
+      timestamp: new Date().toISOString(),
+      checks,
+      // Secret-free: provider ids/types/models only — never a key.
+      // `configured` is credential presence, not verified connectivity.
+      ai: { configured: aiConfigured, providers: aiProviders },
+    },
     { status: allEssential ? 200 : 503 }
   );
 }

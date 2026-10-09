@@ -4,7 +4,7 @@ import { businessesCollection, webhookEventsCollection } from '@/lib/astra';
 import { hasValidSecret, escapeHtml } from '@/lib/security';
 import { sendTelegramMessage } from '@/lib/telegram';
 import { TRIAL_DURATION_MS } from '@/lib/business';
-import { provisionTwilioNumber, isProvisioned } from '@/lib/twilio-provision';
+import { provisionTelnyxNumber, isProvisioned } from '@/lib/telnyx-provision';
 
 type PaddleEventData = {
   id?: string;
@@ -56,35 +56,49 @@ async function activateBusinessFromPaddleData(data: PaddleEventData) {
   const existingBusiness = await businessesCollection.findOne({ business_id: clerkId });
   const planType = customData.plan || existingBusiness?.plan_type || 'standard';
 
-  // ============ AUTOMATIC TWILIO PROVISIONING (all plans) ============
-  // Every business — including trials — gets their own dedicated Twilio
-  // subaccount + toll-free number automatically. Toll-free numbers are what
-  // enable Toll-Free SMS Verification (outbound business SMS) later.
-  let twilioSubAccountSid = existingBusiness?.twilio_subaccount_sid || "";
-  let twilioPhoneNumber = existingBusiness?.twilio_number || "";
+  // ============ AUTOMATIC TELNYX PROVISIONING (all plans) ============
+  // Every business — including trials — gets their own dedicated Telnyx
+  // toll-free number automatically. Toll-free numbers are what enable
+  // Toll-Free SMS Verification (outbound business SMS) later. Telnyx has no
+  // subaccounts — the tagged number itself is the unit of isolation.
+  let telnyxNumberId = existingBusiness?.telnyx_number_id || "";
+  let telnyxPhoneNumber = existingBusiness?.telnyx_number || "";
 
-  if (!isProvisioned({ twilio_subaccount_sid: twilioSubAccountSid, twilio_number: twilioPhoneNumber })) {
-    console.log(`Auto-provisioning Twilio for ${businessName} (${planType})...`);
-    try {
-      const provisioned = await provisionTwilioNumber({ business_id: clerkId, business_name: businessName, plan_type: planType });
-      twilioSubAccountSid = provisioned.subaccountSid;
-      twilioPhoneNumber = provisioned.phoneNumber;
-      console.log(`Provisioned subaccount ${twilioSubAccountSid} with number ${twilioPhoneNumber}`);
-    } catch (provisionError) {
-      console.error(`Twilio provisioning failed for ${businessName}:`, provisionError);
-      twilioSubAccountSid = twilioSubAccountSid || "PROVISIONING_FAILED";
-      twilioPhoneNumber = twilioPhoneNumber || "PROVISIONING_FAILED";
+  if (!isProvisioned({ telnyx_number_id: telnyxNumberId, telnyx_number: telnyxPhoneNumber })) {
+    // Legacy pre-migration rows may already own a number under the old field.
+    const legacyNumber = typeof existingBusiness?.twilio_number === "string" && existingBusiness.twilio_number !== "PROVISIONING_FAILED"
+      ? existingBusiness.twilio_number
+      : "";
+    if (legacyNumber) {
+      telnyxPhoneNumber = legacyNumber;
+      telnyxNumberId = "legacy";
+    } else {
+      console.log(`Auto-provisioning Telnyx for ${businessName} (${planType})...`);
+      try {
+        const provisioned = await provisionTelnyxNumber({ business_id: clerkId, business_name: businessName, plan_type: planType });
+        telnyxNumberId = provisioned.phoneNumberId;
+        telnyxPhoneNumber = provisioned.phoneNumber;
+        console.log(`Provisioned Telnyx number ${telnyxPhoneNumber} (${telnyxNumberId})`);
+      } catch (provisionError) {
+        console.error(`Telnyx provisioning failed for ${businessName}:`, provisionError);
+        telnyxNumberId = telnyxNumberId || "PROVISIONING_FAILED";
+        telnyxPhoneNumber = telnyxPhoneNumber || "PROVISIONING_FAILED";
+      }
     }
-  } else if (!twilioSubAccountSid) {
-    twilioSubAccountSid = "PROVISIONING_FAILED";
-    twilioPhoneNumber = "PROVISIONING_FAILED";
+  } else if (!telnyxNumberId) {
+    telnyxNumberId = "PROVISIONING_FAILED";
+    telnyxPhoneNumber = telnyxPhoneNumber || "PROVISIONING_FAILED";
   }
 
-  const currentNumbers = Array.isArray(existingBusiness?.twilio_numbers) && existingBusiness.twilio_numbers.length > 0
-    ? (existingBusiness.twilio_numbers.includes("PROVISIONING_FAILED") && twilioPhoneNumber && twilioPhoneNumber !== "PROVISIONING_FAILED"
-      ? [twilioPhoneNumber]
-      : existingBusiness.twilio_numbers)
-    : (twilioPhoneNumber && twilioPhoneNumber !== "PROVISIONING_FAILED" ? [twilioPhoneNumber] : []);
+  const hasRealNumber = telnyxPhoneNumber && telnyxPhoneNumber !== "PROVISIONING_FAILED";
+  const storedNumbers: string[] = Array.isArray(existingBusiness?.telnyx_numbers) && existingBusiness.telnyx_numbers.length > 0
+    ? existingBusiness.telnyx_numbers
+    : Array.isArray(existingBusiness?.twilio_numbers) && existingBusiness.twilio_numbers.length > 0
+      ? existingBusiness.twilio_numbers
+      : [];
+  const currentNumbers = storedNumbers.length > 0
+    ? (storedNumbers.includes("PROVISIONING_FAILED") && hasRealNumber ? [telnyxPhoneNumber] : storedNumbers)
+    : (hasRealNumber ? [telnyxPhoneNumber] : []);
 
   const { minutesLimit, overageRate } = getPlanLimits(planType);
 
@@ -108,9 +122,9 @@ async function activateBusinessFromPaddleData(data: PaddleEventData) {
       $set: {
         business_id: clerkId,
         business_name: businessName,
-        twilio_subaccount_sid: twilioSubAccountSid,
-        twilio_number: twilioPhoneNumber,
-        twilio_numbers: currentNumbers,
+        telnyx_number_id: telnyxNumberId,
+        telnyx_number: telnyxPhoneNumber,
+        telnyx_numbers: currentNumbers,
         paddle_transaction_id: data.transaction_id || data.id,
         paddle_subscription_id: data.subscription_id || data.id,
         paddle_customer_id: data.customer_id,

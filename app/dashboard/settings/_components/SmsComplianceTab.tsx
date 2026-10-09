@@ -520,7 +520,16 @@ function ComplianceForm({ form, update, toggleCategory, submitting, onSubmit, er
                 <div>
                     <label className={labelClass}>Link to proof of opt-in (screenshot / image) *</label>
                     <input value={form.optInImageUrls} onChange={(e) => update("optInImageUrls", e.target.value)} placeholder="https://drive.google.com/…" className={inputClass} />
-                    <p className="text-[10px] text-neutral-600 mt-1.5">Upload a screenshot showing how customers opt in (e.g. your booking page checkbox or a text reply), share it publicly (Google Drive works), and paste the link. If you have multiple flows, combine them into one PDF.</p>
+                    <div className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
+                        <p className="text-[11px] leading-relaxed text-amber-200">
+                            <span className="font-semibold">⚠️ This link decides whether your verification is approved.</span>
+                            <br />
+                            Reviewers open this link without logging in. It must show how customers give you permission to text them (e.g. a screenshot of your booking form with the SMS-consent checkbox, or a doc of your phone script).
+                            <br />
+                            <span className="text-amber-300/90">✓ Google Drive → upload → Share → "Anyone with the link" → paste that link here.</span>
+                            <span className="text-amber-300/90"> ✗ A private file, a login page, or a broken/404 link = automatic rejection + ~5 business days lost.</span>
+                        </p>
+                    </div>
                 </div>
                 <div>
                     <label className={labelClass}>Monthly text volume *</label>

@@ -12,8 +12,10 @@ export async function GET() {
     const scopes = [
         'pages_show_list',
         'pages_messaging',
-        'instagram_manage_messages',
         'pages_read_engagement',
+        'pages_manage_metadata',
+        'instagram_basic',
+        'instagram_manage_messages',
         'business_management'
     ].join(',');
 

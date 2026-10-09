@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "diagram": "node scripts/generate-activity-map.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.0",
@@ -31,7 +32,7 @@
     "resend": "^6.12.3",
     "retell-sdk": "^5.18.0",
     "tailwind-merge": "^3.5.0",
-    "twilio": "^6.0.0"
+    "telnyx": "^7.24.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

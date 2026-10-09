@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import twilioClient from '@/lib/twilio';
 import { businessesCollection } from '@/lib/astra';
+import telnyxClient from '@/lib/telnyx';
 
 export async function POST(request: Request) {
   try {
@@ -15,32 +15,49 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Business not found" }, { status: 404 });
     }
 
-     // Security Fix: Verify the number actually belongs to the user before doing anything
-    const currentNumbers = Array.isArray(business.twilio_numbers) ? business.twilio_numbers : [];
+    // Security Fix: Verify the number actually belongs to the user before doing anything
+    const currentNumbers: string[] = Array.isArray(business.telnyx_numbers)
+      ? business.telnyx_numbers
+      : Array.isArray(business.twilio_numbers)
+        ? business.twilio_numbers
+        : [];
     if (!currentNumbers.includes(phoneNumber)) {
       return NextResponse.json({ error: "Number not found in your account" }, { status: 404 });
     }
 
-    // 1. Find the Twilio number SID to release it
-    const hasSubaccount =
-      Boolean(business.twilio_subaccount_sid) &&
-      business.twilio_subaccount_sid !== "PROVISIONING_FAILED";
+    // 1. Find the Telnyx number id and release it. The main line (the first
+    //    provisioned number) is kept — only extra lines can be removed.
+    let numberId = "";
+    try {
+      const numbers = (await telnyxClient.phoneNumbers.list({
+        filter: { phone_number: phoneNumber },
+        "page[number]": 1,
+        "page[size]": 5,
+      } as never)) as unknown as { data?: Array<{ id?: string; phone_number?: string }> };
+      numberId = (numbers.data || []).find((n) => n.phone_number === phoneNumber)?.id || "";
+    } catch (lookupError) {
+      console.error(" Telnyx number lookup failed:", lookupError);
+    }
 
-    const phoneNumbersResource = hasSubaccount
-      ? twilioClient.api.accounts(business.twilio_subaccount_sid).incomingPhoneNumbers
-      : twilioClient.incomingPhoneNumbers;
-
-    const numbers = await phoneNumbersResource.list({ phoneNumber, limit: 1 });
-    if (numbers.length > 0) {
-      await phoneNumbersResource(numbers[0].sid).remove();
+    if (numberId) {
+      try {
+        await telnyxClient.phoneNumbers.delete(numberId);
+        console.log(`[numbers/remove] released Telnyx number ${phoneNumber} (${numberId})`);
+      } catch (releaseError) {
+        console.error(" Telnyx release failed:", releaseError);
+        return NextResponse.json({ error: "Failed to remove number" }, { status: 500 });
+      }
+    } else {
+      console.warn(`[numbers/remove] no Telnyx number found for ${phoneNumber} — updating DB only`);
     }
 
     // AstraDB doesn't support $pull. We must fetch, filter, and $set.
+    // Write the result to the new telnyx_numbers field (legacy field untouched).
     const updatedNumbers = currentNumbers.filter((num: string) => num !== phoneNumber);
 
     await businessesCollection.updateOne(
       { business_id: userId },
-      { $set: { twilio_numbers: updatedNumbers } }
+      { $set: { telnyx_numbers: updatedNumbers } }
     );
 
     return NextResponse.json({ success: true });

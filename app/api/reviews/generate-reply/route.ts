@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import openai from '@/lib/openai';
+import { chatCompletion } from '@/lib/ai/client';
 import { businessesCollection } from '@/lib/astra';
 import { hasValidSecret } from '@/lib/security';
 
@@ -24,9 +24,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Available on paid plans" }, { status: 403 });
     }
 
-    // 2. Prompt GPT-4o-mini to write the perfect SEO reply
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    // 2. Ask the configured AI provider chain for the perfect SEO reply
+    // (OpenAI primary, Gemini fallback — see lib/ai/client.ts)
+    const { completion } = await chatCompletion({
       messages: [
         {
           role: "system",

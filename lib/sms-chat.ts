@@ -1,8 +1,25 @@
-import openai from "@/lib/openai";
+import { createHash } from "crypto";
+import { chatCompletion } from "@/lib/ai/client";
 import { callsCollection, conversationsCollection } from "@/lib/astra";
 import { sendBusinessSms } from "@/lib/sms-compliance";
 
-const MODEL = "gpt-4o-mini";
+/**
+ * Deterministic booking key. The same business + customer + slot + summary
+ * always produces the same call_id, so a retried or concurrently-delivered
+ * webhook can never create a second appointment.
+ */
+function bookingIdempotencyKey(
+    businessId: string,
+    customerPhone: string,
+    dateTime: string,
+    summary: string
+): string {
+    const digest = createHash("sha256")
+        .update(`${businessId}|${customerPhone}|${dateTime}|${summary || ""}`)
+        .digest("hex")
+        .slice(0, 24);
+    return `sms_${digest}`;
+}
 
 type HandleSmsOptions = {
     from: string;
@@ -143,13 +160,20 @@ export async function handleSmsMessage(options: HandleSmsOptions): Promise<{ rep
     ];
 
     let reply = "";
+    // Pin the whole tool interaction to ONE provider: after the first successful
+    // call, later turns use the same provider so a transient failure never
+    // switches mid-conversation (and never replays a side effect).
+    let pinnedProviderId: string | undefined;
+    // A given tool call is executed at most once per conversation, even if the
+    // model re-issues it (e.g. after a retry).
+    const executedToolCalls = new Map<string, string>();
+
     for (let i = 0; i < 3; i++) {
-        const completion = await openai.chat.completions.create({
-            model: MODEL,
-            messages,
-            tools: tools(),
-            tool_choice: "auto",
-        });
+        const { completion, providerId } = await chatCompletion(
+            { messages, tools: tools(), tool_choice: "auto" },
+            pinnedProviderId ? { providerId: pinnedProviderId } : undefined
+        );
+        pinnedProviderId = providerId;
 
         const message = completion.choices[0].message;
         const toolCalls = (message.tool_calls || []) as unknown as Array<{ id: string; function: { name: string; arguments: string } }>;
@@ -161,6 +185,17 @@ export async function handleSmsMessage(options: HandleSmsOptions): Promise<{ rep
 
         messages.push(message);
         for (const toolCall of toolCalls) {
+            const alreadyDone = executedToolCalls.get(toolCall.id);
+            if (alreadyDone !== undefined) {
+                // Never repeat an already-executed side-effecting tool.
+                messages.push({
+                    role: "tool" as const,
+                    tool_call_id: toolCall.id,
+                    content: alreadyDone,
+                });
+                continue;
+            }
+
             const name = toolCall.function.name;
             let args: any = {};
             try { args = JSON.parse(toolCall.function.arguments || "{}"); } catch { args = {}; }
@@ -168,27 +203,40 @@ export async function handleSmsMessage(options: HandleSmsOptions): Promise<{ rep
             let toolOutput = "done";
             try {
                 if (name === "book_appointment") {
-                    const callId = `sms_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
-                    await callsCollection.insertOne({
-                        business_id: businessId,
-                        call_id: callId,
-                        customer_phone: from,
-                        customer_name: args.customer_name || null,
-                        summary: args.summary || "Booked via SMS",
-                        transcript: JSON.stringify([...history, { role: "user", content: body }]),
-                        appointment_booked: true,
-                        appointment_date_time: args.date_time,
-                        appointment_duration_minutes: 60,
-                        // Required for the job-done-followup cron's filter
-                        // (Astra doesn't match missing fields against null).
-                        job_status: "pending",
-                        call_source: "SMS",
-                        channel: "sms",
-                        sentiment: "Positive",
-                        lead_quality: "hot",
-                        created_at: new Date().toISOString(),
-                    });
-                    toolOutput = `Appointment booked for ${args.date_time}.`;
+                    const callId = bookingIdempotencyKey(
+                        businessId,
+                        from,
+                        String(args.date_time || ""),
+                        String(args.summary || "Booked via SMS")
+                    );
+                    // Reconcile before writing: an identical booking (e.g. from a
+                    // retried or concurrently delivered webhook) must not create a
+                    // second appointment.
+                    const existingBooking = await callsCollection.findOne({ call_id: callId });
+                    if (existingBooking) {
+                        toolOutput = `Appointment for ${args.date_time} is already booked.`;
+                    } else {
+                        await callsCollection.insertOne({
+                            business_id: businessId,
+                            call_id: callId,
+                            customer_phone: from,
+                            customer_name: args.customer_name || null,
+                            summary: args.summary || "Booked via SMS",
+                            transcript: JSON.stringify([...history, { role: "user", content: body }]),
+                            appointment_booked: true,
+                            appointment_date_time: args.date_time,
+                            appointment_duration_minutes: 60,
+                            // Required for the job-done-followup cron's filter
+                            // (Astra doesn't match missing fields against null).
+                            job_status: "pending",
+                            call_source: "SMS",
+                            channel: "sms",
+                            sentiment: "Positive",
+                            lead_quality: "hot",
+                            created_at: new Date().toISOString(),
+                        });
+                        toolOutput = `Appointment booked for ${args.date_time}.`;
+                    }
                 } else if (name === "confirm_appointment") {
                     if (upcomingCall) {
                         await callsCollection.updateOne(
@@ -230,6 +278,7 @@ export async function handleSmsMessage(options: HandleSmsOptions): Promise<{ rep
                 tool_call_id: toolCall.id,
                 content: toolOutput,
             });
+            executedToolCalls.set(toolCall.id, toolOutput);
         }
     }
 

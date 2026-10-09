@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>nextCall — Twilio Business Verification &amp; Client SMS Enablement</title>
+<style>
+  :root{
+    --ink:#0f1115; --muted:#5b6472; --line:#e4e7ec; --soft:#f6f7f9;
+    --brand:#ff4b00; --brand-soft:#fff2ec; --ok:#0a7d33; --ok-soft:#eafaf0;
+    --warn:#8a5a00; --warn-soft:#fff7e6; --danger:#b3261e; --danger-soft:#fdecea;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink); font-size:11.5px; line-height:1.55;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .page{max-width:820px;margin:0 auto;padding:34px 40px 60px}
+  header.hero{
+    border:1px solid var(--line); border-radius:14px; padding:22px 24px;
+    background:linear-gradient(135deg,#fff 0%,#fff7f3 100%);
+    margin-bottom:22px;
+  }
+  .kicker{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--brand);font-weight:700}
+  h1{font-size:22px;line-height:1.25;margin:8px 0 6px}
+  .sub{color:var(--muted);font-size:11.5px;margin:0}
+  .meta{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font-size:10px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--muted);background:#fff}
+  h2{font-size:15px;margin:26px 0 4px;padding-bottom:7px;border-bottom:2px solid var(--ink)}
+  h3{font-size:12.5px;margin:16px 0 4px}
+  p{margin:7px 0}
+  ul,ol{margin:7px 0 7px 20px;padding:0}
+  li{margin:4px 0}
+  code,.mono{font-family:"Cascadia Mono",Consolas,"Courier New",monospace;font-size:10.5px}
+  code{background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+  pre{background:#0c0f14;color:#e7eaf0;border-radius:9px;padding:12px 14px;overflow:auto;margin:9px 0;font-size:10.5px;line-height:1.5}
+  pre code{background:none;border:none;color:inherit;padding:0}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:10.8px}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  th{background:var(--soft);font-weight:700}
+  .callout{border-radius:10px;padding:12px 14px;margin:12px 0;border:1px solid}
+  .callout .t{font-weight:700;font-size:11.5px;margin-bottom:3px}
+  .danger{background:var(--danger-soft);border-color:#f3c2bd}
+  .danger .t{color:var(--danger)}
+  .warn{background:var(--warn-soft);border-color:#f1dfae}
+  .warn .t{color:var(--warn)}
+  .ok{background:var(--ok-soft);border-color:#bfe6cd}
+  .ok .t{color:var(--ok)}
+  .brand{background:var(--brand-soft);border-color:#ffd4c2}
+  .brand .t{color:var(--brand)}
+  .step{border:1px solid var(--line);border-radius:11px;padding:13px 15px;margin:10px 0;break-inside:avoid}
+  .step .h{display:flex;align-items:center;gap:9px;margin-bottom:5px}
+  .num{flex:0 0 auto;width:22px;height:22px;border-radius:999px;background:var(--brand);color:#fff;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center}
+  .step .h b{font-size:12px}
+  .badge{font-size:9.5px;font-weight:700;border-radius:999px;padding:2px 8px;border:1px solid}
+  .b-miss{color:var(--danger);background:var(--danger-soft);border-color:#f3c2bd}
+  .b-ok{color:var(--ok);background:var(--ok-soft);border-color:#bfe6cd}
+  .b-do{color:var(--brand);background:var(--brand-soft);border-color:#ffd4c2}
+  .kv{display:grid;grid-template-columns:150px 1fr;gap:2px 12px;margin:6px 0}
+  .kv .k{color:var(--muted)}
+  .foot{margin-top:28px;border-top:1px solid var(--line);padding-top:12px;color:var(--muted);font-size:10px}
+  .avoid{break-inside:avoid}
+  .pb{break-before:page}
+  @page{margin:14mm 12mm}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="hero">
+  <div class="kicker">nextCall · Platform Compliance Report</div>
+  <h1>Twilio Business Verification &amp; Client SMS Enablement</h1>
+  <p class="sub">What your codebase does for Twilio, why outbound texts are gated, and the exact steps to let your client businesses register and start sending SMS.</p>
+  <div class="meta">
+    <span class="chip">Scope: Twilio + Toll-Free Verification (TFV)</span>
+    <span class="chip">App: nextCall (Next.js SaaS)</span>
+    <span class="chip">Prepared: 1 Oct 2026</span>
+  </div>
+</header>
+
+<div class="callout brand">
+  <div class="t">Bottom line</div>
+  <p style="margin:0">Your code is <b>already built</b> to send each client's toll-free registration request (Settings → Business SMS → Submit). What is missing is entirely on the <b>Twilio account side</b>: get your master account business-verified, create an approved <b>ISV Primary Customer Profile</b> in Trust Hub, and set <code>TWILIO_TFV_CUSTOMER_PROFILE_SID</code> (plus <code>TWILIO_WEBHOOK_BASE_URL</code>). After that, each client's submission reviews and approves normally.</p>
+</div>
+
+<h2>1 · What your Twilio setup actually is (as built)</h2>
+<p>nextCall is a multi-tenant SaaS. You are the Twilio <b>ISV / reseller</b>; every paying business is an end customer. The chain is:</p>
+<table>
+  <thead><tr><th style="width:150px">Layer</th><th>What happens</th><th style="width:210px">Code</th></tr></thead>
+  <tbody>
+    <tr><td>Master account</td><td>Your Twilio creds (<code>TWILIO_ACCOUNT_SID</code> / <code>TWILIO_AUTH_TOKEN</code>) live in <code>.env.local</code>.</td><td class="mono">lib/twilio.ts</td></tr>
+    <tr><td>Per-business subaccount</td><td>On Paddle activation, a Twilio <b>subaccount</b> is created per business.</td><td class="mono">lib/twilio-provision.ts → provisionTwilioNumber()</td></tr>
+    <tr><td>Per-business number</td><td>A US <b>toll-free</b> number is bought in that subaccount, wired with the voice + SMS webhooks.</td><td class="mono">lib/twilio-provision.ts:85-92</td></tr>
+    <tr><td>Outbound SMS gate</td><td><b>Every</b> outbound text is blocked unless that business's TFV is <code>approved</code>.</td><td class="mono">lib/sms-compliance.ts → sendBusinessSms() / isSmsApproved()</td></tr>
+    <tr><td>Client self-serve TFV</td><td>Settings → Business SMS submits a Toll-Free Verification for that business.</td><td class="mono">SmsComplianceTab.tsx → POST /api/sms/compliance → submitTollfreeVerification()</td></tr>
+    <tr><td>State</td><td>Stored in the <code>sms_compliance</code> collection; status lazily re-synced from Twilio (max every 6h).</td><td class="mono">lib/sms-compliance.ts → refreshComplianceStatus()</td></tr>
+  </tbody>
+</table>
+<p>So the mechanism to "let my client register to enable their SMS" <b>already exists</b> — it is the <b>Business SMS</b> tab that files a Toll-Free Verification on the client's behalf. What is missing are the Twilio-account prerequisites that make those submissions pass review.</p>
+
+<h2>2 · Two different "verifications" — don't mix them up</h2>
+<table>
+  <thead><tr><th style="width:44px">#</th><th style="width:230px">Which verification</th><th>Who does it &amp; when</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>A</b></td>
+      <td><b>Your business verification</b><br><span class="mono">Trust Hub Primary Customer Profile</span></td>
+      <td>You (the platform owner), <b>once</b>. Twilio now requires that your master account has an approved Trust Hub Primary Customer Profile before it will accept <i>any</i> Toll-Free Verification. Because you sell this to clients, set the business identity to <b>"ISV Reseller or Partner."</b> Twilio docs: <i>"TFV requests with Twilio require your business to have a Trust Hub Primary Customer Profile."</i></td>
+    </tr>
+    <tr>
+      <td><b>B</b></td>
+      <td><b>Each client's Toll-Free Verification</b><br><span class="mono">per business / per number</span></td>
+      <td>The client, via your dashboard. This is the "send request for my client to get registered to enable their SMS" part — one TFV per client toll-free number, filed from the Business SMS tab.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>3 · What is blocking you right now</h2>
+<p>Findings from your code and <code>.env.local</code>:</p>
+
+<div class="step avoid">
+  <div class="h"><span class="num">1</span><b>No Customer Profile SID configured</b><span class="badge b-miss">BLOCKING</span></div>
+  <p style="margin:0 0 6px"><code>TWILIO_TFV_CUSTOMER_PROFILE_SID</code> is <b>not set</b>. Your code reads it here — and because it is unset, submissions go out <b>without a Customer Profile</b>. That is the single most likely cause of rejections / Twilio error <b>30494</b> ("ISV or reseller name must be provided").</p>
+  <pre><code>// lib/sms-compliance.ts:537-539
+...(process.env.TWILIO_TFV_CUSTOMER_PROFILE_SID
+  ? { customerProfileSid: process.env.TWILIO_TFV_CUSTOMER_PROFILE_SID }
+  : {}),</code></pre>
+</div>
+
+<div class="step avoid">
+  <div class="h"><span class="num">2</span><b>Webhook base URL not set explicitly</b><span class="badge b-do">RECOMMENDED</span></div>
+  <p style="margin:0"><code>TWILIO_WEBHOOK_BASE_URL</code> is unset and silently defaults to <code>https://www.getnextcall.com</code> (<span class="mono">lib/sms-compliance.ts:40</span>, <span class="mono">lib/twilio-provision.ts:10</span>). Fine today, but set it explicitly so staging/prod can never wire webhooks to the wrong host.</p>
+</div>
+
+<div class="step avoid">
+  <div class="h"><span class="num">3</span><b>EIN is now required for US businesses</b><span class="badge b-do">VERIFY FORM</span></div>
+  <p style="margin:0">Twilio added mandatory <b>Business Registration Number</b> fields. US businesses must supply a valid <b>EIN matching the legal business name</b>; sole proprietors without an EIN may mark it unavailable. Your form already collects <code>registrationNumber</code> + <code>registrationAuthority</code> (EIN) and sends them (<span class="mono">buildCreateParams</span>, lines 530-536) — good — but the UI authority list is minimal and <code>country</code> is hard-defaulted to US, so non-US clients cannot register cleanly.</p>
+</div>
+
+<div class="step avoid">
+  <div class="h"><span class="num">4</span><b>Master account must be a paid, upgraded account</b><span class="badge b-do">CHECK</span></div>
+  <p style="margin:0">The account must be upgraded (card on file), <b>not trial</b>, with Twilio's own account-level business verification complete.</p>
+</div>
+
+<h2>4 · The exact plan — do these in order</h2>
+
+<div class="step avoid">
+  <div class="h"><span class="num">1</span><b>Verify / complete your Twilio account (one-time)</b></div>
+  <ul>
+    <li>Twilio Console → confirm the account is <b>upgraded</b> (card on file), not trial.</li>
+    <li>Complete Twilio's own <b>account business verification</b> (Console → Account → Business Info / the verification banner).</li>
+  </ul>
+</div>
+
+<div class="step avoid">
+  <div class="h"><span class="num">2</span><b>Create your approvable Primary Customer Profile (one-time)</b></div>
+  <ul>
+    <li>Console → <b>Trust Hub → Customer Profiles → Create Profile</b>.</li>
+    <li>At <b>"Business Information → Select business identity"</b> choose <b>ISV Reseller or Partner</b>.</li>
+    <li>Fill legal name, address, and a <b>notification email you actually monitor</b> — Twilio emails approval/rejection here.</li>
+    <li>Submit and wait for the profile to show <b>approved</b>.</li>
+  </ul>
+</div>
+
+<div class="step avoid">
+  <div class="h"><span class="num">3</span><b>Wire the profile into the app</b></div>
+  <p style="margin:0 0 6px">Copy the approved profile SID (<span class="mono">BUxxxxxxxx…</span>) and add it to <code>.env.local</code> <b>and</b> your Vercel environment:</p>
+  <pre><code>TWILIO_TFV_CUSTOMER_PROFILE_SID=BUxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_WEBHOOK_BASE_URL=https://www.getnextcall.com</code></pre>
+</div>
+
+<div class="step avoid">
+  <div class="h"><span class="num">4</span><b>Prove the pipeline with ONE client</b></div>
+  <ul>
+    <li>For a test business: open <b>Settings → Business SMS</b> and fill the form — legal name, <b>EIN matching the legal name</b>, website, opt-in proof URL, Privacy &amp; Terms URLs.</li>
+    <li>Submit, then watch Console → <b>Trust Hub → Registrations</b> (or Phone Numbers → the toll-free number → Regulatory Information) to confirm the verification appears and shows your ISV identity.</li>
+    <li>Once Twilio returns <code>TWILIO_APPROVED</code> (mapped to <code>approved</code>), <code>sendBusinessSms()</code> unblocks that business's outbound texts automatically.</li>
+  </ul>
+</div>
+
+<div class="step avoid">
+  <div class="h"><span class="num">5</span><b>Roll out to clients</b></div>
+  <p style="margin:0">Each client fills the same tab; each gets its own TFV on its own subaccount number. Approval is typically <b>2–3 business days</b>.</p>
+</div>
+
+<h2>5 · One thing to confirm with Twilio (ISV scaling nuance)</h2>
+<p>Your code attaches a <b>single</b> <code>TWILIO_TFV_CUSTOMER_PROFILE_SID</code> to <i>every</i> business's submission. That works if Twilio treats it as your ISV/reseller profile and reads each end-business identity from the inline <code>business*</code> fields (which your code sends). At higher volume, Twilio's ISV model sometimes prefers a <b>separate / secondary Customer Profile per end business</b>. If you start seeing rejections that mention the ISV/reseller, ask Twilio support (or your account manager) whether you should create per-business profiles. One test submission (Step 4) tells you quickly.</p>
+
+<div class="callout warn">
+  <div class="t">Watch for these Twilio errors</div>
+  <ul style="margin-bottom:0">
+    <li><b>30494</b> — "ISV or reseller name must be provided": profile business identity isn't set to ISV/Reseller, or the ISV details are missing.</li>
+    <li><b>Approved Profile is Required</b> — your Trust Hub Primary Customer Profile isn't approved yet.</li>
+    <li>Rejections citing <b>opt-in</b> or <b>website</b> — the client's opt-in proof URL or privacy/terms pages are missing or unreachable.</li>
+  </ul>
+</div>
+
+<h2>6 · Security note (important)</h2>
+<div class="callout danger">
+  <div class="t">Rotate exposed secrets</div>
+  <p style="margin:0 0 6px">Your <code>.env.local</code> contains <b>live production secrets</b> in plaintext — Twilio Auth Token, Paddle <b>live</b> API key, OpenAI key, Clerk secret, and others. It is correctly gitignored (<span class="mono">.gitignore:34 → .env*</span>), but since these values have been shared outside your machine, treat them as compromised.</p>
+  <ul style="margin-bottom:0">
+    <li><b>Rotate the Twilio Auth Token</b> (Console → Account → API keys &amp; tokens) and update Vercel. A leaked token lets someone hijack your whole account and every subaccount.</li>
+    <li><b>Rotate the Paddle live API key</b> and webhook secret.</li>
+    <li>Consider using <b>Twilio API Keys</b> (scoped keys) instead of the account Auth Token for the master client.</li>
+  </ul>
+</div>
+
+<h2>7 · How to test end-to-end</h2>
+<ol>
+  <li>Set the two env vars, redeploy (so <code>process.env</code> picks them up).</li>
+  <li>Open <code>/dashboard/settings?focus=sms</code> for a test business.</li>
+  <li>Submit the form; confirm the response status is <b>pending</b> (not <b>error</b>).</li>
+  <li>Check Twilio Console → Trust Hub → Registrations for the new verification and its ISV identity.</li>
+  <li>After approval, trigger an SMS feature (e.g. an appointment reminder) and confirm a message <code>sid</code> is returned — that proves <code>sendBusinessSms()</code> passed the gate.</li>
+</ol>
+
+<div class="callout ok">
+  <div class="t">Summary</div>
+  <p style="margin:0">Code side: ready. Twilio side: (1) upgrade + business-verify the master account, (2) create &amp; get an approved <b>ISV Primary Customer Profile</b> in Trust Hub, (3) set <code>TWILIO_TFV_CUSTOMER_PROFILE_SID</code> and <code>TWILIO_WEBHOOK_BASE_URL</code>. Then every client's Business SMS submission can register and unlock their texting.</p>
+</div>
+
+<div class="foot">
+  nextCall · Twilio Business Verification &amp; Client SMS Enablement · Generated 1 Oct 2026 · Sources: Twilio Docs (Toll-Free Verification API onboarding, Trust Hub Customer Profiles, Error 30494) and this project's source (<span class="mono">lib/sms-compliance.ts</span>, <span class="mono">lib/twilio-provision.ts</span>, <span class="mono">app/api/sms/compliance/route.ts</span>, <span class="mono">app/dashboard/settings/_components/SmsComplianceTab.tsx</span>).
+</div>
+
+</div>
+</body>
+</html>

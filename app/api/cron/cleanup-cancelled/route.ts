@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { businessesCollection, callsCollection, notificationsCollection } from '@/lib/astra';
-import twilioClient from '@/lib/twilio';
+import telnyxClient from '@/lib/telnyx';
 import { hasValidSecret } from '@/lib/security';
 
 export async function GET(request: Request) {
@@ -24,25 +24,52 @@ export async function GET(request: Request) {
         }
 
         let deletedCount = 0;
-        let twilioClosedCount = 0;
+        let numbersReleasedCount = 0;
 
         for (const business of expiredBusinesses) {
             const businessId = business.business_id;
 
-             // 2. Close the Twilio Sub-Account FIRST (Stops recurring charges!)
+             // 2. Release the business's Telnyx numbers FIRST (stops recurring charges!)
             // If this fails, we skip DB deletion so the cron can retry tomorrow.
-            if (business.twilio_subaccount_sid) {
-                try {
-                    await twilioClient.api.accounts(business.twilio_subaccount_sid).update({ status: 'closed' });
-                    twilioClosedCount++;
-                } catch (twilioError: unknown) {
-                    const msg = twilioError instanceof Error ? twilioError.message : String(twilioError);
-                    console.error(`Failed to close Twilio subaccount ${business.twilio_subaccount_sid}:`, msg);
+            const numbersToRelease: string[] = Array.isArray(business.telnyx_numbers)
+                ? business.telnyx_numbers
+                : Array.isArray(business.twilio_numbers)
+                    ? business.twilio_numbers
+                    : [];
+            const mainNumber = business.telnyx_number || business.twilio_number;
+            if (mainNumber && !numbersToRelease.includes(mainNumber)) {
+                numbersToRelease.push(mainNumber);
+            }
+
+            if (numbersToRelease.length > 0) {
+                let allReleased = true;
+                for (const e164 of numbersToRelease) {
+                    if (!e164 || e164 === "PROVISIONING_FAILED") continue;
+                    try {
+                        const numbers = (await telnyxClient.phoneNumbers.list({
+                            filter: { phone_number: e164 },
+                            "page[number]": 1,
+                            "page[size]": 5,
+                        } as never)) as unknown as { data?: Array<{ id?: string; phone_number?: string }> };
+                        const hit = (numbers.data || []).find((n) => n.phone_number === e164);
+                        if (hit?.id) {
+                            await telnyxClient.phoneNumbers.delete(hit.id);
+                            numbersReleasedCount++;
+                            console.log(`Released Telnyx number ${e164} (${hit.id}) for cancelled business ${businessId}`);
+                        }
+                    } catch (releaseError: unknown) {
+                        const msg = releaseError instanceof Error ? releaseError.message : String(releaseError);
+                        console.error(`Failed to release Telnyx number ${e164} for ${businessId}:`, msg);
+                        allReleased = false;
+                        break;
+                    }
+                }
+                if (!allReleased) {
                     continue; // Skip DB deletion for this user so we can retry later
                 }
             }
 
-            // 3. Delete associated data from AstraDB (Only after Twilio is safely closed)
+            // 3. Delete associated data from AstraDB (Only after numbers are safely released)
             await callsCollection.deleteMany({ business_id: businessId });
             await notificationsCollection.deleteMany({ business_id: businessId });
             await businessesCollection.deleteOne({ _id: business._id });
@@ -50,8 +77,8 @@ export async function GET(request: Request) {
             deletedCount++;
         }
 
-        console.log(`🧹 Cron Cleanup: Deleted ${deletedCount} expired accounts and closed ${twilioClosedCount} Twilio sub-accounts.`);
-        return NextResponse.json({ success: true, deletedAccounts: deletedCount, closedTwilioAccounts: twilioClosedCount });
+        console.log(`🧹 Cron Cleanup: Deleted ${deletedCount} expired accounts and released ${numbersReleasedCount} Telnyx numbers.`);
+        return NextResponse.json({ success: true, deletedAccounts: deletedCount, releasedTelnyxNumbers: numbersReleasedCount });
 
     } catch (error) {
         console.error("❌ Cron Cleanup Error:", error);
