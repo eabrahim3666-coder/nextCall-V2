@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { motion } from "framer-motion";
-import { Check } from "lucide-react";
+import { Check, Clock } from "lucide-react";
 
 import { PerspectiveCard } from "@/components/PerspectiveCard";
 import { cn } from "@/lib/utils";
@@ -199,7 +199,7 @@ const PLANS = [
       "Advanced analytics: lead value & revenue tracking",
       "Conversion funnel, peak-hours heatmap & AI performance score",
       "Marketing channel / call source breakdown",
-      "Facebook & Instagram DMs — coming soon",
+      "Facebook & Instagram DMs⚠Coming soon",
       "Outbound webhook (Zapier / n8n / Make)",
       "Priority support chat",
     ],
@@ -414,16 +414,31 @@ function Pricing({ refCode = "" }: { refCode?: string }) {
                       <span
                         className={cn(
                           "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full",
-                          plan.free
-                            ? "bg-[#ff4b00]/15 text-[#ff4b00]"
-                            : "bg-[#ff4b00]/15 text-[#ff4b00]"
+                          item.includes("⚠Coming soon")
+                            ? "bg-amber-400/15 text-amber-400"
+                            : plan.free
+                              ? "bg-[#ff4b00]/15 text-[#ff4b00]"
+                              : "bg-[#ff4b00]/15 text-[#ff4b00]"
                         )}
                       >
-                        <Check className="w-3 h-3" />
+                        {item.includes("⚠Coming soon") ? (
+                          <Clock className="w-3 h-3" />
+                        ) : (
+                          <Check className="w-3 h-3" />
+                        )}
                       </span>
-                      <span className="text-sm text-zinc-300 leading-relaxed">
-                        {item}
-                      </span>
+                      {item.includes("⚠Coming soon") ? (
+                        <span className="text-sm text-zinc-300 leading-relaxed">
+                          {item.split("⚠Coming soon")[0]}
+                          <span className="ml-2 inline-flex items-center rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-300">
+                            Coming soon
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="text-sm text-zinc-300 leading-relaxed">
+                          {item}
+                        </span>
+                      )}
                     </li>
                   ))}
                 </ul>
