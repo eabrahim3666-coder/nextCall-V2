@@ -833,7 +833,7 @@ export default function SettingsForm({ initialData }: { initialData: BusinessDat
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-white">Facebook & Instagram</p>
-                                        <p className="text-xs text-[#A7ADBB]">Auto-reply to DMs and Messages</p>
+                                        <p className="text-xs text-[#A7ADBB]">Auto-reply to DMs — rolling out soon</p>
                                     </div>
                                 </div>
 

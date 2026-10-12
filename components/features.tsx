@@ -171,7 +171,7 @@ const features: Feature[] = [
     icon: Icon,
     iconName: "lucide:instagram",
     title: "Instagram & Facebook DM",
-    text: "Turn DMs into leads. The AI answers Facebook & Instagram — answering questions, capturing leads, and booking appointments around the clock.",
+    text: "Turn DMs into leads. The AI answers Facebook & Instagram — answering questions, capturing leads, and booking appointments around the clock. Rolling out soon.",
     span: "md:col-span-2",
     ga: "110deg",
     fx: 70,

@@ -199,7 +199,7 @@ const PLANS = [
       "Advanced analytics: lead value & revenue tracking",
       "Conversion funnel, peak-hours heatmap & AI performance score",
       "Marketing channel / call source breakdown",
-      "WhatsApp, Facebook & Instagram chat-back",
+      "WhatsApp chat-back (Facebook & Instagram DMs coming soon)",
       "Zapier / Make / n8n webhooks",
       "Priority support chat",
     ],
