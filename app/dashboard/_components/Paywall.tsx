@@ -107,7 +107,7 @@ export default function Paywall({ refCode, allowTrial = true }: { refCode?: stri
                                 <span className="text-4xl font-semibold text-white">$0</span>
                                 <span className="text-sm text-[#A7ADBB]">/3 days</span>
                             </div>
-                            <p className="text-[10px] text-neutral-600 mt-1">50 minutes included, no commitment</p>
+                            <p className="text-[10px] text-neutral-600 mt-1">30 minutes included, no commitment</p>
                         </div>
 
                         <div className="space-y-2.5 mb-8 text-left inline-block">
@@ -116,7 +116,7 @@ export default function Paywall({ refCode, allowTrial = true }: { refCode?: stri
                                 "1 phone number",
                                 "Basic call dashboard",
                                 "Appointment booking + Google Calendar sync",
-                                "50 minutes included",
+                                "30 minutes included",
                             ].map((item, i) => (
                                 <div key={i} className="flex items-start gap-2.5">
                                     <span className="text-emerald-400 text-xs mt-0.5 flex-shrink-0">+</span>

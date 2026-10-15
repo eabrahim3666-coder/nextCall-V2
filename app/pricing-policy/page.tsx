@@ -21,7 +21,7 @@ export default function PricingPolicyPage() {
                             <div className="border border-white/[0.06] rounded-2xl p-6 bg-white/[0.02]">
                                 <h3 className="text-base font-medium text-white mb-2">Free Trial ($0 / 3 Days)</h3>
                                 <ul className="list-disc list-inside space-y-1 text-neutral-400">
-                                    <li>50 minutes of AI call handling included.</li>
+                                    <li>30 minutes of AI call handling included.</li>
                                     <li>24/7 AI Receptionist & 1 local phone number.</li>
                                     <li>Basic call summaries and lead capture.</li>
                                     <li>No credit card required to start.</li>
@@ -52,7 +52,7 @@ export default function PricingPolicyPage() {
 
                     <section>
                         <h2 className="text-lg font-medium text-white mb-3">2. Free Trial Terms & Conversion</h2>
-                        <p>The 3-day Free Trial is limited to <strong>one per business or individual</strong>. The trial includes 50 minutes of AI call handling. No credit card is required to start the trial.</p>
+                        <p>The 3-day Free Trial is limited to <strong>one per business or individual</strong>. The trial includes 30 minutes of AI call handling. No credit card is required to start the trial.</p>
                         <p className="mt-3"><strong>Trial Expiration:</strong> If you do not select a paid plan before the end of the 3-day trial period, your account access will pause until you upgrade. No payment is automatically charged at the end of the trial. You must manually select either the Standard or Premium plan to continue using the Service.</p>
                     </section>
 

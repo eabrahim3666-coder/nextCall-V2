@@ -22,7 +22,7 @@ flowchart TB
   end
   subgraph P03["3 - BILLING &amp; ACTIVATION - Paddle -&gt; tenant goes live"]
     direction TB
-    P3_choose["<b>Choose a plan in the Paywall</b><br/><i>trial / standard / premium plus an optional referral code. Trial is 3 days and 50 minutes; standard is 200 min ($299); premium is 500 min ($399).</i>"]
+    P3_choose["<b>Choose a plan in the Paywall</b><br/><i>trial / standard / premium plus an optional referral code. Trial is 3 days and 30 minutes; standard is 200 min ($299); premium is 500 min ($399).</i>"]
     P3_checkout["<b>POST /api/checkout/paddle</b><br/><i>The plan name is mapped to a PADDLE_*_PRICE_ID environment variable on the SERVER, so a client cannot post a cheaper price id. custom_data carries clerk_user_id, plan, ref and business_name.</i>"]
     P3_txn["<b>Paddle transaction + overlay checkout</b><br/><i>Paddle creates the transaction and the browser opens it as an overlay. Card data never touches our servers.</i>"]
     P3_paid["<b>Pay</b><br/><i>On success Paddle redirects back with ?paddle=success and a transaction id.</i>"]

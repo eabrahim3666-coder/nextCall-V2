@@ -91,7 +91,7 @@ export default function DocsPage() {
                 <Accordion type="single" collapsible className="w-full space-y-3">
                     <AccordionItem value="plan-trial" className="bg-black border border-white/5 rounded-xl px-5">
                         <AccordionTrigger className="text-sm font-medium text-white hover:text-[#ff4b00] py-4">
-                            <span className="flex items-center gap-3"><Badge tier="trial" /> Free Trial — $0 / 3 days, 50 minutes
+                            <span className="flex items-center gap-3"><Badge tier="trial" /> Free Trial — $0 / 3 days, 30 minutes
                             </span>
                         </AccordionTrigger>
                         <AccordionContent className="text-xs text-[#A7ADBB] space-y-3 pb-4">
@@ -102,7 +102,7 @@ export default function DocsPage() {
                                 <li><strong className="text-white">Appointment booking + Google Calendar sync</strong> — the AI books appointments and creates calendar events.</li>
                                 <li><strong className="text-white">Basic call dashboard</strong> — live activity feed, Performance & Latest Analytics charts, and full Call Log.</li>
                                 <li><strong className="text-white">Appointment reminders (email only)</strong> — email 24 hours before each appointment.</li>
-                                <li><strong className="text-white">50 minutes included</strong> — call duration is deducted in 1-minute increments.</li>
+                                <li><strong className="text-white">30 minutes included</strong> — call duration is deducted in 1-minute increments.</li>
                             </ul>
                             <p className="text-[#A7ADBB] italic">Paid-only features (marked below) are locked during the trial. Upgrade any time from Settings → Billing.</p>
                         </AccordionContent>

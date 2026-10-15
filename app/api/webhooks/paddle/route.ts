@@ -34,7 +34,7 @@ function getPlanLimits(planType: string) {
   }
 
   if (planType === 'trial') {
-    return { minutesLimit: 50, overageRate: 0.00 };
+    return { minutesLimit: 30, overageRate: 0.00 };
   }
 
   return { minutesLimit: 200, overageRate: 0.50 };

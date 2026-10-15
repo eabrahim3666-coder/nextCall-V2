@@ -40,7 +40,7 @@ function getPlanLimits(plan: string) {
     }
 
     if (plan === "trial") {
-        return { minutes_limit: 50, overage_rate: 0 };
+        return { minutes_limit: 30, overage_rate: 0 };
     }
 
     return { minutes_limit: 200, overage_rate: 0.50 };
