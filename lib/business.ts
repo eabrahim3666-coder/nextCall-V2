@@ -54,6 +54,10 @@ export type BusinessDoc = {
     twilio_number?: string;
     twilio_numbers?: string[];
     twilio_subaccount_sid?: string;
+    /** Post-Telnyx-migration number fields (the twilio_* fields above are legacy fallbacks). */
+    telnyx_number?: string;
+    telnyx_numbers?: string[];
+    telnyx_number_id?: string;
     paddle_customer_id?: string | null;
     paddle_subscription_id?: string | null;
     google_refresh_token?: string | null;

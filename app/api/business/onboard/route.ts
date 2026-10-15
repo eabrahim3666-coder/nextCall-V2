@@ -16,6 +16,10 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { business_name, owner_name, phone, business_type, industry, hours, services, notes } = body;
 
+        // Cap user-supplied strings before they land in the DB or the compiled
+        // knowledge base (which reaches every Retell call payload).
+        const capStr = (v: unknown, max: number) => (typeof v === "string" ? v.slice(0, max) : "");
+
         const client = await clerkClient();
         const clerkUser = await client.users.getUser(userId);
         const ownerEmail = clerkUser.emailAddresses?.[0]?.emailAddress || null;
@@ -29,17 +33,17 @@ export async function POST(req: NextRequest) {
                 $set: {
                     business_id: userId,
                     owner_email: ownerEmail,
-                    business_name: business_name || "",
-                    owner_name: owner_name || "",
-                    phone: phone || "",
-                    owner_phone: phone || "",
-                    business_type: business_type || "General",
-                    industry: industry || "",
-                    hours: hours || "",
-                    services: services || "",
-                    notes: notes || "",
+                    business_name: capStr(business_name, 200),
+                    owner_name: capStr(owner_name, 120),
+                    phone: capStr(phone, 30),
+                    owner_phone: capStr(phone, 30),
+                    business_type: capStr(business_type, 100) || "General",
+                    industry: capStr(industry, 120),
+                    hours: capStr(hours, 2000),
+                    services: capStr(services, 4000),
+                    notes: capStr(notes, 4000),
                     status: "pending",
-                    knowledge_base_text: `Business: ${business_name}. Owner: ${owner_name}. Type: ${business_type}. Industry: ${industry}. Hours: ${hours}. Services: ${services}. Notes: ${notes}`,
+                    knowledge_base_text: `Business: ${capStr(business_name, 200)}. Owner: ${capStr(owner_name, 120)}. Type: ${capStr(business_type, 100)}. Industry: ${capStr(industry, 120)}. Hours: ${capStr(hours, 2000)}. Services: ${capStr(services, 4000)}. Notes: ${capStr(notes, 4000)}`,
                     updated_at: new Date().toISOString(),
                 },
                 $setOnInsert: {

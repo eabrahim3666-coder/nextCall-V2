@@ -51,7 +51,15 @@ export default async function DashboardHome() {
     const smsCompliance = business ? await getComplianceRecord(userId).catch(() => null) : null;
     const smsStatus = smsCompliance?.status || null;
 
-    const activeNumbers = (Array.isArray(business?.twilio_numbers) ? business.twilio_numbers : [business?.twilio_number])
+    // Provisioning writes telnyx_* fields; twilio_* are legacy pre-migration
+    // fallbacks. Reading only the legacy fields made freshly provisioned
+    // businesses show zero numbers on the dashboard.
+    const rawNumbers = Array.isArray(business?.telnyx_numbers) && business.telnyx_numbers.length > 0
+        ? business.telnyx_numbers
+        : Array.isArray(business?.twilio_numbers) && business.twilio_numbers.length > 0
+            ? business.twilio_numbers
+            : [business?.telnyx_number || business?.twilio_number];
+    const activeNumbers = rawNumbers
         .filter((num): num is string => Boolean(num) && num !== "PROVISIONING_FAILED")
         .map((num) => ({ number: num, label: "Main Line" }));
 

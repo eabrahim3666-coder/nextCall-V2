@@ -470,6 +470,8 @@ from: "Next Call Chat <support@getnextcall.com>",
     const errMsg = error instanceof Error ? error.message : String(error);
     const errStack = error instanceof Error ? error.stack : "";
     console.error("Call-ended webhook error:", errMsg, errStack);
-    return NextResponse.json({ error: "Internal Server Error", detail: errMsg }, { status: 500 });
+    // Raw exception details stay server-side (console.error above) — never in
+    // the webhook response.
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

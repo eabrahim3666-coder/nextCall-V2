@@ -146,7 +146,7 @@ export async function GET() {
         contactFirstName: user?.firstName || "",
         contactLastName: user?.lastName || "",
         country: "US",
-        tollfreeNumber: record?.sms_tollfree_number || business.twilio_number || null,
+        tollfreeNumber: record?.sms_tollfree_number || business.telnyx_number || business.twilio_number || null,
         suggestedUseCaseSummary:
           `We use an AI receptionist over text: booking and reminding customers about appointments, replying to their questions, following up after missed calls, and asking for reviews after completed work.`,
         suggestedSampleMessage:

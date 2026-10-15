@@ -155,7 +155,13 @@ export default async function AdminDashboard() {
         const serialized = allBusinesses.map((b: any) => {
             const plan = b.plan_type || b.plan || undefined;
             const minutes = b.total_minutes_used || 0;
-            const phoneCount = b.twilio_number ? 1 : 0;
+            const adminNumbers = (Array.isArray(b.telnyx_numbers) && b.telnyx_numbers.length > 0
+                ? b.telnyx_numbers
+                : Array.isArray(b.twilio_numbers) && b.twilio_numbers.length > 0
+                    ? b.twilio_numbers
+                    : [b.telnyx_number || b.twilio_number])
+                .filter((n: unknown): n is string => Boolean(n) && n !== "PROVISIONING_FAILED");
+            const phoneCount = adminNumbers.length;
             const allTime = allTimeMsgs.get(b.business_id) || { sms: 0, whatsapp: 0 };
 
             const cost = computeUsageCost({ // OVERALL / all-time
@@ -220,7 +226,7 @@ export default async function AdminDashboard() {
                 google_refresh_token: b.google_refresh_token ? "Connected" : undefined, // Mask sensitive tokens!
                 referral_code: b.referral_code || undefined,
                 bonus_minutes: b.bonus_minutes || undefined,
-                twilio_number: b.twilio_number || undefined,
+                twilio_number: b.telnyx_number || b.twilio_number || undefined,
                 cost: { ...cost, rates, smsCount: allTime.sms, whatsappCount: allTime.whatsapp, phoneCount },
                 monthCost: { ...monthCost, smsCount: curM.sms, whatsappCount: curM.whatsapp },
                 monthly: monthlyEntries,
